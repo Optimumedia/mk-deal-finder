@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import logging
 import sys
 import tomllib
@@ -16,7 +17,7 @@ from pathlib import Path
 
 import requests
 
-from . import export, feedback, notify, rating
+from . import clean, export, feedback, needs_info, notify, places, rating
 from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
@@ -32,6 +33,10 @@ log = logging.getLogger("scraper")
 
 
 # ----------------------------------------------------------------- normalise
+# 1111, 9999, 11111111, 1234, 123456 … — typed to get past the form, not prices.
+_PLACEHOLDER = re.compile(r"^(\d)\1{3,}$|^9{3,}$|^1234(5(6(7(8)?)?)?)?$")
+
+
 def price_and_deal(raw, kind: str, area, title: str, desc: str = "") -> tuple[float | None, str | None, str]:
     """Return (price, price_note, deal), sorting out how the price is meant.
 
@@ -41,7 +46,7 @@ def price_and_deal(raw, kind: str, area, title: str, desc: str = "") -> tuple[fl
     text = f"{title} {desc}"
     if raw is None:
         return None, None, classify_deal(title, desc, None, kind)
-    if raw < 15:
+    if raw < 15 or _PLACEHOLDER.match(f"{raw:.0f}"):
         return None, "placeholder", classify_deal(title, desc, None, kind)
     if kind == "land":
         if raw < 400 or (raw < 3000 and mentions_price_per_m2(text)):
@@ -73,6 +78,11 @@ def detail_update(listing: dict, d: dict) -> dict:
     text = "\n".join(filter(None, [title, desc, d.get("address")]))
     fields = d.get("fields") or {}
     area = d.get("area_m2") or listing.get("area_m2")
+    # "116 m² (35 m² inside + 81 m² terrace)": the interior is what's worth money.
+    m = re.search(r"(?:vnatres[a-z]*|stanben[a-z]*|neto|korisn[a-z]*) (?:prostor|povrsin[a-z]*)[^0-9]{0,15}(\d+)",
+                  norm(desc))
+    if m and area and 0.35 * area <= float(m.group(1)) < 0.95 * area:
+        area = float(m.group(1))
     raw = d.get("price_eur") if d.get("price_eur") is not None else listing.get("price_eur")
     price, note, deal = price_and_deal(raw, listing["kind"], area, title, desc)
     upd = {
@@ -200,7 +210,9 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
     if l["kind"] == "apartment" and l["deal"] == "short_term" and l.get("city") == cfg["airbnb"]["city"]:
         p = max(p, 1.5)   # real nightly prices calibrate the Airbnb researcher
     if l["kind"] == "land" and l["deal"] == "sale":
-        p = max(p, 3 if (l.get("city") in cfg["land"]["cities"] or land_kw.any(title)) else 0.5)
+        in_region = l.get("city") in cfg["land"]["cities"] or land_kw.any(title)
+        # Land cards carry no area or utilities — the detail page is everything.
+        p = max(p, (3.5 if l.get("price_eur") else 2.5) if in_region else 0.5)
     if l["kind"] in ("apartment", "house", "weekend_house") and l["deal"] == "sale":
         v = ppm2(l)
         ref, _, _ = market.reference(l["kind"], "sale", l.get("city"), l.get("district"))
@@ -220,8 +232,9 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
     queue = [(detail_priority(l, cfg, market, land_kw, urgent_kw), l) for l in db.pending_details()]
     max_age = cfg["scraper"]["max_listing_age_days"]
     queue = [x for x in queue if x[0] > 0 and days_listed(x[1]) <= max_age]
-    queue.sort(key=lambda x: x[1]["first_seen"], reverse=True)   # newest first...
-    queue.sort(key=lambda x: -x[0])                               # ...within each priority
+    # Highest priority first; within a priority the most recently posted ads
+    # (first_seen is misleading on a backfill: later pages = older ads).
+    queue.sort(key=lambda x: (-x[0], days_listed(x[1])))
     log.info("detail queue: %d listings worth reading, budget %d", len(queue), budget)
     done = 0
     for _, l in queue[:budget]:
@@ -245,18 +258,30 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
 # ----------------------------------------------------------------- analysis
 def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     m = cfg["market"]
-    market = Market(db.market_rows(m["window_days"]), m["min_samples_district"], m["min_samples_city"],
-                    m["min_samples_national"])
+    rows = db.market_rows(m["window_days"])
+    places.fix_districts(rows)
+    market = Market(clean.dedupe(rows), m["min_samples_district"], m["min_samples_city"], m["min_samples_national"])
     max_age = cfg["scraper"]["max_listing_age_days"]
     listings = [l for l in db.active(cfg["scraper"]["stale_after_days"])
                 if l["deal"] != "wanted" and (l["deal"] == "auction" or days_listed(l) <= max_age)]
+    clean.add_real_age(listings, cfg["scraper"]["reklama5_ids_per_day"])
+    clean.drop_shared_pins(listings)
+    moved = places.fix_districts(listings)
+    before = len(listings)
+    listings = clean.dedupe(listings)
+    facts, confirmed = feedback.load_overrides()
+    n = feedback.apply_overrides(listings, facts, confirmed)
+    if n or confirmed:
+        log.info("seller info applied to %d listings (%d confirmed by you)", n, len(confirmed))
+    log.info("clean-up: %d districts corrected from titles, %d duplicate ads merged", moved, before - len(listings))
     results = {}
     for r in RESEARCHERS:
         if cfg[r.NAME].get("enabled", True):
             results[r.NAME] = r.run(listings, market, cfg)
             log.info("researcher %-10s %4d deals (%d qualified)", r.NAME, len(results[r.NAME]),
                      sum(1 for x in results[r.NAME] if x["qualified"]))
-    return results, market
+    by_id = {l["id"]: l for l in listings}
+    return needs_info.annotate(results, by_id, cfg), market, by_id
 
 
 def main(argv=None) -> int:
@@ -297,13 +322,14 @@ def main(argv=None) -> int:
             log.exception("run failed — publishing what was collected")
         db.prune(sc["prune_after_days"])
 
-    results, market = analyse(db, cfg)
+    results, market, by_id = analyse(db, cfg)
     db.finish_run(run_id, status=status, pages=stats["pages"], details=details, new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
     votes = feedback.load_votes()
-    public = rating.rate_all(feedback.apply(results, votes, personalize=False))
+    public = needs_info.public(rating.rate_all(feedback.apply(results, votes, personalize=False)))
     export.write(ROOT / "docs" / "data.json", public, market, db, cfg, RESEARCHERS)
-    notify.send(rating.rate_all(feedback.apply(results, votes)), db, cfg, RESEARCHERS)
+    private = feedback.apply(results, votes, rejections=feedback.load_rejections(), listings=by_id)
+    notify.send(rating.rate_all(private), db, cfg, RESEARCHERS)
     if status != "ok":
         notify.send_status(
             f"⚠️ MK Deal Finder run #{run_id} {status.upper()} after {stats['pages']} pages.\n{message}\n\n"

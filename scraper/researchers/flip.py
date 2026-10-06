@@ -6,9 +6,15 @@ of renovation, transaction costs and the resulting profit / ROI.
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from ..market import Market, ppm2, total_price
-from .common import base, clamp, utilities_ok, utilities_status
+from ..places import centar_unconfirmed, other_town
+from .common import base, clamp, text_of, utilities_ok, utilities_status
+
+# Developer price lists ("станови од 45 до 90 m²", "во градба") are not one flat at one price.
+_OFF_PLAN = re.compile(r"станови|stanovi|во градба|vo gradba|vo izgradba|изградба"
+                       r"|\bod \d+.{0,20}\bdo \d+|од \d+.{0,20}до \d+", re.I)
 
 NAME = "flip"
 TITLE = "Fix & flip — under market value"
@@ -29,7 +35,15 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         price, area, unit = total_price(l), l.get("area_m2"), ppm2(l)
         if not price or not unit or area < c["min_area_m2"] or price > c["max_price_eur"]:
             continue
-        ref, samples, level = market.reference(l["kind"], "sale", l.get("city"), l.get("district"))
+        if other_town(l):
+            continue                    # filed under Skopje but it's in Mavrovo, Struga…
+        state = (l.get("fields") or {}).get("Состојба", "")
+        year = _year_built(l)
+        if "градба" in state.lower() or (year and year > date.today().year) or                 (l.get("price_note") == "per_m2" and _OFF_PLAN.search(text_of(l))):
+            continue                    # off-plan / developer price list
+        # "Скопје Центар" with nothing central in the ad is usually the form default.
+        district = None if centar_unconfirmed(l) else l.get("district")
+        ref, samples, level = market.reference(l["kind"], "sale", l.get("city"), district, area)
         # A national median is dominated by Skopje — every small-town flat would
         # look "cheap". Only trust district or city comparables.
         if not ref or level == "national":
@@ -42,7 +56,6 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if not utilities_ok(util, strict=False):
             continue
 
-        year = _year_built(l)
         heavy = bool(l.get("renovation")) or (year is not None and year < 1980)
         reno = area * (c["renovation_heavy_per_m2"] if heavy else c["renovation_light_per_m2"])
         market_value = ref * area
@@ -65,12 +78,13 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             reasons.append(f"or hold & rent: ~{yield_gross:.1%} gross yield")
 
         confidence = {"district": 1.0, "city": 0.75}[level] * clamp(samples / 30, 0.4, 1)
-        score = 100 * clamp(0.5 * clamp(roi / 0.45) + 0.3 * clamp(discount / 0.45) + 0.2 * confidence)
+        score = 100 * clamp(0.5 * clamp(roi / 0.6) + 0.3 * clamp(discount / 0.5) + 0.2 * confidence)
         r = base(l)
         r.update({
             "score": round(score),
             "utilities": util,
-            "qualified": True,
+            # Only trusted once the detail page confirmed size, condition and place.
+            "qualified": bool(l.get("detail_at")),
             "reasons": reasons,
             "metrics": {
                 "Price": round(price),

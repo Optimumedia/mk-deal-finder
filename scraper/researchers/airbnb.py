@@ -6,6 +6,7 @@ and estimate what the same flat would earn on Airbnb / Booking.
 from __future__ import annotations
 
 import math
+import re
 from statistics import median
 
 from ..market import Market, total_price
@@ -38,7 +39,8 @@ def _rooms_key(listing: dict) -> str:
     if not rooms and listing.get("area_m2"):
         a = listing["area_m2"]
         rooms = 1 if a < 42 else 2 if a < 65 else 3 if a < 90 else 4
-    return str(int(clamp(math.floor((rooms or 2) + 0.5), 1, 4)))
+    # Floor, not round: a "3,5 соби" flat earns like a 3-room one.
+    return str(int(clamp(math.floor(rooms or 2), 1, 4)))
 
 
 def calibrate_adr(listings: list[dict], c: dict, hotspots: KeywordSet) -> dict[str, tuple[float, int]]:
@@ -54,17 +56,31 @@ def calibrate_adr(listings: list[dict], c: dict, hotspots: KeywordSet) -> dict[s
     for l in listings:
         if l["kind"] != "apartment" or l["deal"] != "short_term" or l.get("city") != c["city"] or l.get("abroad"):
             continue
+        if _HOURLY.search(" ".join(filter(None, [l.get("title"), l.get("description")]))):
+            continue    # "3 часа", "дневен престој" — priced per few hours, not per night
         p = l.get("price_eur")
         if not p or not (lo <= p <= hi) or l.get("price_note"):
             continue
         factor, _, _ = _location_factor(l, c, hotspots)
         seen.setdefault(_rooms_key(l), []).append(p / (0.75 + 0.25 * factor))
-    k = c["adr_prior_weight"]
+    k, need = c["adr_prior_weight"], c["adr_min_samples"]
     out = {}
     for key, prior in c["adr_by_rooms"].items():
         obs = seen.get(key, [])
-        out[key] = ((len(obs) * median(obs) + k * prior) / (len(obs) + k) if obs else prior, len(obs))
+        if len(obs) < need:
+            out[key] = (prior, len(obs))
+            continue
+        blended = (len(obs) * median(obs) + k * prior) / (len(obs) + k)
+        # Classified per-night ads are the budget end of the market: they may
+        # raise the estimate, never pull it below what a decent listing earns.
+        out[key] = (max(prior, blended), len(obs))
     return out
+
+
+_HOURLY = re.compile(r"\d\s*(?:h|ч|часа|часови|sati|casa|caсa)\b|dneven|дневен|na cas\b|на час\b", re.I)
+# Not a flat to live in: offices, shops, party venues.
+_NOT_A_HOME = re.compile(r"деловен|deloven|канцелар|kancelar|ординац|ordinac|локал|lokal|магацин|magacin"
+                         r"|роденден|rodenden|прослав|proslav|забав|zabav|сала за|sala za", re.I)
 
 
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
@@ -77,6 +93,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             continue
         rent = total_price(l)
         if not rent or not (c["min_rent"] <= rent <= c["max_rent"]):
+            continue
+        if _NOT_A_HOME.search(" ".join(filter(None, [l.get("title"), l.get("description")]))):
             continue
         util = utilities_status(l, urban_assumed=True)
         if not utilities_ok(util, strict=False):
@@ -92,7 +110,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         stays = nights / c["avg_stay_nights"]
         furnished = l.get("furnished")
         furnishing = 0 if furnished else (c["furnishing_cost"] if furnished is False else c["furnishing_cost"] / 2)
-        costs = (gross * c["platform_fee"] + c["utilities_monthly"] + c["cleaning_per_stay"] * stays
+        utilities = c["utilities_monthly"] + c["utilities_per_m2"] * (l.get("area_m2") or 55)
+        cleaning = c["cleaning_per_stay"] * (1.5 if int(rooms_key) >= 3 else 1)
+        costs = (gross * c["platform_fee"] + utilities + cleaning * stays
                  + c["supplies_monthly"] + furnishing / c["furnishing_months"])
         profit = gross - costs - rent
         if profit < c["min_monthly_profit"]:

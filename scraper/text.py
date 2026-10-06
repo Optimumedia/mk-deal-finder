@@ -100,6 +100,14 @@ _WANTED = KeywordSet([
 ])
 
 
+# Strong per-night / event wording that also counts when it's only in the
+# description. ("pogoden za airbnb" alone means *suitable* for it — not counted.)
+_SHORT_TERM_DESC = KeywordSet([
+    "nokevanj", "nocevanj", "po nok", "na nok", "za nok", "dneven prestoj", "na den", "kratok prestoj",
+    "turisticki apartman", "turisticko smestuvanje", "rodenden", "proslav", "zabav",
+])
+
+
 def classify_deal(title: str, desc: str, price_eur: float | None, kind: str) -> str:
     """Return 'sale', 'rent', 'short_term' or 'wanted'."""
     t = norm(title)
@@ -110,7 +118,7 @@ def classify_deal(title: str, desc: str, price_eur: float | None, kind: str) -> 
         return "short_term"
     rent_t, sale_t = _RENT.any(t), _SALE.any(t)
     if rent_t and not sale_t:
-        return "rent"
+        return "short_term" if _SHORT_TERM_DESC.any(norm(desc)) else "rent"
     if sale_t and not rent_t:
         return "sale"
     # Title ambiguous: fall back on the price — nobody rents a flat for €20k/month.
@@ -196,6 +204,7 @@ _ABROAD = KeywordSet([
     "albanija", "albania", "durres", "saranda", "hrvatska", "croatia", "crna gora", "montenegro",
     "turcija", "turkey", "srbija", "serbia", "dubai", "spanija", "italija", "germanija", "avstrija",
     "kosovo", "pristina", "sunny beach", "budva", "tasos", "thassos", "nei pori", "leptokarija",
+    "solun", "thessalon", "sitonij", "sithon", "nea epivates", "perea", "asprovalta", "kalitea", "hanioti",
 ])
 
 
@@ -221,9 +230,11 @@ _UTILITY_WORDS = {
     "road": ["pat", "patot", "pateka", "pateki", "patista", "road", "drum"],
 }
 _ALL_INFRA = KeywordSet([
-    "infrastruktur", "komunalno opremen", "komunalno ureden", "komunalii", "site prikluc",
-    "prikluc", "urbaniziran",
+    "infrastruktur", "komunalno opremen", "komunalno ureden", "komunalii", "site prikluc", "urbaniziran",
 ])
+# "can be connected", "planned", "nearby", "200 m away" — not the same as having it.
+_MAYBE_BEFORE = r"(?:moznost za|moze da se|se ocekuv[a-z]*|planiran[a-z]*|ke ima|ke se|vo izgradba)(?: [a-z0-9]+){0,3} "
+_MAYBE_AFTER = r"(?: [a-z0-9]+){0,3} (?:vo neposredna blizina|vo blizina|nablizu|blizu|na \d+ ?m|do granica)"
 # Place names that contain a utility word but say nothing about utilities.
 _PLACE_NOISE = re.compile(r" (kisela voda|bela voda|studena voda|topla voda|crna voda|patiska|crven pat) ")
 _NEGATORS = r"(?:nema|nemame|bez|pa|nedostasuva)"
@@ -253,10 +264,14 @@ def detect_utilities(text: str) -> dict:
     all_infra = _ALL_INFRA.any(n)
     out = {}
     for key, rx in _UTILITY_RE.items():
+        body = rx.pattern[len("(?<![a-z0-9])"):]
+        conditional = re.search(_MAYBE_BEFORE + body, n) or re.search(body + _MAYBE_AFTER, n)
         # A negator before a run of utility words: "nema struja i voda".
         neg = re.search(r"(?<![a-z0-9])" + _NEGATORS + _LIST_GLUE + " " + rx.pattern[len("(?<![a-z0-9])"):], n)
         if neg:
             out[key] = False
+        elif conditional and len(rx.findall(n)) <= 1:
+            out[key] = None         # only mentioned as possible / nearby — ask the seller
         elif rx.search(n) or all_infra:
             out[key] = True
         else:

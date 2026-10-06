@@ -30,7 +30,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if not (in_city or peaks):
             continue
 
-        ltype = land_type((l.get("fields") or {}).get("Тип на земјиште"), text)
+        ltype = l.get("land_type_confirmed") or land_type((l.get("fields") or {}).get("Тип на земјиште"), text)
         if c["require_building_land"] and ltype != "building":
             continue
         util = utilities_status(l, urban_assumed=False)

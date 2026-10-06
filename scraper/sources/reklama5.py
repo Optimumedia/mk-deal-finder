@@ -28,6 +28,9 @@ CITIES = {1: "Скопје", 2: "Битола", 3: "Куманово", 4: "Пр�
           22: "Виница", 23: "Ресен", 24: "Пробиштип", 25: "Берово", 26: "Кратово", 28: "Крушево",
           29: "Македонски Брод", 30: "Валандово", 34: "Демир Хисар"}
 
+# Coordinates the site fills in when the seller doesn't move the map pin.
+DEFAULT_PINS = [(41.98707, 21.45193)]
+
 KIND_BY_CAT = {159: "apartment", 158: "house", 173: "land", 161: "weekend_house"}
 
 _MONTHS = {"јан": 1, "фев": 2, "мар": 3, "апр": 4, "мај": 5, "јун": 6, "јул": 7, "авг": 8,
@@ -58,6 +61,17 @@ def _posted(text: str, today: date) -> str | None:
         except ValueError:
             return None
     return None
+
+
+def _card_area(specs: str) -> float | None:
+    """House cards read "Парцела: 1300 m² • Изградена: 100 m²" — the house is
+    the built area, never the plot."""
+    m = re.search(r"Изградена:\s*([\d.,]+)\s*m", specs)
+    if m:
+        return parse_area(m.group(1) + " m2")
+    if "Парцела" in specs:
+        return None
+    return parse_area(specs)
 
 
 def parse_list(html: str, cat: int, mkd_per_eur: float = 61.5, today: date | None = None) -> list[dict]:
@@ -111,7 +125,7 @@ def parse_list(html: str, cat: int, mkd_per_eur: float = 61.5, today: date | Non
             "price_eur": price,
             "price_text": price_text,
             "old_price_eur": old_price,
-            "area_m2": parse_area(specs) or parse_area(title),
+            "area_m2": _card_area(specs) or parse_area(title),
             "rooms": parse_rooms(specs),
             "city": city or None,
             "district": district or None,
@@ -146,6 +160,8 @@ def parse_detail(html: str, mkd_per_eur: float = 61.5) -> dict:
         lat, lng = float(m.group(1)), float(m.group(2))
         if not (40.8 <= lat <= 42.4 and 20.4 <= lng <= 23.1):   # outside North Macedonia
             lat = lng = None
+        elif any(abs(lat - a) < 1e-4 and abs(lng - b) < 1e-4 for a, b in DEFAULT_PINS):
+            lat = lng = None        # the form's default pin, not the property
 
     place_el = soup.select_one(".show-map .place")
     city = district = None
@@ -161,7 +177,8 @@ def parse_detail(html: str, mkd_per_eur: float = 61.5) -> dict:
 
     title = clean(title_el.get_text(" ")) if title_el else ""
     area = None
-    for key in ("Површина (m²)", "Квадратура", "Површина"):
+    # Houses: the built area, not the plot ("Површина" is often the plot).
+    for key in ("Изградена површина (m²)", "Изградена површина", "Површина (m²)", "Квадратура", "Површина"):
         if key in fields:
             area = parse_area(fields[key])
             if area:

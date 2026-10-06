@@ -26,6 +26,8 @@ stale_after_days = 10
 # Only ads posted (or renewed) in the last N days count as deals. Older ads are
 # skipped when paging, never get their detail page read, and never alert.
 max_listing_age_days = 30
+# Reklama5 ad numbers grow ~975 a day: used to see through "renewed" old ads.
+reklama5_ids_per_day = 975
 # Delete listings from the database after this many days unseen.
 prune_after_days = 200
 
@@ -58,7 +60,7 @@ city = 0
 window_days = 150
 # Minimum comparables before trusting a district median; otherwise fall back
 # to city median, then to national median for that property type.
-min_samples_district = 8
+min_samples_district = 15
 min_samples_city = 8
 min_samples_national = 15
 # MKD → EUR (denar is pegged to the euro).
@@ -79,10 +81,11 @@ center_lng = 21.4317
 # Average nightly rate (EUR) for a well-presented flat AT THE CENTER,
 # by room count as listed (соби). ⚠ These are starting estimates — calibrate them by
 # checking 10–15 comparable Airbnb/Booking listings for your dates.
-adr_by_rooms = { "1" = 38, "2" = 52, "3" = 68, "4" = 82 }
+adr_by_rooms = { "1" = 40, "2" = 50, "3" = 65, "4" = 80 }
 # These estimates are blended with real Skopje flats advertised per night
 # (стан за ноќевање): weight of the estimate = this many ads' worth.
 adr_prior_weight = 5
+adr_min_samples = 5            # fewer real ads than this → use the estimate as is
 # Ignore per-night ads outside this range (typos, monthly prices).
 observed_adr_range = [15, 250]
 # Occupancy at the center; both ADR and occupancy decay with distance.
@@ -91,7 +94,8 @@ occupancy_center = 0.62
 decay_per_km = 0.93
 decay_floor = 0.45
 platform_fee = 0.15        # Airbnb/Booking host fee + payment costs
-utilities_monthly = 110    # electricity, heating, water, internet, TV
+utilities_monthly = 40     # internet, TV, fixed fees
+utilities_per_m2 = 1.5     # electricity, heating, water scale with size
 cleaning_per_stay = 12
 avg_stay_nights = 2.6
 supplies_monthly = 35      # linen, toiletries, coffee
@@ -146,8 +150,9 @@ enabled = true
 min_price_drop = 0.05
 max_believable_drop = 0.5   # bigger "cuts" are typos or a switch to €/m²
 min_price_eur = 5000
-stale_listing_days = 21   # must stay below max_listing_age_days
-urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent", "povolno", "поволно", "можност за договор", "договорлива", "dogovorliva"]
+stale_listing_days = 60   # judged by the ad number's real age, so renewals don't hide it
+urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent"]
+# ("поволно" / "договорлива" were dropped: standard agency wording, no signal.)
 
 # ----------------------------------------------------------------------------
 #  Researcher 5 — Bailiff auctions (KIRSM register of enforcement sales)
@@ -163,6 +168,9 @@ max_premium = 0.30             # hide sales starting >30% above the city median
 include_partial_shares = false
 
 [notify]
+# "❓ Needs info" leads (promising, but facts to check with the seller):
+needs_info_min_score = 45
+max_needs_info_per_run = 5
 # Telegram alerts are optional and free. Set TELEGRAM_BOT_TOKEN and
 # TELEGRAM_CHAT_ID as GitHub secrets (see README). Leave empty to disable.
 max_items_per_researcher = 5

@@ -63,12 +63,21 @@ def api(method: str, _timeout: float = 40, **params) -> dict | list | None:
     return body["result"]
 
 
-def vote_buttons(researcher: str, listing_id: str, chosen: str | None = None) -> dict:
-    """Inline keyboard; callback data is 'v|<up|dn>|<researcher>|<listing id>' (< 64 bytes)."""
+def vote_buttons(researcher: str, listing_id: str, chosen: str | None = None, needs_info: bool = False) -> dict:
+    """Inline keyboard; callback data is 'v|<up|dn|ok>|<researcher>|<listing id>' (< 64 bytes).
+
+    Needs-info leads get ✅ Fits (you checked with the seller) / ❌ Not a fit.
+    """
     def btn(vote, label):
         mark = " ✓" if vote == chosen else ""
         return {"text": label + mark, "callback_data": f"v|{vote}|{researcher}|{listing_id}"}
+    if needs_info:
+        return {"inline_keyboard": [[btn("ok", "✅ Fits — confirmed"), btn("dn", "❌ Not a fit")]]}
     return {"inline_keyboard": [[btn("up", "👍 Interested"), btn("dn", "👎 Not for me")]]}
+
+
+REPLY_HINT = ("✍️ Reply to this message with what the seller told you, e.g.\n"
+              "<code>water yes, power yes, road no, area 450, price 32000, building yes</code>")
 
 
 def format_deal(item: dict, researcher_title: str = "", researcher: str = "") -> str:
@@ -79,39 +88,80 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
     if researcher_title:
         lines.append(f"{ICON.get(researcher, '🏠')} <i>{html.escape(researcher_title)}</i>")
     r = item.get("rating")
+    head = f"<b>{r['emoji']} {html.escape(r['label'])}</b> · score {item['score']}" if r else f"<b>{item['score']}</b>"
+    if item.get("status") == "needs_info":
+        head = "❓ <b>Needs info</b> · " + head
+    elif item.get("status") == "confirmed":
+        head = "✅ <b>Confirmed by you</b> · " + head
     lines += [
-        (f"<b>{r['emoji']} {html.escape(r['label'])}</b> · score {item['score']}" if r else f"<b>{item['score']}</b>"),
+        head,
         f"<a href=\"{item['url']}\">{html.escape(item['title'] or 'listing')}</a>",
         html.escape(where),
         " · ".join(f"{html.escape(k)}: {html.escape(str(v))}" for k, v in top),
     ]
     if item.get("reasons"):
         lines.append("↳ " + html.escape("; ".join(item["reasons"][:3])))
+    if item.get("status") == "needs_info" and item.get("questions"):
+        who = "Check the official notice or ask the bailiff:" if researcher == "auctions" else "Ask the seller:"
+        lines.append(f"\n<b>{who}</b>")
+        lines += [f"• {html.escape(q)}" for q in item["questions"]]
+        lines.append("\n" + REPLY_HINT)
+    if item.get("owner_note"):
+        lines.append(f"📝 Your note: {html.escape(item['owner_note'])}")
     return "\n".join(lines)
 
 
+def _post(chat, item, researcher, title, fb_conn) -> bool:
+    res = api("sendMessage", chat_id=chat, text=format_deal(item, title, researcher)[:4000], parse_mode="HTML",
+              disable_web_page_preview="true",
+              reply_markup=vote_buttons(researcher, item["id"], needs_info=item.get("status") == "needs_info"))
+    if res and fb_conn is not None:
+        from . import feedback
+        feedback.remember_message(fb_conn, res["message_id"], item["id"], researcher)
+    time.sleep(0.4)        # stay well under Telegram's rate limit
+    return bool(res)
+
+
 def send(results: dict, db, cfg: dict, researchers) -> int:
-    """Send new qualified deals above the score threshold; each deal only once."""
+    """Send new deals above the score threshold, plus a few ❓ needs-info leads; each only once."""
     if not configured():
         return 0
+    from . import feedback
     chat = os.environ["TELEGRAM_CHAT_ID"]
-    n_max, min_score = cfg["notify"]["max_items_per_researcher"], cfg["notify"]["min_score"]
-    sent = 0
+    n = cfg["notify"]
+    fb = feedback.connect()
+    sent = asked = 0
     for r in researchers:
-        fresh = [x for x in results.get(r.NAME, [])
-                 if x["qualified"] and x["score"] >= min_score and not db.was_notified(x["id"], r.NAME)][:n_max]
+        title = r.TITLE.split(" — ")[0]
+        items = results.get(r.NAME, [])
+        fresh = [x for x in items if x["qualified"] and x.get("status") != "needs_info"
+                 and x["score"] >= n["min_score"] and not db.was_notified(x["id"], r.NAME)][:n["max_items_per_researcher"]]
         for x in fresh:
-            ok = api("sendMessage", chat_id=chat, text=format_deal(x, r.TITLE.split(" — ")[0], r.NAME)[:4000],
-                     parse_mode="HTML", disable_web_page_preview="true", reply_markup=vote_buttons(r.NAME, x["id"]))
-            if ok:
+            if _post(chat, x, r.NAME, title, fb):
                 db.mark_notified(x["id"], r.NAME)
                 sent += 1
-            time.sleep(0.4)        # stay well under Telegram's rate limit
+    # Needs-info leads: best first across researchers, a few per run.
+    leads = sorted(((x, r) for r in researchers for x in results.get(r.NAME, [])
+                    if x.get("status") == "needs_info" and x["score"] >= n["needs_info_min_score"]
+                    and not db.was_notified(x["id"], "ask:" + r.NAME)),
+                   key=lambda p: -p[0]["score"])
+    seen = set()
+    for x, r in leads:
+        if asked >= n["max_needs_info_per_run"]:
+            break
+        if x["id"] in seen:
+            continue
+        seen.add(x["id"])
+        if _post(chat, x, r.NAME, r.TITLE.split(" — ")[0], fb):
+            db.mark_notified(x["id"], "ask:" + r.NAME)
+            asked += 1
     db.conn.commit()
-    if sent and os.environ.get("DASHBOARD_URL"):
+    fb.close()
+    if (sent or asked) and os.environ.get("DASHBOARD_URL"):
+        parts = [f"{sent} new deal{'s' if sent != 1 else ''}"] + ([f"{asked} to check with sellers ❓"] if asked else [])
         api("sendMessage", chat_id=chat, parse_mode="HTML", disable_web_page_preview="true",
-            text=f"{sent} new deal{'s' if sent != 1 else ''} · <a href=\"{os.environ['DASHBOARD_URL']}\">open dashboard</a>")
-    return sent
+            text=" · ".join(parts) + f" · <a href=\"{os.environ['DASHBOARD_URL']}\">open dashboard</a>")
+    return sent + asked
 
 
 def send_status(text: str) -> None:

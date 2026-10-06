@@ -145,11 +145,17 @@ class DB:
             """UPDATE listings SET last_seen=?, title=COALESCE(?, title), image=COALESCE(?, image),
                    promoted=?, site_old_price=COALESCE(?, site_old_price),
                    price_eur=CASE WHEN ? THEN ? ELSE price_eur END,
-                   area_m2=CASE WHEN ? THEN area_m2 ELSE COALESCE(?, area_m2) END
+                   area_m2=CASE WHEN ? THEN area_m2 ELSE ? END,
+                   price_note=CASE WHEN ? THEN price_note ELSE ? END,
+                   deal=CASE WHEN ? THEN deal ELSE ? END,
+                   posted=COALESCE(?, posted)
                WHERE id=?""",
+            # Until a detail page is read, re-apply today's card parsing so parser
+            # fixes reach listings stored earlier (plot vs house size, placeholders).
             (ts, card["title"] if not detailed else None, card["image"], int(card["promoted"]),
              card.get("old_price_eur"), changed or old["price_eur"] is None, card["price_eur"],
-             detailed, card["area_m2"], lid),
+             detailed, card["area_m2"], detailed, card.get("price_note"), detailed, card["deal"],
+             card.get("posted"), lid),
         )
         if changed:
             self._history(lid, ts, card["price_eur"])
@@ -177,7 +183,8 @@ class DB:
 
     def market_rows(self, window_days: float) -> list[dict]:
         rows = self.conn.execute(
-            """SELECT kind, deal, city, district, price_eur, area_m2 FROM listings
+            """SELECT id, source, source_id, kind, deal, city, district, price_eur, price_note, area_m2, title,
+                      image, detail_at FROM listings
                WHERE last_seen >= ? AND price_eur IS NOT NULL AND area_m2 IS NOT NULL AND abroad = 0
                  AND deal != 'auction'
                  AND COALESCE(price_note, '') != 'placeholder'""",

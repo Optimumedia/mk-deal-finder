@@ -6,7 +6,7 @@
     👍 Good deal            score ≥ 55
     👀 Worth a look         below 55
 
-Solid evidence = detail page read, no ⚠ warnings, utilities confirmed where
+Solid evidence = detail page read, no open questions (❓ needs info), no ⚠ warnings, utilities confirmed where
 the researcher requires it, and a local (district/city) market comparison
 where the deal depends on one. A parsing glitch must never be called a
 once-in-a-lifetime deal.
@@ -28,6 +28,8 @@ NEEDS_MARKET = {"land", "flip", "auctions"}
 def _evidence_ok(item: dict, researcher: str) -> bool:
     if not item.get("qualified", True) or not item.get("has_details", True):
         return False
+    if item.get("status") in ("needs_info", "pending"):
+        return False            # open questions: can't be "once in a lifetime" yet
     if any("⚠" in r for r in item.get("reasons", [])):
         return False
     if researcher in NEEDS_MARKET and not (item.get("metrics") or {}).get("Below market"):

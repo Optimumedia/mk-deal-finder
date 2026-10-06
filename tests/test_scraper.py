@@ -102,7 +102,8 @@ class Reklama5Tests(unittest.TestCase):
         self.assertEqual(d["price_eur"], 105000)
         self.assertEqual(d["area_m2"], 81)
         self.assertEqual(d["rooms"], 4)
-        self.assertAlmostEqual(d["lat"], 41.987, places=2)
+        # The seller left the form's default pin (east Skopje) for a flat in Тафталиџе (west).
+        self.assertIsNone(d["lat"])
         self.assertIn("Тафталиџе", d["description"])
         self.assertEqual(d["fields"]["Година на градба"], "2014")
 
@@ -160,14 +161,19 @@ class AirbnbCalibrationTests(unittest.TestCase):
         from scraper.researchers.airbnb import calibrate_adr
         from scraper.text import KeywordSet
         c = tomllib.loads((Path(__file__).parent.parent / "config.toml").read_text(encoding="utf-8"))["airbnb"]
-        ads = [{"kind": "apartment", "deal": "short_term", "city": "Скопје", "district": "Скопје Центар",
-                "price_eur": 30.0, "rooms": 2.0, "lat": c["center_lat"], "lng": c["center_lng"]}] * 5
-        table = calibrate_adr(ads, c, KeywordSet([]))
-        prior = c["adr_by_rooms"]["2"]
-        adr, n = table["2"]
-        self.assertEqual(n, 5)
-        self.assertAlmostEqual(adr, (5 * 30 + c["adr_prior_weight"] * prior) / (5 + c["adr_prior_weight"]))
-        self.assertEqual(table["3"], (c["adr_by_rooms"]["3"], 0))   # no data → estimate unchanged
+        ad = lambda p, title="Стан за ноќевање": {"kind": "apartment", "deal": "short_term", "city": "Скопје",
+                                                   "district": "Скопје Центар", "price_eur": p, "rooms": 2.0,
+                                                   "title": title, "lat": c["center_lat"], "lng": c["center_lng"]}
+        prior, k = c["adr_by_rooms"]["2"], c["adr_prior_weight"]
+        # Higher real prices raise the estimate (blended).
+        adr, n = calibrate_adr([ad(90.0)] * 6, c, KeywordSet([]))["2"]
+        self.assertEqual(n, 6)
+        self.assertAlmostEqual(adr, (6 * 90 + k * prior) / (6 + k))
+        # Budget ads never pull it below the estimate; hourly ads are ignored.
+        self.assertEqual(calibrate_adr([ad(20.0)] * 6, c, KeywordSet([]))["2"][0], prior)
+        self.assertEqual(calibrate_adr([ad(90.0, "Стан 3 часа")] * 6, c, KeywordSet([]))["2"], (prior, 0))
+        # Too few ads → estimate unchanged.
+        self.assertEqual(calibrate_adr([ad(90.0)] * 2, c, KeywordSet([]))["2"][0], prior)
 
 
 class KirsmTests(unittest.TestCase):
@@ -211,6 +217,7 @@ class RatingTests(unittest.TestCase):
         self.assertEqual(rate(self.item(95, metrics={}), "flip")["tier"], "great")
         self.assertEqual(rate(self.item(95, qualified=False), "land")["tier"], "good")
         self.assertEqual(rate(self.item(95, metrics={}), "airbnb")["tier"], "once")
+        self.assertEqual(rate(self.item(95, status="needs_info"), "auctions")["tier"], "great")
 
     def test_sorted_best_first(self):
         from scraper.rating import rate_all
