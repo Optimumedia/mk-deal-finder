@@ -28,8 +28,8 @@ Founder:
 Today's research lenses:
 {lenses}
 
-Search the web for signals from roughly the last 60 days that fit these lenses. Return 8 to 12 signals as a \
-Markdown list. For each signal give:
+Search the web for signals from roughly the last 60 days that fit these lenses, using at most {max_searches} \
+searches. Return 8 to 12 signals as a Markdown list. For each signal give:
 - **Signal**: what happened or what people are asking for, specific, with numbers where you have them
 - **Opening**: who now has a problem or a budget, and what they pay for it today
 - **Source**: the URL and its date

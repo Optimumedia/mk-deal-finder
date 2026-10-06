@@ -21,26 +21,20 @@ min_annual_profit_eur = 10000      # the realistic upper estimate must reach thi
 min_automation_pct = 40            # share of recurring work Claude can do
 
 [run]
-model = "claude-opus-5-5"
-# Server-side refusal fallback: if the model declines, the API reruns the
-# request on another model inside the same call. Set false to switch it off.
-refusal_fallback = true
+# Runs on Claude Code with your Claude subscription: $0 extra, it uses part of
+# your plan's usage limits. "opus" gives the best ideas; "sonnet" uses less of
+# your limits. fallback_model is used if the first one is overloaded.
+model = "opus"
+fallback_model = "sonnet"
 research_effort = "medium"         # low | medium | high | xhigh | max
 ideate_effort = "high"
-max_web_searches = 10              # cap per API request, $10 per 1,000 searches
+max_web_searches = 10              # asked of Claude in the research prompt
+timeout_minutes = 25               # per Claude Code call
 candidates_per_run = 10            # Claude writes this many ...
 send_per_run = 5                   # ... you get the best this many (one is a wildcard after 5 ratings)
 keep_candidates_days = 14          # unsent ideas compete again for this long
 max_per_category = 2               # variety in each daily batch
 exploration = 0.6                  # 0 = only send what you liked before; higher = try more new kinds
-
-# Estimated cost per run, shown in Telegram. Claude Opus 5.5 list prices (USD).
-[prices]
-input_per_mtok = 4.0
-output_per_mtok = 20.0
-cache_write_per_mtok = 5.0
-cache_read_per_mtok = 0.2
-web_search_per_1000 = 10.0
 
 # Research lenses: each day the run picks two. One is the lens whose ideas you
 # rated best so far, the other one you've seen least. Add your own.

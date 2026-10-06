@@ -1,5 +1,6 @@
 # Daily business-idea run on this PC. Scheduled by setup_ideas.ps1. Log: data\ideas-run.log
 # Ideas and ratings stay on this PC (data\ideas.db, git-ignored); nothing is pushed.
+# Uses Claude Code with your Claude subscription: $0 extra, no API key.
 param([string]$Python = "python")
 
 $ErrorActionPreference = "Continue"
@@ -7,8 +8,8 @@ Set-Location $PSScriptRoot
 $env:PYTHONIOENCODING = "utf-8"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 New-Item -ItemType Directory -Force "data" | Out-Null
-# Telegram (setup_telegram.ps1) and Anthropic API key (setup_ideas.ps1), both git-ignored.
-foreach ($f in @(".telegram", ".anthropic")) {
+# Telegram settings (setup_telegram.ps1) and this PC's Claude Code path (setup_ideas.ps1), both git-ignored.
+foreach ($f in @(".telegram", ".ideas")) {
     if (Test-Path $f) {
         Get-Content $f | ForEach-Object {
             if ($_ -match '^\s*([A-Z_]+)\s*=\s*(.+?)\s*$') { Set-Item -Path "env:$($Matches[1])" -Value $Matches[2] }

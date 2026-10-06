@@ -6,7 +6,7 @@
 
 1. fit the taste model on every rating so far        (ideas/learn.py)
 2. pick two research lenses: best rated + least used
-3. Claude researches today's signals on the web       (ideas/claude.py)
+3. Claude Code researches today's signals on the web  (ideas/claude.py, your subscription)
 4. Claude writes N ideas from them, told your taste
 5. drop ideas outside the filters in ideas.toml, and repeats of earlier ideas
 6. rank today's and recent unsent ideas by the rating you're expected to give
@@ -30,7 +30,7 @@ from . import learn, prompts, store
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "ideas.toml"
-KEY_FILE = ROOT / ".anthropic"
+LOCAL_FILE = ROOT / ".ideas"           # this PC's Claude Code path (setup_ideas.ps1)
 log = logging.getLogger("ideas")
 
 
@@ -103,7 +103,7 @@ def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     sys.stdout.reconfigure(encoding="utf-8")
     notify.load_settings()
-    notify.load_settings(KEY_FILE)
+    notify.load_settings(LOCAL_FILE)
     cfg = load_config()
     run_cfg, filters = cfg["run"], cfg["filters"]
     today = date.today().isoformat()
@@ -114,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
     run_id = store.start_run(conn, today)
     claude = None
     try:
-        from .claude import Claude                 # needs the anthropic package; the bot doesn't
+        from .claude import Claude                 # finds Claude Code; the bot doesn't need it
         claude = Claude(run_cfg)
         rated = store.rated(conn)
         model = learn.Model(rated)
@@ -124,7 +124,7 @@ def main(argv: list[str] | None = None) -> int:
         log.info("lenses: %s · %d ratings so far", ", ".join(lens_names), len(rated))
 
         research, sources = claude.research(today, profile, {n: cfg["lenses"][n] for n in lens_names})
-        log.info("research: %d chars, %d sources, %d searches", len(research), len(sources), claude.usage.searches)
+        log.info("research: %d chars, %d sources", len(research), len(sources))
 
         earlier = store.all_titles(conn)
         raw = claude.ideate(date=today, profile=profile, taste=learn.prompt_brief(rated, model), research=research,
@@ -151,16 +151,15 @@ def main(argv: list[str] | None = None) -> int:
         pool = store.held_since(conn, since)
         batch = learn.pick(pool, model, int(run_cfg["send_per_run"]), float(run_cfg["exploration"]),
                            int(run_cfg["max_per_category"]))
-        cost = claude.usage.cost_usd(cfg["prices"])
-        sent = deliver(conn, batch, model, cost, args.dry_run)
+        sent = deliver(conn, batch, model, args.dry_run)
         store.finish_run(conn, run_id, "ok", lenses=lens_names, candidates=len(raw), kept=kept,
-                         sent=sent, cost_usd=round(cost, 4), sources=sources)
-        log.info("sent %d ideas · estimated cost $%.2f", sent, cost)
+                         sent=sent, sources=sources)
+        log.info("sent %d ideas · $0 spent (subscription; same tokens on the API would be $%.2f)",
+                 sent, claude.usage.list_value_usd)
         return 0
     except Exception as e:                          # report every failure, never die silently
         log.exception("idea run failed")
-        cost = claude.usage.cost_usd(cfg["prices"]) if claude else 0
-        store.finish_run(conn, run_id, "error", cost_usd=round(cost, 4), message=str(e)[:500])
+        store.finish_run(conn, run_id, "error", message=str(e)[:500])
         if not args.dry_run:
             notify.send_status(f"⚠️ Idea Finder: today's run failed: {str(e)[:300]}")
         return 2
@@ -168,7 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         conn.close()
 
 
-def deliver(conn, batch: list[tuple[dict, float, bool]], model: learn.Model, cost: float, dry_run: bool) -> int:
+def deliver(conn, batch: list[tuple[dict, float, bool]], model: learn.Model, dry_run: bool) -> int:
     from . import telegram
     chat = None if dry_run else telegram.chat_id()
     if chat is None:
@@ -187,7 +186,7 @@ def deliver(conn, batch: list[tuple[dict, float, bool]], model: learn.Model, cos
             n += 1
     if n:
         notify.api("sendMessage", chat_id=chat,
-                   text=f"☀️ {n} new business idea{'s' if n != 1 else ''} · run cost ≈ ${cost:.2f}\n"
+                   text=f"☀️ {n} new business idea{'s' if n != 1 else ''} · $0 spent (your Claude plan)\n"
                         "Rate each 1–10. Reply to an idea to say why. /taste shows what I've learned.")
     return n
 

@@ -152,14 +152,15 @@ that return the same fields as `reklama5.py`.
 
 Every morning at 07:45, Claude researches the web for fresh market signals and turns them into business
 ideas that fit your filters (start for at most €5,000, a realistic path to €10k+ profit a year, at least 40%
-of the recurring work done by Claude). The best 5 arrive in the same Telegram bot as the deals, each with
+of the recurring work done by Claude). It costs **$0 extra**: it runs Claude Code on your PC, logged in with
+your Claude subscription. The best 5 arrive in the same Telegram bot as the deals, each with
 **1-10 buttons**. Your ratings train a model that picks and shapes the next day's ideas.
 
 ```
 run_ideas.ps1 (07:45 daily) → python -m ideas.run
   1. fit the taste model on all your ratings            ideas/learn.py
   2. pick 2 research lenses: your best rated + least used  (lenses in ideas.toml)
-  3. Claude searches the web for signals (about 10 searches)  ideas/claude.py
+  3. Claude Code searches the web for signals (claude -p)   ideas/claude.py
   4. Claude writes 10 ideas from them, told your taste, your notes and every earlier title
   5. drop ideas outside the filters and repeats of earlier ideas
   6. rank today's + the last 14 days' unsent ideas by the rating you're expected to give
@@ -184,21 +185,23 @@ ranks them differently.
 **Setup (once, after `setup_telegram.ps1`):**
 1. Edit `[profile]` in [`ideas.toml`](ideas.toml): skills, assets, hours, what to avoid. Claude can only
    fit ideas to what it knows about you. Commit the change, or edit it on the PC.
-2. Run `powershell -ExecutionPolicy Bypass -File setup_ideas.ps1`. It asks for an Anthropic API key
-   (console.anthropic.com → API keys), checks it, saves it to `.anthropic` (git-ignored), registers the
-   daily task, restarts the bot so the rating buttons work, and offers a first run.
+2. Run `powershell -ExecutionPolicy Bypass -File setup_ideas.ps1`. It installs Claude Code if it's missing
+   (the native build from claude.ai), logs you in with your Claude account, refuses to continue if Claude Code
+   is using an API key, runs a test, registers the daily task, restarts the bot so the rating buttons work,
+   and offers a first run.
 
-**Cost.** This part isn't free: it uses the Claude API (Claude Opus 5.5 and web search). Expect very roughly
-$0.30-1.00 a run, about $10-30 a month. Each morning's Telegram summary shows that run's estimated cost.
-Set a monthly limit in the Anthropic console. To spend less, lower `max_web_searches`,
-`candidates_per_run` or the effort settings in `ideas.toml`.
+**Cost: $0.** No API key is used, and API key variables are removed from Claude Code's environment, so a run
+can never be billed per use. It needs a Claude plan that includes Claude Code (Pro or Max) and uses part of that plan's usage
+limits each morning. If a limit is reached, the run fails, you get a Telegram warning, and the next day's
+run tries again (or run `python -m ideas.run --force` later). Set `model = "sonnet"` in `ideas.toml` to use
+less of your limits. The PC must be on and you logged in at 07:45, or the task runs as soon as you log on.
 
 **Privacy.** Ideas, ratings and notes stay in `data/ideas.db` on your PC (git-ignored, never pushed),
 like your deal votes. Back that file up: it holds everything the model has learned.
 
 **Manual commands**
 ```bash
-python -m ideas.run --dry-run   # research + ideas, printed instead of sent
+python -m ideas.run --dry-run   # research + ideas, printed instead of sent (needs Claude Code)
 python -m ideas.run --force     # run again today
 python -m ideas.learn           # same report as /taste
 ```

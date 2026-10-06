@@ -4,6 +4,7 @@ Run:  python -m unittest discover tests
 """
 import json
 import random
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -169,7 +170,7 @@ class SchemaTests(unittest.TestCase):
         prompts.IDEATE_SYSTEM.format(max_cost=5000, min_profit=10000, min_auto=40)
         prompts.IDEATE_TASK.format(date="d", profile="p", taste="t", research="r", lens_names="a", avoid="-",
                                    n=10, max_per_category=2)
-        prompts.RESEARCH_TASK.format(date="d", profile="p", lenses="l")
+        prompts.RESEARCH_TASK.format(date="d", profile="p", lenses="l", max_searches=10)
 
 
 class StoreTelegramTests(TempDB):
@@ -236,108 +237,110 @@ class StoreTelegramTests(TempDB):
         self.assertIn("Highest rated", brief)
 
 
-# --- The Claude calls, against a fake client --------------------------------------------------------------
+# --- The Claude Code calls, against a fake `claude -p` ------------------------------------------------------
 
-def msg(content, stop="end_turn", searches=0):
-    usage = NS(input_tokens=1000, output_tokens=500, cache_creation_input_tokens=0, cache_read_input_tokens=0,
-               server_tool_use=NS(web_search_requests=searches, web_fetch_requests=0))
-    return NS(content=content, stop_reason=stop, usage=usage, stop_details=None)
-
-
-class FakeStream:
-    def __init__(self, m):
-        self.m = m
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *a):
-        return False
-
-    def get_final_message(self):
-        return self.m
+def cli_result(result="", structured=None, subtype="success", is_error=False, cost=0.31):
+    d = {"type": "result", "subtype": subtype, "is_error": is_error, "result": result, "total_cost_usd": cost}
+    if structured is not None:
+        d["structured_output"] = structured
+    return d
 
 
-class FakeClient:
-    def __init__(self, replies):
-        self.replies, self.calls = list(replies), []
-        self.beta = NS(messages=NS(stream=self.stream))
+class FakeRunner:
+    """Stands in for subprocess.run: records each call and returns the queued `claude -p` output."""
+    def __init__(self, *outputs):
+        self.outputs, self.calls = list(outputs), []
 
-    def stream(self, **kw):
-        self.calls.append(kw)
-        r = self.replies.pop(0)
-        if isinstance(r, Exception):
-            raise r
-        return FakeStream(r)
-
-
-def text(t):
-    return NS(type="text", text=t)
-
-
-def search_result(*urls):
-    return NS(type="web_search_tool_result", content=[NS(type="web_search_result", url=u) for u in urls])
+    def __call__(self, args, **kw):
+        self.calls.append((args, kw))
+        out = self.outputs.pop(0)
+        if isinstance(out, Exception):
+            raise out
+        if isinstance(out, dict):
+            return NS(returncode=0, stdout=json.dumps(out).encode(), stderr=b"")
+        return NS(returncode=1, stdout=b"", stderr=out.encode())
 
 
 class ClaudeTests(unittest.TestCase):
-    def claude(self, replies):
+    def claude(self, *outputs):
         from ideas.claude import Claude
-        self.client = FakeClient(replies)
-        return Claude(CFG["run"], client=self.client)
+        self.runner = FakeRunner(*outputs)
+        return Claude(CFG["run"], runner=self.runner, exe="/opt/claude")
 
-    def test_research_resumes_pause_and_collects_sources(self):
-        c = self.claude([msg([search_result("https://a.eu"), text("part 1")], stop="pause_turn", searches=3),
-                         msg([search_result("https://b.eu", "https://a.eu"), text("part 2")], searches=2)])
-        brief, sources = c.research("2026-10-06", "- About: X", {"L": "desc"})
-        self.assertEqual(brief, "part 1\npart 2")
-        self.assertEqual(sources, ["https://a.eu", "https://b.eu"])
-        self.assertEqual(c.usage.searches, 5)
-        first, second = self.client.calls
-        self.assertEqual(first["model"], CFG["run"]["model"])
-        self.assertEqual(first["thinking"], {"type": "adaptive"})
-        self.assertEqual(first["tools"][0]["type"], "web_search_20260209")
-        self.assertEqual(first["fallbacks"], "default")
-        self.assertEqual(second["messages"][-1]["role"], "assistant")      # resumed, no extra user turn
-        self.assertGreater(c.usage.cost_usd(CFG["prices"]), 0)
+    def arg(self, args, flag):
+        return args[args.index(flag) + 1]
 
-    def test_search_error_object_is_ignored(self):
-        err = NS(type="web_search_tool_result", content=NS(type="web_search_tool_result_error", error_code="x"))
-        c = self.claude([msg([err, text("brief")])])
-        self.assertEqual(c.research("d", "p", {"L": ""}), ("brief", []))
+    def test_research_command_and_sources(self):
+        c = self.claude(cli_result("- **Signal**: EAA applies (https://eur-lex.europa.eu/x).\n"
+                                   "- see https://b.eu/y, and https://eur-lex.europa.eu/x"))
+        with mock.patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-ant-secret", "PATH": "/bin"}):
+            brief, sources = c.research("2026-10-06", "- About: X", {"L": "desc"})
+        self.assertIn("EAA applies", brief)
+        self.assertEqual(sources, ["https://eur-lex.europa.eu/x", "https://b.eu/y"])
+        args, kw = self.runner.calls[0]
+        self.assertEqual(args[:2], ["/opt/claude", "-p"])
+        self.assertEqual(self.arg(args, "--output-format"), "json")
+        self.assertEqual(self.arg(args, "--model"), CFG["run"]["model"])
+        self.assertEqual(self.arg(args, "--tools"), "WebSearch,WebFetch")
+        self.assertEqual(self.arg(args, "--allowedTools"), "WebSearch,WebFetch")
+        self.assertNotIn("--json-schema", args)
+        self.assertIn("at most 10", kw["input"].decode())             # the task goes in on stdin
+        self.assertNotIn("ANTHROPIC_API_KEY", kw["env"])              # never bills an API key
+        self.assertEqual(kw["env"]["PATH"], "/bin")
+        self.assertEqual(c.usage.calls, 1)
 
-    def test_ideate_parses_structured_output(self):
-        c = self.claude([msg([NS(type="thinking", thinking=""), text(json.dumps({"ideas": [idea("A")]}))])])
+    def test_ideate_uses_schema_and_no_tools(self):
+        c = self.claude(cli_result('{"ideas": []}', structured={"ideas": [idea("A")]}))
         out = c.ideate(date="d", profile="p", taste="t", research="r", lens_names=["L"], avoid=[], n=1,
                        filters=CFG["filters"], max_per_category=2)
         self.assertEqual(out[0]["title"], "A")
-        call = self.client.calls[0]
-        self.assertEqual(call["output_config"]["format"]["type"], "json_schema")
-        self.assertNotIn("tools", call)
+        args, _ = self.runner.calls[0]
+        self.assertEqual(self.arg(args, "--tools"), "")
+        self.assertNotIn("--allowedTools", args)
+        self.assertEqual(json.loads(self.arg(args, "--json-schema")), prompts.idea_schema(["L"]))
 
-    def test_refusal_and_truncation_raise(self):
+    def test_ideate_falls_back_to_result_text(self):
+        c = self.claude(cli_result(json.dumps({"ideas": [idea("B")]})))
+        self.assertEqual(c.ideate(date="d", profile="p", taste="t", research="r", lens_names=["L"], avoid=[],
+                                  n=1, filters=CFG["filters"], max_per_category=2)[0]["title"], "B")
+
+    def test_errors_are_explained(self):
         from ideas.claude import ClaudeError
-        with self.assertRaises(ClaudeError):
-            self.claude([msg([], stop="refusal")]).research("d", "p", {"L": ""})
-        with self.assertRaises(ClaudeError):
-            self.claude([msg([text('{"ideas": [')], stop="max_tokens")]).ideate(
-                date="d", profile="p", taste="t", research="r", lens_names=["L"], avoid=[], n=1,
-                filters=CFG["filters"], max_per_category=2)
+        cases = [
+            (cli_result("Claude usage limit reached", subtype="error_during_execution", is_error=True), "usage limit"),
+            ("error: unknown option '--effort'", "claude update"),
+            (subprocess.TimeoutExpired("claude", 1), "longer than"),
+            (FileNotFoundError("nope"), "couldn't start"),
+            (cli_result("not json"), "not valid JSON"),
+        ]
+        for out, expect in cases:
+            with self.subTest(expect=expect), self.assertRaises(ClaudeError) as cm:
+                c = self.claude(out)
+                if expect == "not valid JSON":
+                    c.ideate(date="d", profile="p", taste="t", research="r", lens_names=["L"], avoid=[], n=1,
+                             filters=CFG["filters"], max_per_category=2)
+                else:
+                    c.research("d", "p", {"L": ""})
+            self.assertIn(expect, str(cm.exception))
 
-    def test_fallback_rejected_retries_without_it(self):
-        import anthropic
-        import httpx2
-        req = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
-        bad = anthropic.BadRequestError("fallbacks: unknown parameter",
-                                        response=httpx2.Response(400, request=req), body=None)
-        c = self.claude([bad, msg([text("ok")])])
-        self.assertEqual(c.research("d", "p", {"L": ""})[0], "ok")
-        self.assertNotIn("fallbacks", self.client.calls[1])
-        self.assertFalse(c.fallback)
+    def test_find_claude(self):
+        from ideas.claude import ClaudeError, find_claude
+        with tempfile.TemporaryDirectory() as d:
+            exe, wrapper = Path(d) / "claude.exe", Path(d) / "claude.cmd"
+            exe.write_text(""), wrapper.write_text("")
+            self.assertEqual(find_claude(str(exe)), str(exe))
+            with self.assertRaises(ClaudeError) as cm:
+                find_claude(str(wrapper))
+            self.assertIn("native build", str(cm.exception))
+        with mock.patch("shutil.which", return_value=None), mock.patch.object(Path, "home", lambda: Path("/nonexistent")):
+            with self.assertRaises(ClaudeError) as cm:
+                find_claude(None)
+            self.assertIn("isn't installed", str(cm.exception))
 
 
 class FakeClaude:
     def __init__(self, run_cfg):
-        self.usage = NS(searches=4, cost_usd=lambda prices: 0.42)
+        self.usage = NS(calls=2, list_value_usd=0.42)
 
     def research(self, date, profile, lenses):
         self.lenses = list(lenses)
@@ -366,7 +369,7 @@ class RunTests(TempDB):
             self.assertEqual(run.main([]), 0)                      # already ran today: no second batch
         ideas_sent = [kw for m, kw in sent if m == "sendMessage" and "reply_markup" in kw]
         self.assertEqual(len(ideas_sent), CFG["run"]["send_per_run"])
-        self.assertIn("$0.42", sent[-1][1]["text"])
+        self.assertIn("$0 spent", sent[-1][1]["text"])
         r = store.last_runs(self.conn, 1)[0]
         self.assertEqual((r["status"], r["candidates"], r["kept"], r["sent"]), ("ok", 9, 6, 5))
         self.assertEqual(len(store.last_runs(self.conn, 10)), 1)
