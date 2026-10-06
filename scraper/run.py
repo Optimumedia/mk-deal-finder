@@ -20,6 +20,7 @@ from . import export, feedback, notify
 from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
+from .researchers.common import days_listed
 from .researchers import airbnb, flip, land, motivated
 from .sources import reklama5
 from .text import (KeywordSet, classify_deal, redact, detect_furnished, detect_utilities, is_abroad, land_type,
@@ -139,6 +140,11 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
             if not cards or not unseen:
                 break
             seen_in_query |= unseen
+            # Newest first: once a whole page is older than the limit, the rest is too.
+            ages = [days_listed(c) for c in cards if not c["promoted"] and c.get("posted")]
+            if ages and min(ages) > sc["max_listing_age_days"]:
+                break
+            cards = [c for c in cards if not c.get("posted") or days_listed(c) <= sc["max_listing_age_days"]]
             ts = now()
             fresh = 0
             for card in cards:
@@ -181,7 +187,8 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
     land_kw = KeywordSet(cfg["land"]["mountain_keywords"])
     urgent_kw = KeywordSet(cfg["motivated"]["urgent_keywords"])
     queue = [(detail_priority(l, cfg, market, land_kw, urgent_kw), l) for l in db.pending_details()]
-    queue = [x for x in queue if x[0] > 0]
+    max_age = cfg["scraper"]["max_listing_age_days"]
+    queue = [x for x in queue if x[0] > 0 and days_listed(x[1]) <= max_age]
     queue.sort(key=lambda x: x[1]["first_seen"], reverse=True)   # newest first...
     queue.sort(key=lambda x: -x[0])                               # ...within each priority
     log.info("detail queue: %d listings worth reading, budget %d", len(queue), budget)
@@ -209,7 +216,9 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     m = cfg["market"]
     market = Market(db.market_rows(m["window_days"]), m["min_samples_district"], m["min_samples_city"],
                     m["min_samples_national"])
-    listings = [l for l in db.active(cfg["scraper"]["stale_after_days"]) if l["deal"] != "wanted"]
+    max_age = cfg["scraper"]["max_listing_age_days"]
+    listings = [l for l in db.active(cfg["scraper"]["stale_after_days"])
+                if l["deal"] != "wanted" and days_listed(l) <= max_age]
     results = {}
     for r in RESEARCHERS:
         if cfg[r.NAME].get("enabled", True):

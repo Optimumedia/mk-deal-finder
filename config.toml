@@ -23,6 +23,9 @@ detail_budget = 450
 backfill_detail_budget = 1800
 # Listings not seen for this many days are treated as sold/removed.
 stale_after_days = 10
+# Only ads posted (or renewed) in the last N days count as deals. Older ads are
+# skipped when paging, never get their detail page read, and never alert.
+max_listing_age_days = 30
 # Delete listings from the database after this many days unseen.
 prune_after_days = 200
 
@@ -143,7 +146,7 @@ enabled = true
 min_price_drop = 0.05
 max_believable_drop = 0.5   # bigger "cuts" are typos or a switch to €/m²
 min_price_eur = 5000
-stale_listing_days = 45
+stale_listing_days = 21   # must stay below max_listing_age_days
 urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent", "povolno", "поволно", "можност за договор", "договорлива", "dogovorliva"]
 
 [notify]
