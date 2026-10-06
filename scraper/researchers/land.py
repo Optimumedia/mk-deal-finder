@@ -42,7 +42,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         unit = ppm2(l)
         rf = market.reference("land", "sale", l.get("city"), l.get("district"), area)
         ref, samples, level = rf
-        discount = (1 - unit / ref) if (ref and unit) else None
+        # A national median is dominated by plots around Skopje: a village plot would
+        # look "80% below market" just for being in a village. Only compare locally.
+        discount = (1 - unit / ref) if (ref and unit and level != "national") else None
         if discount is not None and discount > 0:
             reasons.append(f"{discount:.0%} below the {rf.describe('land')} ({ref:.0f} €/m², {samples} listings)")
         if peaks:
@@ -80,8 +82,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "€/m²": round(unit, 1) if unit else None,
                 "Area median €/m²": round(ref, 1) if ref else None,
                 "Below market": f"{discount:.0%}" if discount is not None else None,
-                "Compared against": (f"{samples} plots {rf.band or 'of all sizes'} ({level})" if level
-                                     else "not enough data yet"),
+                "Compared against": (f"{samples} plots {rf.band or 'of all sizes'} ({level})"
+                                     if level and level != "national"
+                                     else "too few comparable plots nearby to judge the price"),
                 "Land type": {"building": "Building", "agricultural": "Agricultural"}.get(ltype, "Unknown"),
                 "Region": "Mountain" if peaks else l.get("city"),
             },

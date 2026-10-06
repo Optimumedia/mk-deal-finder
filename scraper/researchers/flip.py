@@ -16,6 +16,9 @@ from .common import base, clamp, text_of, utilities_ok, utilities_status
 _OFF_PLAN = re.compile(r"станови|stanovi|во градба|vo gradba|vo izgradba|изградба"
                        r"|\bod \d+.{0,20}\bdo \d+|од \d+.{0,20}до \d+", re.I)
 
+_UNDER_CONSTRUCTION = re.compile(r"во градба|vo gradba|vo izgradba|во изградба|недовршен|nedovrsen", re.I)
+_BASEMENT = re.compile(r"suteren|сутерен|polupodrum|полуподрум|подрумски стан|podrumski stan", re.I)
+
 NAME = "flip"
 TITLE = "Fix & flip — under market value"
 
@@ -53,8 +56,10 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             continue                    # filed under Skopje but it's in Mavrovo, Struga…
         state = (l.get("fields") or {}).get("Состојба", "")
         year = _year_built(l)
-        if "градба" in state.lower() or (year and year > date.today().year) or                 (l.get("price_note") == "per_m2" and _OFF_PLAN.search(text_of(l))):
-            continue                    # off-plan / developer price list
+        if ("градба" in state.lower() or (year and year > date.today().year)
+                or _UNDER_CONSTRUCTION.search(text_of(l))
+                or (l.get("price_note") == "per_m2" and _OFF_PLAN.search(text_of(l)))):
+            continue                    # off-plan / still being built / developer price list
         # "Скопје Центар" with nothing central in the ad is usually the form default.
         district = None if centar_unconfirmed(l) else l.get("district")
         rf = market.reference(l["kind"], "sale", l.get("city"), district, area)
@@ -84,6 +89,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         reasons = [f"{discount:.0%} below the {rf.describe(l['kind'])} ({ref:.0f} €/m², {samples} listings)"]
         if heavy:
             reasons.append("needs renovation" + (f" (built {year})" if year else ""))
+        if _BASEMENT.search(text_of(l)):
+            reasons.append("⚠ basement / semi-basement — sells at a big discount, resale is harder")
         if l.get("site_old_price") and l["site_old_price"] > price:
             reasons.append(f"price already cut from {l['site_old_price']:,.0f} €")
 
