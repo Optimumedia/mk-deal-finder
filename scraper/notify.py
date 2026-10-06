@@ -14,9 +14,14 @@ import requests
 log = logging.getLogger(__name__)
 
 
+# The numbers worth seeing on a phone, per researcher (first ones present win).
+HEADLINE = ["Est. profit / month", "Rent / month", "Payback (months)", "Price", "Price now", "Area (m²)",
+            "€/m²", "Below market", "Est. profit", "ROI", "Price cut", "Land type"]
+
+
 def _fmt(item: dict) -> str:
     m = {k: v for k, v in item["metrics"].items() if v is not None}
-    top = list(m.items())[:4]
+    top = [(k, m[k]) for k in HEADLINE if k in m][:5] or list(m.items())[:4]
     where = " / ".join(x for x in (item.get("city"), item.get("district")) if x)
     lines = [
         f"<b>{item['score']}</b> · <a href=\"{item['url']}\">{html.escape(item['title'] or 'listing')}</a>",

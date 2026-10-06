@@ -55,16 +55,14 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
 3. Start a run right away: `Start-ScheduledTask "MK Deal Finder - morning"`.
    The first run reads about 2,300 pages slowly and politely, so it takes about 2 hours.
    After that, runs take about 45 minutes (morning) and 10 minutes (evening).
-4. **Telegram alerts (optional, free):**
-   - Message [@BotFather](https://t.me/BotFather) → `/newbot` and copy the token.
-   - Send your bot any message, then open `https://api.telegram.org/bot<TOKEN>/getUpdates`
-     and copy `chat.id`.
-   - Store them as Windows user environment variables (the scheduled tasks pick them up):
-     ```powershell
-     setx TELEGRAM_BOT_TOKEN "<token>"
-     setx TELEGRAM_CHAT_ID "<chat id>"
-     setx DASHBOARD_URL "https://optimumedia.github.io/mk-deal-finder/"
-     ```
+4. **Telegram alerts (optional, free):** run
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File setup_telegram.ps1
+   ```
+   It walks you through creating a bot with @BotFather, finds your chat ID on its own,
+   saves both to `.telegram` (git-ignored, never pushed) and sends a test message.
+   After each run you get the new deals scoring at least 60 (`[notify]` in `config.toml`),
+   up to 5 per researcher. Each deal is sent only once.
 
 To stop it: `Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false`
 
