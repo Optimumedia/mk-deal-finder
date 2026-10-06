@@ -228,3 +228,25 @@ class RatingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HouseAreaRegressionTests(unittest.TestCase):
+    """Owner report (reklama5 ad 5564779): a 168 m² house on a 600 m² plot was valued as 600 m²."""
+
+    def test_card_uses_built_area_not_plot(self):
+        from scraper.sources.reklama5 import _card_area
+        self.assertEqual(_card_area("Парцела: 600 m² • Изградена: 168 m² • 4 соби"), 168)
+        self.assertIsNone(_card_area("Парцела: 600 m²"))          # unknown beats wrong
+
+    def test_description_beats_plot_sized_area(self):
+        from scraper.run import detail_update
+        listing = {"kind": "house", "title": "СЕ ПРОДАВА КУЌА ВО ВИЗБЕГОВО", "price_eur": 273000, "area_m2": 600}
+        d = {"title": listing["title"], "description": "СЕ ПРОДАВА КУЌА ОД 168М2, ПРИЗЕМЈЕ ПЛУС КАТ",
+             "fields": {"Површина на парцела (m²)": "600 m²"}, "area_m2": 600, "price_eur": 273000}
+        self.assertEqual(detail_update(listing, d)["area_m2"], 168)
+
+    def test_maps_query(self):
+        from scraper import maps
+        self.assertEqual(maps.query({"city": "Тетово", "extra": {"note": "ИЛ бр.416 КО ГРУПЧИН Продажбата"}}),
+                         "Групчин, Тетово, North Macedonia")
+        self.assertIn("41.990000,21.430000", maps.url(41.99, 21.43, None))

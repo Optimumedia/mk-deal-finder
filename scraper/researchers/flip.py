@@ -26,6 +26,20 @@ def _year_built(listing: dict) -> int | None:
     return int(m.group(1)) if m else None
 
 
+def _plot(listing: dict) -> int | None:
+    """Plot size for houses, shown next to the built area so the two can't be confused."""
+    f = listing.get("fields") or {}
+    for k, v in f.items():
+        if "парцела" in k.lower() or "плац" in k.lower():
+            m = re.search(r"\d[\d.,]*", v)
+            if m:
+                try:
+                    return int(float(m.group(0).replace(".", "").replace(",", ".")))
+                except ValueError:
+                    return None
+    return None
+
+
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
     c = cfg["flip"]
     out = []
@@ -98,6 +112,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "ROI": f"{roi:.0%}",
                 "Gross rental yield": f"{yield_gross:.1%}" if yield_gross else None,
                 "Year built": year,
+                "Plot (m²)": _plot(l),
             },
             "sort_value": profit,
         })

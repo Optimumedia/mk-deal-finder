@@ -86,6 +86,13 @@ def detail_update(listing: dict, d: dict) -> dict:
                   norm(desc))
     if m and area and 0.35 * area <= float(m.group(1)) < 0.95 * area:
         area = float(m.group(1))
+    # Houses: "се продава куќа од 168м2" in the text beats a stored number that is
+    # really the plot (600 m²). Only when the stored area is over twice as big.
+    if listing["kind"] in ("house", "weekend_house") and area:
+        hm = re.search(r"(?:kuk[a-z]*|vila|vikendic[a-z]*|objekt[a-z]*)(?: [a-z]+){0,3} "
+                       r"(?:od|so povrsina od|so|povrsina|na) (\d{2,4}) ?(?:m2|m|kv|kvadrat)", norm(desc))
+        if hm and 25 <= float(hm.group(1)) and area > 2 * float(hm.group(1)):
+            area = float(hm.group(1))
     raw = d.get("price_eur") if d.get("price_eur") is not None else listing.get("price_eur")
     price, note, deal = price_and_deal(raw, listing["kind"], area, title, desc)
     upd = {

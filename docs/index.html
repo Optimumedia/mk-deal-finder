@@ -265,6 +265,16 @@ td .utils{flex-wrap:nowrap;gap:4px}
 /* ---------- map ---------- */
 #map{height:min(70vh,640px);border-radius:var(--r-m);border:1px solid var(--line);background:var(--surface-2)}
 .minimap{height:200px;border-radius:var(--r-m);border:1px solid var(--line);background:var(--surface-2)}
+.gmap{display:block;width:100%;height:260px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface-2)}
+.gtools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.gseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.gseg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:5px 12px;cursor:pointer}
+.gseg button[aria-pressed="true"]{background:var(--surface-2);color:var(--ink);font-weight:600}
+.gseg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.glinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.glinks a{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;background:var(--surface)}
+.glinks a:hover{border-color:var(--line-2);background:var(--surface-2)}
+.ghint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
 :root[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
 .leaflet-container{font:inherit}
@@ -1008,7 +1018,7 @@ function openDeal(id, r, push){
     </dl>${!i.has_details && i._r !== "auctions" ? `<p class="also" style="margin:8px 0 0">The full ad page hasn't been read yet — some details (exact location, utilities) may fill in after the next run.</p>` : ""}</div>
     ${groups.map(([t, ks]) => `<div class="dsec" style="padding-top:12px"><div class="mgroup"><h4>${esc(t)}</h4>${ks.map(row).join("")}</div></div>`).join("").replace('<div class="dsec" style="padding-top:12px">', '<div class="dsec"><h3>The numbers</h3>')}
     <div class="dsec"><h3>Utilities</h3><div class="mgroup">${UTIL.map(([k,l]) => { const s = u[k] || "unknown"; return `<div class="urow ${esc(s)}"><span class="ui" aria-hidden="true">${UTIL_MARK[s] || "?"}</span><div><b>${esc(l)}</b><div class="ut">${esc(UTIL_TXT[s] || s)}</div></div></div>`; }).join("")}</div></div>
-    ${hasGeo ? `<div class="dsec"><h3>On the map</h3><div class="minimap" id="minimap" role="img" aria-label="Map showing the property location"></div></div>` : ""}
+    ${gmapSection(i)}
     <div class="dsec"><h3>Before you buy</h3><ul class="check">${c.checklist.map(([t,h], n) => `<li><label><input type="checkbox" data-ck="${n}" ${ck[n] ? "checked" : ""}><span>${esc(t)}<span class="ch">${esc(h)}</span></span></label></li>`).join("")}</ul>
       <p class="also" style="margin:8px 0 0">Ticks are saved in this browser. All numbers are estimates from the ad text — verify before paying any deposit.</p></div>
     ${also.length ? `<div class="dsec"><p class="also">Also flagged by: <b>${esc(also.join(", "))}</b></p></div>` : ""}
@@ -1024,8 +1034,37 @@ function openDeal(id, r, push){
   requestAnimationFrame(() => { sc.classList.add("on"); dr.classList.add("on"); });
   document.body.style.overflow = "hidden"; $("#dBody").scrollTop = 0; $("#dClose").focus({preventScroll:true});
   if (miniMap) { miniMap.remove(); miniMap = null; }
-  if (hasGeo) loadLeaflet().then(() => { const el = $("#minimap"); if (!el || openId !== id) return; miniMap = L.map(el, {scrollWheelZoom:false}).setView([i.lat, i.lng], 15); tiles().addTo(miniMap);
-    L.circleMarker([i.lat, i.lng], {radius:9, color:gcol(i), weight:3, fillOpacity:.6}).addTo(miniMap); setTimeout(() => miniMap && miniMap.invalidateSize(), 250); }).catch(() => {});
+  $$("[data-gt]", $("#dBody")).forEach(b => b.onclick = () => {
+    const f = $("#gmap"); if (!f) return;
+    f.src = gmapEmbed(i, b.dataset.gt);
+    $$("[data-gt]", $("#dBody")).forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    store.set("mkdeal.gtype." + (i.kind === "land" ? "land" : "other"), b.dataset.gt);
+  });
+}
+
+/* ---- Google Maps: free "Maps URLs" + standard embed, no API key ---- */
+const gTarget = i => (i.lat && i.lng) ? `${(+i.lat).toFixed(6)},${(+i.lng).toFixed(6)}` : (i.map_query || "");
+const gExact = i => !!(i.lat && i.lng);
+const gmapEmbed = (i, t) => `https://maps.google.com/maps?q=${encodeURIComponent(gTarget(i))}&t=${t === "k" ? "k" : "m"}&z=${gExact(i) ? 17 : 14}&hl=en&output=embed`;
+function gmapSection(i){
+  const q = gTarget(i);
+  if (!q) return "";
+  // Land is judged from above (roads, buildings, terrain): satellite by default.
+  const t = store.get("mkdeal.gtype." + (i.kind === "land" ? "land" : "other"), i.kind === "land" ? "k" : "m");
+  const enc = encodeURIComponent(q);
+  const links = [
+    `<a href="https://www.google.com/maps/search/?api=1&query=${enc}" target="_blank" rel="noopener">📍 Open in Google Maps</a>`,
+    gExact(i) ? `<a href="https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${enc}" target="_blank" rel="noopener">🚶 Street View</a>` : "",
+    `<a href="https://www.google.com/maps/dir/?api=1&destination=${enc}" target="_blank" rel="noopener">🧭 Directions</a>`,
+  ].join("");
+  return `<div class="dsec"><div class="gtools"><h3 style="margin:0">Location</h3>
+      <div class="gseg" role="group" aria-label="Map type">
+        <button type="button" data-gt="m" aria-pressed="${t !== "k"}">Map</button>
+        <button type="button" data-gt="k" aria-pressed="${t === "k"}">Satellite</button></div></div>
+    <iframe class="gmap" id="gmap" src="${esc(gmapEmbed(i, t))}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      title="Google Map of ${esc(gExact(i) ? "the property" : "the area")}" allowfullscreen></iframe>
+    <p class="ghint">${gExact(i) ? "Exact pin from the ad." : `Approximate area: the ad has no exact pin (searched “${esc(q.replace(/, North Macedonia$/, ""))}”). Ask the seller for the address.`}</p>
+    <div class="glinks">${links}</div></div>`;
 }
 function closeDeal(fromUser){
   if (!openId) return; openId = null;

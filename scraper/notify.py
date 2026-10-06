@@ -19,6 +19,8 @@ from pathlib import Path
 
 import requests
 
+from . import maps
+
 log = logging.getLogger(__name__)
 
 # The numbers worth seeing on a phone, per researcher (first ones present win).
@@ -106,6 +108,10 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
         lines.append(f"\n<b>{who}</b>")
         lines += [f"• {html.escape(q)}" for q in item["questions"]]
         lines.append("\n" + REPLY_HINT)
+    gmaps = maps.url(item.get("lat"), item.get("lng"), item.get("map_query"))
+    if gmaps:
+        exact = item.get("lat") and item.get("lng")
+        lines.append(f"📍 <a href=\"{html.escape(gmaps)}\">Google Maps</a>" + ("" if exact else " (area — no exact pin in the ad)"))
     if item.get("owner_note"):
         lines.append(f"📝 Your note: {html.escape(item['owner_note'])}")
     return "\n".join(lines)

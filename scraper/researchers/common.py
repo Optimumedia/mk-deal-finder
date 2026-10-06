@@ -5,6 +5,7 @@ from datetime import date
 
 from ..db import days_ago
 
+from .. import maps
 from ..market import ppm2, total_price
 from ..text import detect_utilities
 
@@ -66,6 +67,7 @@ def base(listing: dict) -> dict:
         "kind": listing.get("kind"),
         "city": listing.get("city"),
         "district": listing.get("district"),
+        "map_query": maps.query(listing),   # Google Maps search when there's no GPS
         "lat": listing.get("lat"),
         "lng": listing.get("lng"),
         "price": round(total_price(listing)) if total_price(listing) else None,

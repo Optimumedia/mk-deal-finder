@@ -40,10 +40,12 @@ name = "apartments"
 cat = 159
 city = "each"
 
+# Houses too: nationwide, the 109-page limit hides older ads, so they would
+# never be re-read (that's how plot sizes survived as house sizes).
 [[scraper.queries]]
 name = "houses"
 cat = 158
-city = 0
+city = "each"
 
 [[scraper.queries]]
 name = "land"
@@ -53,7 +55,7 @@ city = 0
 [[scraper.queries]]
 name = "weekend_houses"
 cat = 161
-city = 0
+city = "each"
 
 [market]
 # Market value = median €/m² of comparable SALE listings seen in this window.
