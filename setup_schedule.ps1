@@ -1,7 +1,13 @@
 # Registers two Windows scheduled tasks (06:15 and 18:15) that run run_local.ps1.
 # Re-run this script any time; it replaces the existing tasks.
 # Remove with:  Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false
-$python = (Get-Command python).Source
+# A project venv: scheduled tasks don't always see per-user site-packages.
+$venv = Join-Path $PSScriptRoot ".venv"
+if (-not (Test-Path "$venv\Scripts\python.exe")) {
+    & (Get-Command python).Source -m venv $venv
+}
+& "$venv\Scripts\python.exe" -m pip install -q -r (Join-Path $PSScriptRoot "requirements.txt")
+$python = "$venv\Scripts\python.exe"
 $script = Join-Path $PSScriptRoot "run_local.ps1"
 $action = New-ScheduledTaskAction -Execute "powershell.exe" `
     -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Python `"$python`"" `

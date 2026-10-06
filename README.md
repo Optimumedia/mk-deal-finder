@@ -45,7 +45,7 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
 
 ## Setup on a PC (done once)
 
-1. `pip install -r requirements.txt`
+1. Install Python 3.11+ (the setup script creates its own `.venv` and installs the dependencies there).
 2. Register the two daily tasks (06:15 and 18:15). Re-running the script replaces them:
    ```powershell
    powershell -ExecutionPolicy Bypass -File setup_schedule.ps1
