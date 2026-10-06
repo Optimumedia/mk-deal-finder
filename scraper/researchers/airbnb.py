@@ -6,6 +6,7 @@ and estimate what the same flat would earn on Airbnb / Booking.
 from __future__ import annotations
 
 import math
+from statistics import median
 
 from ..market import Market, total_price
 from ..text import KeywordSet, norm
@@ -32,9 +33,44 @@ def _location_factor(listing: dict, c: dict, hotspots: KeywordSet) -> tuple[floa
     return factor, dist, reasons
 
 
+def _rooms_key(listing: dict) -> str:
+    rooms = listing.get("rooms")
+    if not rooms and listing.get("area_m2"):
+        a = listing["area_m2"]
+        rooms = 1 if a < 42 else 2 if a < 65 else 3 if a < 90 else 4
+    return str(int(clamp(math.floor((rooms or 2) + 0.5), 1, 4)))
+
+
+def calibrate_adr(listings: list[dict], c: dict, hotspots: KeywordSet) -> dict[str, tuple[float, int]]:
+    """Nightly rate per room count, learned from Skopje flats advertised per night.
+
+    Each observed price is converted to its city-centre equivalent (undoing
+    the location factor), then blended with the config estimate:
+        adr = (n · observed median + k · config) / (n + k)
+    so a handful of odd ads can't swing it, and real data wins as it grows.
+    """
+    lo, hi = c["observed_adr_range"]
+    seen: dict[str, list[float]] = {}
+    for l in listings:
+        if l["kind"] != "apartment" or l["deal"] != "short_term" or l.get("city") != c["city"] or l.get("abroad"):
+            continue
+        p = l.get("price_eur")
+        if not p or not (lo <= p <= hi) or l.get("price_note"):
+            continue
+        factor, _, _ = _location_factor(l, c, hotspots)
+        seen.setdefault(_rooms_key(l), []).append(p / (0.75 + 0.25 * factor))
+    k = c["adr_prior_weight"]
+    out = {}
+    for key, prior in c["adr_by_rooms"].items():
+        obs = seen.get(key, [])
+        out[key] = ((len(obs) * median(obs) + k * prior) / (len(obs) + k) if obs else prior, len(obs))
+    return out
+
+
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
     c = cfg["airbnb"]
     hotspots = KeywordSet(c["hotspot_keywords"])
+    adr_table = calibrate_adr(listings, c, hotspots)
     out = []
     for l in listings:
         if l["kind"] not in ("apartment", "house") or l["deal"] != "rent" or l.get("city") != c["city"]:
@@ -46,14 +82,10 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if not utilities_ok(util, strict=False):
             continue
 
-        rooms = l.get("rooms")
-        if not rooms and l.get("area_m2"):
-            a = l["area_m2"]
-            rooms = 1 if a < 42 else 2 if a < 65 else 3 if a < 90 else 4
-        rooms_key = str(int(clamp(math.floor((rooms or 2) + 0.5), 1, 4)))
-
+        rooms_key = _rooms_key(l)
         factor, dist, reasons = _location_factor(l, c, hotspots)
-        adr = c["adr_by_rooms"][rooms_key] * (0.75 + 0.25 * factor)   # price holds up better than demand
+        base_adr, adr_samples = adr_table[rooms_key]
+        adr = base_adr * (0.75 + 0.25 * factor)   # price holds up better than demand
         occupancy = c["occupancy_center"] * factor
         nights = 30 * occupancy
         gross = adr * nights
@@ -92,6 +124,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             "metrics": {
                 "Rent / month": round(rent),
                 "Est. nightly rate": round(adr),
+                "Nightly rate based on": (f"{adr_samples} Skopje per-night ads + estimate" if adr_samples
+                                          else "config estimate only"),
                 "Est. occupancy": f"{occupancy:.0%}",
                 "Est. revenue / month": round(gross),
                 "Est. costs / month": round(costs),

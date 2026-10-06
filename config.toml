@@ -74,9 +74,14 @@ max_rent = 900
 center_lat = 41.9961
 center_lng = 21.4317
 # Average nightly rate (EUR) for a well-presented flat AT THE CENTER,
-# by bedroom count. ⚠ These are starting estimates — calibrate them by
+# by room count as listed (соби). ⚠ These are starting estimates — calibrate them by
 # checking 10–15 comparable Airbnb/Booking listings for your dates.
 adr_by_rooms = { "1" = 38, "2" = 52, "3" = 68, "4" = 82 }
+# These estimates are blended with real Skopje flats advertised per night
+# (стан за ноќевање): weight of the estimate = this many ads' worth.
+adr_prior_weight = 5
+# Ignore per-night ads outside this range (typos, monthly prices).
+observed_adr_range = [15, 250]
 # Occupancy at the center; both ADR and occupancy decay with distance.
 occupancy_center = 0.62
 # Multiplier applied per km from the center (0.93 = −7% per km), floored.

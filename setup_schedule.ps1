@@ -25,3 +25,15 @@ foreach ($t in @(@{Name = "MK Deal Finder - morning"; At = "06:15"}, @{Name = "M
         -Description "Scrapes North Macedonian real estate deals and pushes them to GitHub." -Force | Out-Null
     Write-Output "registered: $($t.Name) at $($t.At)"
 }
+
+# Telegram bot listener (answers 👍/👎 instantly, /top, /status): runs while you're logged in.
+$botAction = New-ScheduledTaskAction -Execute "$venv\Scripts\pythonw.exe" -Argument "-m scraper.bot" `
+    -WorkingDirectory $PSScriptRoot
+$botSettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero) `
+    -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)
+Register-ScheduledTask -TaskName "MK Deal Finder - bot" -Action $botAction `
+    -Trigger (New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME) -Settings $botSettings `
+    -Description "Telegram bot for MK Deal Finder: records your deal votes." -Force | Out-Null
+Start-ScheduledTask -TaskName "MK Deal Finder - bot"
+Write-Output "registered + started: MK Deal Finder - bot (at logon)"

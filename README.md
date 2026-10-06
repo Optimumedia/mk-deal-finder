@@ -64,7 +64,15 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
    After each run you get the new deals scoring at least 60 (`[notify]` in `config.toml`),
    up to 5 per researcher. Each deal is sent only once.
 
-To stop it: `Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false`
+5. **Telegram bot** (registered by `setup_schedule.ps1`, starts at logon, no window):
+   - Every alert has **👍 Interested / 👎 Not for me** buttons. 👎 hides that deal for good;
+     votes on similar deals (same district, city, property type) nudge their future alert
+     scores by up to ±20. Votes stay on your PC (`data/feedback.db`), and the public
+     dashboard never shows them.
+   - Send `/top` for the current best deals, or `/status` to see how the last run went.
+   - If a run is blocked, crashes or can't push to GitHub, you get a ⚠️ message.
+
+To stop everything (both runs and the bot): `Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false`
 
 ## Tuning
 
@@ -72,8 +80,10 @@ Every threshold is in [`config.toml`](config.toml): rent range, nightly rates, o
 renovation €/m², minimum discount, mountain keywords, "urgent" keywords and so on.
 Commit a change and the next run uses it.
 
-**Calibrate the Airbnb numbers.** `adr_by_rooms` (nightly rate) and `occupancy_center`
-are starting estimates. Check 10–15 comparable Airbnb/Booking listings near Macedonia Square
+**Calibrate the Airbnb numbers.** Nightly rates (`adr_by_rooms`) are automatically blended
+with real Skopje flats advertised per night (стан за ноќевање). Each deal shows how many
+ads its rate is based on. Those ads are the budget end of the market, and occupancy
+(`occupancy_center`) is still an estimate. Check 10–15 comparable Airbnb/Booking listings near Macedonia Square
 for real nightly prices and calendar availability, then update them. The profit figures are
 only as good as these two numbers.
 

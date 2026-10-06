@@ -124,5 +124,51 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(m.reference("land", "sale", "Скопје", None), (None, 0, None))
 
 
+class FeedbackTests(unittest.TestCase):
+    def setUp(self):
+        from scraper import feedback
+        self.fb = feedback
+        mk = lambda i, district, score=60: {"id": i, "score": score, "qualified": True, "kind": "apartment",
+                                            "city": "Скопје", "district": district, "reasons": []}
+        self.results = {"flip": [mk("a", "Карпош"), mk("b", "Карпош"), mk("c", "Бутел"), mk("d", "Бутел")]}
+        v = lambda i, district, vote: {"listing_id": i, "researcher": "flip", "vote": vote, "kind": "apartment",
+                                       "city": "Скопје", "district": district}
+        self.votes = [v("a", "Карпош", 1), v("c", "Бутел", -1)]
+
+    def test_rejected_hidden_and_similar_nudged(self):
+        out = {x["id"]: x for x in self.fb.apply(self.results, self.votes)["flip"]}
+        self.assertNotIn("c", out)                       # 👎 hides the deal
+        self.assertGreater(out["b"]["score"], 60)        # liked a deal in the same district
+        self.assertLess(out["d"]["score"], 60)           # disliked a deal in the same district
+        self.assertTrue(any("your votes" in r for r in out["b"]["reasons"]))
+
+    def test_public_view_reveals_nothing(self):
+        out = {x["id"]: x for x in self.fb.apply(self.results, self.votes, personalize=False)["flip"]}
+        self.assertNotIn("c", out)
+        self.assertEqual(out["b"]["score"], 60)
+        self.assertEqual(out["b"]["reasons"], [])
+
+    def test_button_payload_fits_telegram_limit(self):
+        from scraper.notify import vote_buttons
+        for b in vote_buttons("motivated", "reklama5:58101319")["inline_keyboard"][0]:
+            self.assertLessEqual(len(b["callback_data"].encode()), 64)
+
+
+class AirbnbCalibrationTests(unittest.TestCase):
+    def test_blends_observed_nightly_prices_with_estimate(self):
+        import tomllib
+        from scraper.researchers.airbnb import calibrate_adr
+        from scraper.text import KeywordSet
+        c = tomllib.loads((Path(__file__).parent.parent / "config.toml").read_text(encoding="utf-8"))["airbnb"]
+        ads = [{"kind": "apartment", "deal": "short_term", "city": "Скопје", "district": "Скопје Центар",
+                "price_eur": 30.0, "rooms": 2.0, "lat": c["center_lat"], "lng": c["center_lng"]}] * 5
+        table = calibrate_adr(ads, c, KeywordSet([]))
+        prior = c["adr_by_rooms"]["2"]
+        adr, n = table["2"]
+        self.assertEqual(n, 5)
+        self.assertAlmostEqual(adr, (5 * 30 + c["adr_prior_weight"] * prior) / (5 + c["adr_prior_weight"]))
+        self.assertEqual(table["3"], (c["adr_by_rooms"]["3"], 0))   # no data → estimate unchanged
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -7,3 +7,5 @@ data/*.db-journal
 data/local-run.log
 .claude/
 .telegram
+data/feedback.db
+data/bot.log*

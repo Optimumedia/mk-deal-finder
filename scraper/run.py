@@ -16,7 +16,7 @@ from pathlib import Path
 
 import requests
 
-from . import export, notify
+from . import export, feedback, notify
 from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
@@ -160,6 +160,8 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
     if l["kind"] in ("apartment", "house") and l["deal"] == "rent" and l.get("city") == cfg["airbnb"]["city"]:
         if l.get("price_eur") and cfg["airbnb"]["min_rent"] <= l["price_eur"] <= cfg["airbnb"]["max_rent"]:
             p = max(p, 3)
+    if l["kind"] == "apartment" and l["deal"] == "short_term" and l.get("city") == cfg["airbnb"]["city"]:
+        p = max(p, 1.5)   # real nightly prices calibrate the Airbnb researcher
     if l["kind"] == "land" and l["deal"] == "sale":
         p = max(p, 3 if (l.get("city") in cfg["land"]["cities"] or land_kw.any(title)) else 0.5)
     if l["kind"] in ("apartment", "house", "weekend_house") and l["deal"] == "sale":
@@ -230,6 +232,7 @@ def main(argv=None) -> int:
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S", stream=sys.stdout)
     cfg = tomllib.loads(Path(args.config).read_text(encoding="utf-8"))
+    notify.load_settings()
     sc = cfg["scraper"]
     db = DB(args.db)
     first_run = not db.has_completed_run()     # backfill until one run has succeeded
@@ -256,8 +259,16 @@ def main(argv=None) -> int:
     results, market = analyse(db, cfg)
     db.finish_run(run_id, status=status, pages=stats["pages"], details=details, new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
-    export.write(ROOT / "docs" / "data.json", results, market, db, cfg, RESEARCHERS)
-    notify.send(results, db, cfg, RESEARCHERS)
+    votes = feedback.load_votes()
+    export.write(ROOT / "docs" / "data.json", feedback.apply(results, votes, personalize=False), market, db, cfg,
+                 RESEARCHERS)
+    notify.send(feedback.apply(results, votes), db, cfg, RESEARCHERS)
+    if status != "ok":
+        notify.send_status(
+            f"⚠️ MK Deal Finder run #{run_id} {status.upper()} after {stats['pages']} pages.\n{message}\n\n"
+            + ("The site is refusing automated requests; the scraper stopped instead of forcing its way in. "
+               "It will try again at the next scheduled time." if status == "blocked"
+               else "Data collected before the error was still published. Details: data\\local-run.log"))
     db.close()
     log.info("done: %s", status)
     return 0 if status == "ok" else 2
