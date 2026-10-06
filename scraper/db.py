@@ -187,6 +187,7 @@ class DB:
 
     # ------------------------------------------------------------ runs / alerts
     def start_run(self) -> int:
+        self.conn.execute("UPDATE runs SET status = 'interrupted' WHERE status = 'running'")
         cur = self.conn.execute("INSERT INTO runs (started_at, status) VALUES (?, 'running')", (now(),))
         self.conn.commit()
         return cur.lastrowid
