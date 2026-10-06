@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS listings (
     posted          TEXT,
     first_seen      TEXT NOT NULL,
     last_seen       TEXT NOT NULL,
-    detail_at       TEXT
+    detail_at       TEXT,
+    auction_date    TEXT,                       -- bailiff sales: date of the sale
+    auction_round   INTEGER,                    -- 1st / 2nd / 3rd sale (later = lower start)
+    extra           TEXT                        -- JSON: source-specific details
 );
 CREATE INDEX IF NOT EXISTS ix_listings_kind ON listings(kind, deal, city);
 CREATE INDEX IF NOT EXISTS ix_listings_seen ON listings(last_seen);
@@ -72,7 +75,9 @@ CREATE TABLE IF NOT EXISTS notified (
 );
 """
 
-JSON_COLS = ("utilities", "fields")
+JSON_COLS = ("utilities", "fields", "extra")
+# Columns added after the first release — created on older databases at startup.
+MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT"}
 
 
 def now() -> str:
@@ -89,6 +94,10 @@ class DB:
         self.conn = sqlite3.connect(path)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        have = {r[1] for r in self.conn.execute("PRAGMA table_info(listings)")}
+        for col, typ in MIGRATIONS.items():
+            if col not in have:
+                self.conn.execute(f"ALTER TABLE listings ADD COLUMN {col} {typ}")
 
     def close(self):
         self.conn.commit()
@@ -170,6 +179,7 @@ class DB:
         rows = self.conn.execute(
             """SELECT kind, deal, city, district, price_eur, area_m2 FROM listings
                WHERE last_seen >= ? AND price_eur IS NOT NULL AND area_m2 IS NOT NULL AND abroad = 0
+                 AND deal != 'auction'
                  AND COALESCE(price_note, '') != 'placeholder'""",
             (days_ago(window_days),),
         )

@@ -170,5 +170,54 @@ class AirbnbCalibrationTests(unittest.TestCase):
         self.assertEqual(table["3"], (c["adr_by_rooms"]["3"], 0))   # no data → estimate unchanged
 
 
+class KirsmTests(unittest.TestCase):
+    def test_parse_bailiff_sales(self):
+        from scraper.sources import kirsm
+        items = kirsm.parse_list(fixture("kirsm_list.html"))
+        ids = [i["source_id"] for i in items]
+        self.assertNotIn("14832", ids)                 # duplicate of 14833 removed
+        flat = next(i for i in items if i["source_id"] == "14833")
+        self.assertEqual((flat["kind"], flat["city"], flat["area_m2"], flat["auction_date"]),
+                         ("apartment", "Скопје", 58.0, "2026-10-26"))
+        self.assertAlmostEqual(flat["price_eur"], 6099000 / 61.5, delta=1)
+        self.assertEqual(flat["deal"], "auction")
+
+    def test_ownership_share(self):
+        from scraper.sources.kirsm import ownership_share
+        self.assertEqual(ownership_share("1/6 идеален дел -имотен лист"), "1/6")
+        self.assertEqual(ownership_share("-1/2 (една половина) идеален дел"), "1/2")
+        self.assertIsNone(ownership_share("ул. Мито Х. Василев бр.36-1/1 во Кавадарци"))
+
+
+class RatingTests(unittest.TestCase):
+    def item(self, score, **kw):
+        base = {"score": score, "qualified": True, "has_details": True, "reasons": [],
+                "metrics": {"Below market": "40%"}}
+        base.update(kw)
+        return base
+
+    def test_tiers(self):
+        from scraper.rating import rate
+        self.assertEqual(rate(self.item(93), "flip")["tier"], "once")
+        self.assertEqual(rate(self.item(84), "flip")["tier"], "exceptional")
+        self.assertEqual(rate(self.item(72), "flip")["tier"], "great")
+        self.assertEqual(rate(self.item(60), "flip")["tier"], "good")
+        self.assertEqual(rate(self.item(30), "flip")["tier"], "watch")
+
+    def test_top_tiers_need_solid_evidence(self):
+        from scraper.rating import rate
+        self.assertEqual(rate(self.item(95, has_details=False), "flip")["tier"], "great")
+        self.assertEqual(rate(self.item(95, reasons=["⚠ check"]), "flip")["tier"], "great")
+        self.assertEqual(rate(self.item(95, metrics={}), "flip")["tier"], "great")
+        self.assertEqual(rate(self.item(95, qualified=False), "land")["tier"], "good")
+        self.assertEqual(rate(self.item(95, metrics={}), "airbnb")["tier"], "once")
+
+    def test_sorted_best_first(self):
+        from scraper.rating import rate_all
+        out = rate_all({"flip": [self.item(60, id="a"), self.item(95, id="b", has_details=False),
+                                 self.item(91, id="c")]})["flip"]
+        self.assertEqual([x["id"] for x in out], ["c", "b", "a"])
+
+
 if __name__ == "__main__":
     unittest.main()

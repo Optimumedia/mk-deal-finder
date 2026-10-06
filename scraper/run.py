@@ -16,18 +16,18 @@ from pathlib import Path
 
 import requests
 
-from . import export, feedback, notify
+from . import export, feedback, notify, rating
 from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
 from .researchers.common import days_listed
-from .researchers import airbnb, flip, land, motivated
-from .sources import reklama5
+from .researchers import airbnb, auctions, flip, land, motivated
+from .sources import kirsm, reklama5
 from .text import (KeywordSet, classify_deal, redact, detect_furnished, detect_utilities, is_abroad, land_type,
                    mentions_price_per_m2, needs_renovation, norm)
 
 ROOT = Path(__file__).resolve().parent.parent
-RESEARCHERS = [airbnb, land, flip, motivated]
+RESEARCHERS = [airbnb, land, flip, motivated, auctions]
 log = logging.getLogger("scraper")
 
 
@@ -159,6 +159,37 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
         log.info("%-28s pages so far %4d  new %4d  price changes %3d", name, stats["pages"], stats["new"], stats["changed"])
 
 
+def scrape_kirsm(db: DB, http: PoliteSession, cfg: dict, stats: dict) -> None:
+    """Bailiff sales: read pages until one holds only sales that are already over."""
+    c = cfg.get("auctions", {})
+    if not c.get("enabled", True):
+        return
+    mkd = cfg["market"]["mkd_per_eur"]
+    seen = 0
+    for page in range(1, c.get("max_pages", 30) + 1):
+        try:
+            html = http.get(kirsm.search_url(page))
+        except requests.RequestException as e:
+            log.warning("kirsm page %d failed: %s", page, e)
+            break
+        stats["pages"] += 1
+        items = kirsm.parse_list(html, mkd)
+        if not items:
+            break
+        ts = now()
+        for it in items:
+            is_new, changed = db.upsert_card(it, ts)
+            stats["new"] += is_new
+            stats["changed"] += changed
+            db.apply_detail(f"{kirsm.SOURCE}:{it['source_id']}",
+                            {k: it[k] for k in ("auction_date", "auction_round", "extra", "kind", "deal")}, ts)
+            seen += 1
+        db.conn.commit()
+        if kirsm.all_past(items):
+            break
+    log.info("%-28s pages so far %4d  bailiff sales read %d", "auctions (KIRSM)", stats["pages"], seen)
+
+
 def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urgent_kw: KeywordSet) -> float:
     """How likely is this listing to matter? Only >0 gets its detail page read."""
     title = norm(l.get("title"))
@@ -218,7 +249,7 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
                     m["min_samples_national"])
     max_age = cfg["scraper"]["max_listing_age_days"]
     listings = [l for l in db.active(cfg["scraper"]["stale_after_days"])
-                if l["deal"] != "wanted" and days_listed(l) <= max_age]
+                if l["deal"] != "wanted" and (l["deal"] == "auction" or days_listed(l) <= max_age)]
     results = {}
     for r in RESEARCHERS:
         if cfg[r.NAME].get("enabled", True):
@@ -255,6 +286,7 @@ def main(argv=None) -> int:
         log.info("run #%d — %s sweep", run_id, "full" if full else "quick")
         try:
             scrape_lists(db, http, cfg, full, args.max_pages, stats)
+            scrape_kirsm(db, http, cfg, stats)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
         except Blocked as e:
@@ -269,9 +301,9 @@ def main(argv=None) -> int:
     db.finish_run(run_id, status=status, pages=stats["pages"], details=details, new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
     votes = feedback.load_votes()
-    export.write(ROOT / "docs" / "data.json", feedback.apply(results, votes, personalize=False), market, db, cfg,
-                 RESEARCHERS)
-    notify.send(feedback.apply(results, votes), db, cfg, RESEARCHERS)
+    public = rating.rate_all(feedback.apply(results, votes, personalize=False))
+    export.write(ROOT / "docs" / "data.json", public, market, db, cfg, RESEARCHERS)
+    notify.send(rating.rate_all(feedback.apply(results, votes)), db, cfg, RESEARCHERS)
     if status != "ok":
         notify.send_status(
             f"⚠️ MK Deal Finder run #{run_id} {status.upper()} after {stats['pages']} pages.\n{message}\n\n"

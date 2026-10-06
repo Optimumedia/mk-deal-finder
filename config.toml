@@ -149,6 +149,19 @@ min_price_eur = 5000
 stale_listing_days = 21   # must stay below max_listing_age_days
 urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent", "povolno", "поволно", "можност за договор", "договорлива", "dogovorliva"]
 
+# ----------------------------------------------------------------------------
+#  Researcher 5 — Bailiff auctions (KIRSM register of enforcement sales)
+# ----------------------------------------------------------------------------
+[auctions]
+enabled = true
+max_pages = 30                 # stops earlier, at the first page of past sales
+kinds = ["apartment", "house", "land"]
+min_price_eur = 1000
+max_premium = 0.30             # hide sales starting >30% above the city median
+# Sales of a share only ("1/6 идеален дел") look absurdly cheap but make you a
+# co-owner with strangers. Hidden unless you switch this on.
+include_partial_shares = false
+
 [notify]
 # Telegram alerts are optional and free. Set TELEGRAM_BOT_TOKEN and
 # TELEGRAM_CHAT_ID as GitHub secrets (see README). Leave empty to disable.

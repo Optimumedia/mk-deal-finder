@@ -19,7 +19,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import feedback, notify
+from . import feedback, notify, rating
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_JSON = ROOT / "docs" / "data.json"
@@ -72,7 +72,7 @@ def cmd_top(chat: str, conn) -> None:
         notify.api("sendMessage", chat_id=chat, text="No results yet — the first run hasn't finished.")
         return
     results = {r["key"]: r["items"] for r in data["researchers"]}
-    results = feedback.apply(results, feedback.load_votes())
+    results = rating.rate_all(feedback.apply(results, feedback.load_votes()))
     for r in data["researchers"]:
         best = [x for x in results.get(r["key"], []) if x.get("qualified")][:3]
         for x in best:

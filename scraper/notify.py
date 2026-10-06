@@ -22,9 +22,10 @@ import requests
 log = logging.getLogger(__name__)
 
 # The numbers worth seeing on a phone, per researcher (first ones present win).
-HEADLINE = ["Est. profit / month", "Rent / month", "Payback (months)", "Price", "Price now", "Area (m²)",
+HEADLINE = ["Est. profit / month", "Rent / month", "Payback (months)", "Starting price", "Sale date",
+            "Price", "Price now", "Area (m²)",
             "€/m²", "Below market", "Est. profit", "ROI", "Price cut", "Land type"]
-ICON = {"airbnb": "🛏", "land": "🌲", "flip": "🔨", "motivated": "📉"}
+ICON = {"airbnb": "🛏", "land": "🌲", "flip": "🔨", "motivated": "📉", "auctions": "⚖️"}
 
 
 SETTINGS_FILE = Path(__file__).resolve().parent.parent / ".telegram"
@@ -77,8 +78,10 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
     lines = []
     if researcher_title:
         lines.append(f"{ICON.get(researcher, '🏠')} <i>{html.escape(researcher_title)}</i>")
+    r = item.get("rating")
     lines += [
-        f"<b>{item['score']}</b> · <a href=\"{item['url']}\">{html.escape(item['title'] or 'listing')}</a>",
+        (f"<b>{r['emoji']} {html.escape(r['label'])}</b> · score {item['score']}" if r else f"<b>{item['score']}</b>"),
+        f"<a href=\"{item['url']}\">{html.escape(item['title'] or 'listing')}</a>",
         html.escape(where),
         " · ".join(f"{html.escape(k)}: {html.escape(str(v))}" for k, v in top),
     ]

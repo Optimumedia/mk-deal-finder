@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+
+<html class="no-js usn" dir="ltr" lang="mk">
+<style>
+
+/*:root {*/
+
+/*    --c3-btn-bg-color1: 255,121,0;*/
+
+/*    --c3-btn-bg-hover-color1: 230,109,0;*/
+
+
+
+/*    --c3-btn-borders: 255,121,0;*/
+
+/*    --c3-btn-borders-hover: 230,109,0;*/
+
+
+
+/*    --c3-btn-text: 255,255,255;*/
+
+/*    --c3-btn-text-hover: 255,255,255;*/
+
+/*}*/
+
+
+
+/* Google Translate — hide top banner AND default widget (we use custom flags) */
+
+.goog-te-banner-frame,
+
+iframe.goog-te-banner-frame,
+
+.goog-te-banner-frame.skiptranslate,
+
+iframe[id*="goog-te-banner"] {
+
+    display: none !important;
+
+    visibility: hidden !important;
+
+    height: 0 !important;
+
+}
+
+#google_translate_element {
+
+    display: none !important;
+
+}
+
+html, body {
+
+    top: 0 !important;
+
+    margin-top: 0 !important;
+
+    position: static !important;
+
+}
+
+font[style*="background-color"],
+
+font[style*="background:"] {
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+}
+
+
+
+/* Inline language dropdown — flows naturally inside the navigation header */
+
+#lang-switcher {
+
+    position: relative;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    font-family: inherit;
+
+    z-index: 1000;
+
+    order: 999;
+
+}
+
+#lang-switcher .lang-current {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    background: rgba(255,255,255,0.12);
+
+    border: 1px solid rgba(255,255,255,0.35);
+
+    border-radius: 4px;
+
+    padding: 5px 9px;
+
+    cursor: pointer;
+
+    color: #4E4E4E;
+
+    font-size: 12px;
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+}
+
+#lang-switcher .lang-current:hover {
+
+    background: rgba(255,255,255,0.22);
+
+}
+
+#lang-switcher .lang-current img {
+
+    width: 20px;
+
+    height: 14px;
+
+    display: block;
+
+    border-radius: 2px;
+
+}
+
+#lang-switcher .lang-current .caret {
+
+    font-size: 9px;
+
+    opacity: 0.8;
+
+}
+
+#lang-switcher .lang-menu {
+
+    list-style: none;
+
+    margin: 4px 0 0;
+
+    padding: 4px 0;
+
+    background: #fff;
+
+    border-radius: 4px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+
+    min-width: 90px;
+
+    position: absolute;
+
+    right: 0;
+
+    top: 100%;
+
+    display: none;
+
+    z-index: 10000;
+
+}
+
+#lang-switcher.open .lang-menu { display: block; }
+
+#lang-switcher .lang-menu li {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 7px 12px;
+
+    cursor: pointer;
+
+    color: #1a2b4a;
+
+    font-size: 13px;
+
+}
+
+#lang-switcher .lang-menu li:hover {
+
+    background: rgba(var(--c3-btn-bg-color1), 0.12);
+
+}
+
+#lang-switcher .lang-menu img {
+
+    width: 20px;
+
+    height: 14px;
+
+    display: block;
+
+    border-radius: 2px;
+
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+
+}
+
+/* Hide the current-name label on tighter widths so only the flag shows */
+
+    @media (max-width: 1399px) and (min-width: 992px) {
+
+        #lang-switcher .lang-current #lang-current-name { display: none; }
+
+        #lang-switcher .lang-current { padding: 5px 7px; }
+
+    }
+
+
+
+    @media (max-width: 991px) {
+
+        #lang-switcher {
+
+            right: 60px;
+
+            top: 20px;
+
+            position: fixed;
+
+            z-index: 1000;
+
+            font-family: inherit;
+
+        }
+
+
+
+        #lang-switcher .lang-current {
+
+            padding: 3px 6px;
+
+        }
+
+
+
+        #lang-switcher .lang-current #lang-current-name {
+
+            display: none;
+
+        }
+
+
+
+        #lang-switcher .lang-current img {
+
+            width: 18px;
+
+            height: 12px;
+
+        }
+
+    }
+
+</style>
+<head>
+<!-- Google Analytics -->
+<link href="//www.google-analytics.com" rel="dns-prefetch"/>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=2" name="viewport"/>
+<link href="https://kirm.mk/објави-и-огласи/пребарување-на-недвижен-имот/" rel="canonical"/>
+<title>Пребарување на недвижен имот | Комора на извршители на Република Северна Македонија</title>
+<meta content="" name="description"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="website" property="og:type"/>
+<meta content="Пребарување на недвижен имот | Комора на извршители на Република Северна Македонија" property="og:title"/>
+<meta content="" property="og:image"/>
+<meta content="https://kirm.mk/објави-и-огласи/пребарување-на-недвижен-имот/" property="og:url"/>
+<meta content="" property="og:description"/>
+<meta content="Комора на извршители на Република Северна Македонија" property="og:site_name"/>
+<meta content="index,follow" name="robots"/>
+<link href="/sb/sitebuilder-ltr-css-bundle.css.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" media="screen" rel="stylesheet"/>
+<link href="/sb/sitebuilder-css-bundle.css.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" media="screen" rel="stylesheet"/>
+<link href="/sb/sitebuilder-css-small-header-01-sm-bundle.css.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" media="screen and (min-width:0) and (max-width:991px)" rel="stylesheet"/>
+<link href="/sb/sitebuilder-css-large-header-06-lg-bundle.css.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" media="screen and (min-width:992px)" rel="stylesheet"/>
+<link href="/uSkinned/css/generated/f90454c7-f3a8-4e1a-9c97-9ff9e55c4947.css?version=639166174400870000" media="screen" rel="stylesheet"/>
+<link href="/sb/sitebuilder-css-prnt-bundle.css.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" media="print" rel="stylesheet"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=32&amp;height=32" rel="icon" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=57&amp;height=57" rel="apple-touch-icon" sizes="57x57" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=60&amp;height=60" rel="apple-touch-icon" sizes="60x60" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=72&amp;height=72" rel="apple-touch-icon" sizes="72x72" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=76&amp;height=76" rel="apple-touch-icon" sizes="76x76" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=114&amp;height=114" rel="apple-touch-icon" sizes="114x114" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=120&amp;height=120" rel="apple-touch-icon" sizes="120x120" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=144&amp;height=144" rel="apple-touch-icon" sizes="144x144" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=152&amp;height=152" rel="apple-touch-icon" sizes="152x152" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=180&amp;height=180" rel="apple-touch-icon" sizes="180x180" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=16&amp;height=16" rel="icon" sizes="16x16" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=32&amp;height=32" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=96&amp;height=96" rel="icon" sizes="96x96" type="image/png"/>
+<link href="/media/un3l2rvq/output-onlinepngtools-1.png?width=192&amp;height=192" rel="icon" sizes="192x192" type="image/png"/>
+<meta content="/media/un3l2rvq/output-onlinepngtools-1.png?width=70&amp;height=70" name="msapplication-square70x70logo"/>
+<meta content="/media/un3l2rvq/output-onlinepngtools-1.png?width=150&amp;height=150" name="msapplication-square150x150logo"/>
+<meta content="/media/un3l2rvq/output-onlinepngtools-1.png?width=310&amp;height=150" name="msapplication-wide310x150logo"/>
+<meta content="/media/un3l2rvq/output-onlinepngtools-1.png?width=310&amp;height=310" name="msapplication-square310x310logo"/>
+<script>
+
+var notificationExDays = 365;        </script>
+<script async="" defer="" src="https://www.google.com/recaptcha/api.js"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-VFF4RP87TH"></script>
+<script>
+
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() { dataLayer.push(arguments); }
+
+        gtag('js', new Date());
+
+        gtag('config', 'G-VFF4RP87TH');
+
+        </script>
+</head>
+<body class="body-bg body-bg-solid header-06-lg header-01-sm show_header-on-scroll-lg show_header-on-scroll-sm directional-icons-triangle main-navigation-underline-link-hover content-underline-link-hover footer-underline-link-hover zoom_hover main-nav_mega-modal">
+<!-- Skip links -->
+<a class="skip-to-content" href="#site-content" id="skip-to-content-link">Skip to main content</a>
+<a class="skip-to-content" href="#site-footer" id="skip-to-footer-link">Skip to footer</a>
+<!--// Skip links -->
+<!-- Site -->
+<div id="site">
+<!-- Header -->
+<header class="header-bg header-bg-solid" id="site-header" tabindex="-1">
+<div class="container">
+<div class="row">
+<div id="logo">
+<a href="/" title="Комора на извршители на Република Северна Македонија">
+<picture>
+<source srcset="/media/jkupmetb/logo_kirsm.png?format=webp" type="image/webp"/>
+<img alt="" src="/media/jkupmetb/logo_kirsm.png?format=webp"/>
+</picture>
+<span>Комора на извршители на Република Северна Македонија</span>
+</a>
+</div>
+<!-- Expand -->
+<button aria-expanded="false" aria-label="Expand header" class="expand-header expand-3-bars expand-even-lines expand-active-cross" id="burgerNavStyle" type="button">
+<span>Menu</span>
+</button>
+<!--// Expand -->
+<!-- Main navigation -->
+<nav aria-label="Main" class="main nav-dropdown navigation-dropdown-bg-solid">
+<ul>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">За нас</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages За нас" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages За нас</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/za-nas/историја/">Историја</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/мисија-визија/">Мисија Визија</a>
+</span>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Организација</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Организација" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Организација</span>
+</button>
+<ul>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Органи на комората</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Органи на комората" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Органи на комората</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/organi-na-komorata/sobranie/">Собрание</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/organi-na-komorata/pretsedatel-na-komora/">Претседател на комора</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/organi-na-komorata/upraven-odbor/">Управен одбор</a>
+</span>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Дисцпилинска комисија</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Дисцпилинска комисија" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Дисцпилинска комисија</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/organi-na-komorata/дисцпилинска-комисија/членови-на-дисциплинска-комисија/">Членови на Дисциплинска комисија</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/organi-na-komorata/дисцпилинска-комисија/одлуки-на-дисциплинска-комисија/">Одлуки на Дисциплинска комисија</a>
+</span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Комисии и работни тела</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Комисии и работни тела" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Комисии и работни тела</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/komisii-i-rabotni-tela/nadzoren-odbor/">Надзорен одбор</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/komisii-i-rabotni-tela/struchen-sovet-na-kirsm/">Стручен совет на КИРСМ</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/za-nas/организација/komisii-i-rabotni-tela/комисија-за-стручна-едукација-на-извршители/">Комисија за стручна едукација на извршители</a>
+</span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Регулатива</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Регулатива" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Регулатива</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/regulativa-i-sudska-praksa/zakoni/">Закони</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/regulativa-i-sudska-praksa/podzakonski-akti/">Подзаконски акти</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/regulativa-i-sudska-praksa/akti-na-komorata/">Акти на комората</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/regulativa-i-sudska-praksa/правни-мислења/">Правни мислења</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/regulativa-i-sudska-praksa/sudska-praksa/">Судска пракса</a>
+</span>
+</li>
+</ul>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Именик</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Именик" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Именик</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/imenik/felosen-pregled-na-izvrshiteli-po-os/">Целосен преглед на извршители по О.С</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/imenik/извршители-чија-должност-престанала/">Извршители чија должност престанала</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/imenik/raspredeleni-predmeti-od-pretkhodni-izvrshiteli/">Распределени предмети од претходни извршители</a>
+</span>
+</li>
+</ul>
+</li>
+<li class="has-child">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Информации</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Информации" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Информации</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/informafii-za-novoimenuvani/">Информации за новоименувани</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/informafii-za-zamenifi/">Информации за заменици</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/informafii-za-pomoshnifi/">Информации за помошници</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/informafii-za-pripravnifi/">Информации за приправници</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/informafii-za-sedishte/">Информации за седиште</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/јавни-информации/">Јавни информации</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/информации-и-прашања/godishni-izveshtai/">Годишни извештаи</a>
+</span>
+</li>
+</ul>
+</li>
+<li class="has-child active">
+<span>
+<a href="javascript:void(0);" onclick="return kirmNavClick(this);">Објави и огласи</a>
+</span>
+<button aria-expanded="false" aria-label="Expand sub pages Објави и огласи" class="expand-subpages" type="button">
+<span aria-hidden="true">Expand sub pages Објави и огласи</span>
+</button>
+<ul>
+<li class="no-child">
+<span>
+<a href="/објави-и-огласи/јавни-објави-за-достава/">Јавни објави за достава</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/објави-и-огласи/внеси-нова-објава/">Внеси нова објава</a>
+</span>
+</li>
+<li class="no-child active">
+<span>
+<a href="/објави-и-огласи/пребарување-на-недвижен-имот/">Пребарување на недвижен имот</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/објави-и-огласи/vnesi-nedvizhen-imot/">Внеси недвижен имот</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/објави-и-огласи/пребарување-на-подвижен-имот/">Пребарување на подвижен имот</a>
+</span>
+</li>
+<li class="no-child">
+<span>
+<a href="/објави-и-огласи/vnesi-podvizhen-imot/">Внеси подвижен имот</a>
+</span>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<!--// Main navigation -->
+<!-- Secondary navigation -->
+<nav aria-label="Secondary" class="secondary nav-dropdown navigation-dropdown-bg-solid">
+<ul>
+<li class="dropdown">
+<a aria-expanded="false" aria-haspopup="true" class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="myAccountDropdown"><i class="icon usn_ion-md-contact before"></i><span>Членови</span></a>
+<div aria-labelledby="myAccountDropdown" class="dropdown-menu dropdown-menu-right">
+<a class="dropdown-item" href="/login/"><i class="icon usn_ion-md-log-in before"></i>Најави се</a>
+</div>
+</li>
+</ul>
+</nav>
+<!--// Secondary navigation -->
+<!-- CTA Links -->
+<nav aria-label="Call to actions" class="cta-links">
+<a class="btn boxed-btn btn-sm base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/contact/">
+<span></span>
+
+                        Контакт
+
+                    </a>
+</nav>
+<!--// CTA Links -->
+<!-- Site search -->
+<div aria-label="Site search" class="form site-search-form site-search">
+<form action="/search/" method="get" name="searchForm" role="search">
+<fieldset>
+<div class="form-group">
+<input aria-label="Пребарај го сајтот" class="form-control" maxlength="256" name="search_field" placeholder="Пребарај го сајтот" type="text" value=""/>
+</div>
+<button aria-label="Search" class="btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders btn-search" role="button" type="submit">
+<span></span>
+<i aria-hidden="true" class="icon usn_ion-ios-search"></i>
+</button>
+</fieldset>
+</form>
+<button aria-expanded="false" aria-label="Expand site search" class="expand-search" data-bs-toggle="collapse" type="button">
+<em>Expand Search</em>
+<i aria-hidden="true" class="icon usn_ion-ios-search search-icon"></i>
+<i aria-hidden="true" class="icon usn_ion-md-close close-icon"></i>
+</button>
+</div>
+<!--// Site search -->
+</div>
+</div>
+</header>
+<!--// Header -->
+<!-- Content -->
+<main id="site-content" tabindex="-1">
+<style>
+
+    html.nav-up body header#site-header { top: 0 !important; }
+
+</style>
+<section class="content component base-bg base-bg-solid">
+<div class="container">
+<div class="row">
+<div class="col-lg-10 offset-lg-1">
+<div class="mt-2 mb-4">
+<h5 class="heading">Пребарување по огласи за продажба на недвижен имот</h5>
+</div>
+<div id="filter-panel">
+<form action="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/" class="card card-body mb-4" method="get">
+<div class="row g-3 align-items-end">
+<div class="col-md-3">
+<label class="form-label">Извршител</label>
+<select class="form-select" name="izvrsitel">
+<option value="0">Сите</option>
+<option value="78"></option> <option value="20">Александар Кузмановски</option> <option value="109">Александар Максимовски </option> <option value="152">Александар Павлевски</option> <option value="77">Александар Пулејков</option> <option value="76">Александар Тасевски</option> <option value="116">Александар Чамоски</option> <option value="125">Александра Заринска Дуровска </option> <option value="16">Ангел Костадиновски</option> <option value="74">Анѓелка Ефкоска</option> <option value="75">Андреја Буневски</option> <option value="73">Антонио Коштанов</option> <option value="115">Билјана Николовска</option> <option value="15">Благој Бањански</option> <option value="133">Благоја Бакрачевски</option> <option value="98">Благоја Каламатиев</option> <option value="70">Благојче Кипровски</option> <option value="14">Борис Пљаков</option> <option value="144">Бране Милчески</option> <option value="97">Валентина Спасова – Јованова</option> <option value="90">Ванчо Марковски</option> <option value="106">Васко Блажевски</option> <option value="13">Васко Еленов</option> <option value="69">Весна Деловска</option> <option value="19">Весна Јакимовска</option> <option value="141">Виктор Џумеркоски</option> <option value="67">Виолета Раденкова</option> <option value="18">Владо Мицковски</option> <option value="130">Влатко Лалков</option> <option value="29">Горан Манојлов</option> <option value="66">Горан Тошевски</option> <option value="65">Гордан Станковиќ</option> <option value="25">Гордана Џутеска</option> <option value="64">Даница Страчкова</option> <option value="84">Данче Попчотрова – Ѓеоргиева</option> <option value="83">Данче Чурлинова</option> <option value="12">Данчо Диманчев</option> <option value="145">Дарко Стеваноски </option> <option value="147">Дарко Топчов</option> <option value="103">Дашмир Саити</option> <option value="131">Дејан Костовски </option> <option value="139">Димитар Ѓоршевски</option> <option value="150">Добрила Проданова</option> <option value="135">Добрин Каламатиев</option> <option value="37">Драган Алексиќ</option> <option value="11">Драган Кочовски
+</option> <option value="23">Душан Филиповиќ</option> <option value="149">Елена Стрезоска</option> <option value="105">Елена Стрезоска</option> <option value="82">Емилија Бојаџиева</option> <option value="96">Емилија Павловска</option> <option value="6">Жанета Пријевиќ</option> <option value="63">Златко Пејовски</option> <option value="129">Златко Трајаноски</option> <option value="36">Зоран Ангеловски</option> <option value="62">Зоран Димов</option> <option value="61">Зоран Петрески</option> <option value="28">Зоран Стоиловски</option> <option value="138">Зорица Симиќ</option> <option value="124">Ивана Нешовска</option> <option value="127">Игор Антевски </option> <option value="60">Игор Ромевски</option> <option value="59">Јадранка Антовска</option> <option value="34">Јадранка Јовановска</option> <option value="137">Јадранка Пајиќ</option> <option value="42">Јане Митрески</option> <option value="99">Јасер Асани</option> <option value="32">Јорданчо Давитковски</option> <option value="114">Каролина Таневска</option> <option value="57">Катерина Кокина</option> <option value="56">Кети Арсова</option> <option value="151">Костадин Петров</option> <option value="146">Кристијан Климоски</option> <option value="153">Кристина Милушева Костадинова</option> <option value="10">Крсте Трајковски</option> <option value="55">Крум Коцарев</option> <option value="108">Кулакова Станка</option> <option value="112">Лазар Петровски</option> <option value="143">Лидија Радеска</option> <option value="81">Љопче Ефинска</option> <option value="9">Љупчо Јованов</option> <option value="53">Магдалена Симовска Давидовиќ</option> <option value="8">Маја Гркова Караколева</option> <option value="122">Манолева Милена</option> <option value="134">Марија Ваневска</option> <option value="142">Марија Попов </option> <option value="119">Маријана Кацарска Могилевска </option> <option value="120">Маријана Кацарска Могилевска</option> <option value="41">Менка Мицеска</option> <option value="102">Методија Костадинов</option> <option value="107">Мики Лазаров</option> <option value="4">Милица Николовска</option> <option value="101">Моника Муча</option> <option value="52">Музафер Хоџиќ</option> <option value="111">Наташа Катова </option> <option value="117">Ненад Миноски</option> <option value="126">Никола Богатинов</option> <option value="136">Никола Николовски</option> <option value="3">Николина Иванова</option> <option value="118">Николина Стојковска</option> <option value="2">Николче Диневски</option> <option value="95">Николчо Саздов</option> <option value="27">Орце Гоцевски</option> <option value="123">Павел Поп Иванов  </option> <option value="51">Павел Томашевски</option> <option value="80">Петре Темелков</option> <option value="104">Премтим Ќерими</option> <option value="50">Роза Родиќ</option> <option value="79">Саветка Георгиева</option> <option value="113">Санида  Јашар </option> <option value="94">Сашо Ѓоргиев</option> <option value="128">Сашо Перовски</option> <option value="140">Сашо Стојковски</option> <option value="49">Светлана Јосифоска</option> <option value="100">Силвана Митевска</option> <option value="26">Славе Дончев</option> <option value="40">Славе Кромидоски</option> <option value="88">Славица Ацовска</option> <option value="31">Славица Крстевска</option> <option value="48">Слободанка Балгурова</option> <option value="110">Слободанка Колоска </option> <option value="47">Снежана Андреевска</option> <option value="93">Снежана Маролова</option> <option value="132">Соња Антовска</option> <option value="21">Станислав Тасески</option> <option value="92">Станка Кулакова
+
+</option> <option value="1">Сузана Гилевска</option> <option value="39">Томислав Џумеркоски</option> <option value="45">Фанија Каламатиева</option> <option value="121">Фросина Петровиќ Стојмановска</option> <option value="148">Христина Темелкова Митев</option> <option value="44">Христо Јованов</option> <option value="87">Цветанка Треневска</option> <option value="17">Чедомир Личковски</option> <option value="86">Џемајљи Арифи</option> </select>
+</div>
+<div class="col-md-3">
+<label class="form-label">Тип на недвижности</label>
+<select class="form-select" name="tip">
+<option value="0">Сите</option>
+<option value="1">Куќа</option> <option value="2">Стан</option> <option value="3">Деловен простор</option> <option value="4">Гаража</option> <option value="5">Земјиште</option> <option value="6">Друго</option> </select>
+</div>
+<div class="col-md-3">
+<label class="form-label">Недвижноста се наоѓа во</label>
+<select class="form-select" name="grad">
+<option value="0">Сите</option>
+<option value="3">Берово</option> <option value="4">Битола</option> <option value="13">Богданци</option> <option value="14">Валандово</option> <option value="35">Велес</option> <option value="36">Виница</option> <option value="46">Гевгелија</option> <option value="47">Гостивар</option> <option value="48">Дебар
+</option> <option value="49">Делчево
+</option> <option value="50">Демир Капија
+</option> <option value="51">Демир Хисар
+</option> <option value="52">Кавадарци
+</option> <option value="53">Кичево
+</option> <option value="54">Кочани
+</option> <option value="55">Кратово
+</option> <option value="56">Крива Паланка
+</option> <option value="57">Крушево
+</option> <option value="58">Куманово
+</option> <option value="59">Македонска Каменица
+</option> <option value="60">Македонски Брод
+</option> <option value="61">Неготино
+</option> <option value="62">Охрид</option> <option value="63">Пехчево</option> <option value="64">Прилеп</option> <option value="65">Пробиштип</option> <option value="66">Радовиш</option> <option value="67">Ресен</option> <option value="68">Свети Николе</option> <option value="69">Скопје</option> <option value="70">Струга</option> <option value="71">Струмица</option> <option value="72">Тетово</option> <option value="73">Штип</option> </select>
+</div>
+<div class="col-md-3">
+<label class="form-label">Квадратура (мин. м²)</label>
+<input class="form-control" min="0" name="kvad" type="number" value=""/>
+</div>
+<div class="col-12 d-flex justify-content-end">
+<button class="btn boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" type="submit"><span></span>Пребарај</button>
+</div>
+</div>
+</form>
+</div>
+<p>Пронајдени се: <strong>4719</strong> резултати.</p>
+<style>
+
+    .kirm-listing { display:flex; border:1px solid #e8e8e8; border-radius:8px; overflow:hidden; margin-bottom:1.25rem; background:#fff; transition:box-shadow .2s ease, transform .2s ease; }
+
+    .kirm-listing:hover { box-shadow:0 8px 24px rgba(0,0,0,.09); transform:translateY(-2px); }
+
+    .kirm-listing-media { flex:0 0 300px; max-width:300px; min-height:240px; background:#f2f2f2; }
+
+    .kirm-listing-body { flex:1 1 auto; padding:1.25rem 1.5rem; min-width:0; }
+
+    .kirm-listing-title { font-size:1.2rem; font-weight:700; margin:0 0 .2rem; line-height:1.25; }
+
+    .kirm-listing-sub { color:#6c757d; margin:0 0 .6rem; font-size:.95rem; }
+
+    .kirm-price { color:rgba(var(--c3-btn-color1),1); font-size:1.4rem; font-weight:700; margin:.1rem 0 .8rem; }
+
+    .kirm-price small { color:#6c757d; font-weight:400; font-size:.85rem; }
+
+    .kirm-meta { display:grid; grid-template-columns:auto 1fr; gap:.2rem .9rem; margin:0 0 .75rem; font-size:.95rem; }
+
+    .kirm-meta dt { color:#6c757d; font-weight:400; }
+
+    .kirm-meta dd { margin:0; font-weight:600; }
+
+    .kirm-note { color:#555; font-size:.9rem; border-top:1px solid #eee; padding-top:.6rem; margin:.5rem 0 .85rem; }
+
+
+
+    .kirm-slider { position:relative; height:100%; min-height:240px; }
+
+    .kirm-slider-track { display:flex; height:100%; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -ms-overflow-style:none; }
+
+    .kirm-slider-track::-webkit-scrollbar { display:none; }
+
+    .kirm-slider-track img { flex:0 0 100%; scroll-snap-align:center; width:100%; height:100%; min-height:240px; object-fit:cover; display:block; }
+
+    .kirm-slider-btn { position:absolute; top:50%; transform:translateY(-50%); border:none; background:rgba(0,0,0,.45); color:#fff; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:20px; line-height:1; display:flex; align-items:center; justify-content:center; z-index:2; }
+
+    .kirm-slider-btn:hover { background:rgba(0,0,0,.7); }
+
+    .kirm-slider-prev { left:8px; }
+
+    .kirm-slider-next { right:8px; }
+
+    .kirm-slider-count { position:absolute; bottom:8px; right:10px; background:rgba(0,0,0,.55); color:#fff; font-size:12px; padding:2px 8px; border-radius:10px; z-index:2; }
+
+
+
+    /* Lightbox (зголемена слика) */
+
+    .kirm-lb { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.92); z-index:99999; display:none; align-items:center; justify-content:center; }
+
+    .kirm-lb.open { display:flex; }
+
+    .kirm-lb img { max-width:92vw; max-height:86vh; object-fit:contain; border-radius:4px; box-shadow:0 0 40px rgba(0,0,0,.6); }
+
+    .kirm-lb-close { position:absolute; top:14px; right:22px; background:none; border:none; color:#fff; font-size:42px; line-height:1; cursor:pointer; opacity:.85; }
+
+    .kirm-lb-close:hover { opacity:1; }
+
+    .kirm-lb-prev, .kirm-lb-next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,.15); border:none; color:#fff; font-size:40px; width:54px; height:80px; cursor:pointer; border-radius:6px; opacity:.85; }
+
+    .kirm-lb-prev { left:18px; } .kirm-lb-next { right:18px; }
+
+    .kirm-lb-prev:hover, .kirm-lb-next:hover { background:rgba(255,255,255,.3); opacity:1; }
+
+    .kirm-lb-counter { position:absolute; bottom:18px; left:0; right:0; text-align:center; color:#fff; font-size:14px; opacity:.9; }
+
+
+
+    @media (max-width:767px) {
+
+        .kirm-listing { flex-direction:column; }
+
+        .kirm-listing-media { flex-basis:auto; max-width:none; min-height:220px; }
+
+        .kirm-slider, .kirm-slider-track img { min-height:220px; }
+
+    }
+
+</style>
+<script>
+
+    function kirmSlide(id, dir) { var t = document.getElementById(id); if (t) t.scrollBy({ left: dir * t.clientWidth, behavior: 'smooth' }); }
+
+
+
+    var kirmLbList = [], kirmLbIdx = 0;
+
+    function kirmLbShow() {
+
+        var lb = document.getElementById('kirm-lb');
+
+        document.getElementById('kirm-lb-img').src = kirmLbList[kirmLbIdx];
+
+        document.getElementById('kirm-lb-counter').textContent = (kirmLbIdx + 1) + ' / ' + kirmLbList.length;
+
+        var multi = kirmLbList.length > 1;
+
+        lb.querySelector('.kirm-lb-prev').style.display = multi ? '' : 'none';
+
+        lb.querySelector('.kirm-lb-next').style.display = multi ? '' : 'none';
+
+        lb.classList.add('open');
+
+        document.body.style.overflow = 'hidden';
+
+    }
+
+    function kirmLbOpen(img) {
+
+        var track = img.closest('.kirm-slider-track');
+
+        var imgs = track ? Array.prototype.slice.call(track.querySelectorAll('img')) : [img];
+
+        kirmLbList = imgs.map(function (i) { return i.getAttribute('src'); });
+
+        kirmLbIdx = Math.max(0, imgs.indexOf(img));
+
+        kirmLbShow();
+
+    }
+
+    function kirmLbNav(d) { if (!kirmLbList.length) return; kirmLbIdx = (kirmLbIdx + d + kirmLbList.length) % kirmLbList.length; kirmLbShow(); }
+
+    function kirmLbClose() { document.getElementById('kirm-lb').classList.remove('open'); document.body.style.overflow = ''; }
+
+    document.addEventListener('keydown', function (e) {
+
+        var lb = document.getElementById('kirm-lb');
+
+        if (!lb || !lb.classList.contains('open')) return;
+
+        if (e.key === 'Escape') kirmLbClose();
+
+        else if (e.key === 'ArrowLeft') kirmLbNav(-1);
+
+        else if (e.key === 'ArrowRight') kirmLbNav(1);
+
+    });
+
+</script>
+<div class="kirm-lb" id="kirm-lb" onclick="if(event.target===this)kirmLbClose()">
+<button aria-label="Затвори" class="kirm-lb-close" onclick="kirmLbClose()" type="button">×</button>
+<button aria-label="Претходна" class="kirm-lb-prev" onclick="kirmLbNav(-1)" type="button">‹</button>
+<img alt="" id="kirm-lb-img" src=""/>
+<button aria-label="Следна" class="kirm-lb-next" onclick="kirmLbNav(1)" type="button">›</button>
+<div class="kirm-lb-counter" id="kirm-lb-counter"></div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Деловен простор</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Штип</p>
+<div class="kirm-price">
+
+                34.929.602 ден.
+
+                    <small>· 301 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14835</dd>
+<dt>Број на предмет</dt><dd>229/2026</dd>
+<dt>Извршител</dt><dd>Валентина Спасова – Јованова</dd>
+<dt>Дата на продажба</dt><dd>28.10.2026</dd>
+</dl>
+<div class="kirm-note">Продажбата ќе се одржи на ден 28.10.2026 година во 13.00 часот во просториите на извршителот</div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/tbahu4ul/229-26_001.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Земјиште</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Штип</p>
+<div class="kirm-price">
+
+                421.428 ден.
+
+                    <small>· 4844 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14834</dd>
+<dt>Број на предмет</dt><dd>549/2025</dd>
+<dt>Извршител</dt><dd>Валентина Спасова – Јованова</dd>
+<dt>Дата на продажба</dt><dd>27.10.2026</dd>
+</dl>
+<div class="kirm-note">Продажбата ќе се одржи на ден 27.10.2026 година во 14.00 часот во просториите на извршителот </div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/oy2fy5tw/549-25.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Стан</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Скопје</p>
+<div class="kirm-price">
+
+                6.099.000 ден.
+
+                    <small>· 58 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14833</dd>
+<dt>Број на предмет</dt><dd>1398/2022</dd>
+<dt>Извршител</dt><dd>Николина Иванова</dd>
+<dt>Дата на продажба</dt><dd>26.10.2026</dd>
+</dl>
+<div class="kirm-note">Имотен лист број 15834 за КО Центар 2, и  друг недвижен имот Продажбата ќе се одржи на ден 26.10.2026 година во 12.00 часот  во просториите на извршителот Николина Иванова .</div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/0fzpyyfw/2022_1398_заклучок-за-втора.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Стан</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Скопје</p>
+<div class="kirm-price">
+
+                6.099.000 ден.
+
+                    <small>· 58 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14832</dd>
+<dt>Број на предмет</dt><dd>1398/2022</dd>
+<dt>Извршител</dt><dd>Николина Иванова</dd>
+<dt>Дата на продажба</dt><dd>26.10.2026</dd>
+</dl>
+<div class="kirm-note">Имотен лист број 15834 за КО Центар 2, и  друг недвижен имот Продажбата ќе се одржи на ден 26.10.2026 година во 12.00 часот  во просториите на извршителот Николина Иванова .</div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/fswjjwvx/2022_1398_заклучок-за-втора.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Земјиште</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Неготино
+</p>
+<div class="kirm-price">
+
+                105.820 ден.
+
+                    <small>· 4290 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14831</dd>
+<dt>Број на предмет</dt><dd>1580/2023</dd>
+<dt>Извршител</dt><dd>Благој Бањански</dd>
+<dt>Дата на продажба</dt><dd>27.10.2026</dd>
+</dl>
+<div class="kirm-note">Имотен лист бр.669 за КО Корешница при АКН Неготино
+
+-1/2 (една половина) идеален делПродажбата ќе се одржи на ден 27.10.2026 година во 11:00 часот во просториите на извршителот Благој Бањански од Неготино
+
+</div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/lc4fceo3/2023_1580_заклучок-за-усна-јавн-апродажба-трета.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+<div class="kirm-listing">
+<div class="kirm-listing-body">
+<h3 class="kirm-listing-title">Стан</h3>
+<p class="kirm-listing-sub"><i class="usn_ion-md-pin me-1"></i>Скопје</p>
+<div class="kirm-price">
+
+                12.545.439 ден.
+
+                    <small>· 90 м²</small>
+</div>
+<dl class="kirm-meta">
+<dt>Број на оглас</dt><dd>14830</dd>
+<dt>Број на предмет</dt><dd>2188/2026</dd>
+<dt>Извршител</dt><dd>Павел Поп Иванов  </dd>
+<dt>Дата на продажба</dt><dd>29.10.2026</dd>
+</dl>
+<div class="kirm-note">имотен лист бр.11374 КО Карпош при АКН – Центар за Катастар на недвижности Скопје,Продажбата ќе се одржи на ден 29.10.2026 година во 12:00 часот  во просториите на Извршителот Павел Поп Иванов </div>
+<a class="btn btn-sm boxed-btn base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders" href="/media/okcpn1ug/заклучок-за-усна-јавна-продажба_01102026_3039.pdf" target="_blank"><span></span>Повеќе за огласот</a>
+</div>
+</div>
+
+
+
+
+<nav aria-label="Страници" id="pagination">
+<ul class="pagination justify-content-center">
+<li class="page-item active disabled">
+<a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=1">1</a>
+</li>
+<li class="page-item">
+<a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=2">2</a>
+</li>
+<li class="page-item">
+<a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=3">3</a>
+</li>
+<li class="page-item">
+<a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=4">4</a>
+</li>
+<li class="page-item">
+<a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=5">5</a>
+</li>
+<li class="page-item"><a class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=6">...</a></li>
+<li class="page-item next">
+<a aria-label="Следна" class="page-link" href="/%D0%BE%D0%B1%D1%98%D0%B0%D0%B2%D0%B8-%D0%B8-%D0%BE%D0%B3%D0%BB%D0%B0%D1%81%D0%B8/%D0%BF%D1%80%D0%B5%D0%B1%D0%B0%D1%80%D1%83%D0%B2%D0%B0%D1%9A%D0%B5-%D0%BD%D0%B0-%D0%BD%D0%B5%D0%B4%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD-%D0%B8%D0%BC%D0%BE%D1%82/?page=2" title="Следна"><i class="icon"></i></a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!--// Content -->
+<!-- Footer -->
+<footer class="footer-bg footer-bg-solid" id="site-footer" tabindex="-1">
+<!-- Breadcrumb -->
+<section class="breadcrumb-trail">
+<div class="container">
+<nav aria-label="Breadcrumb">
+<ol class="breadcrumb" itemscope="" itemtype="https://schema.org/BreadcrumbList">
+<li class="breadcrumb-item" itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"><a href="/" itemprop="item" itemtype="https://schema.org/Thing"><span itemprop="name"><i class="icon before"></i>Home</span></a><meta content="1" itemprop="position"/></li>
+<li class="breadcrumb-item" itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"><a href="/објави-и-огласи/" itemprop="item" itemtype="https://schema.org/Thing"><span itemprop="name"><i class="icon before"></i>Објави и огласи</span></a><meta content="2" itemprop="position"/></li>
+<li aria-current="page" class="breadcrumb-item active" itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"><span itemprop="name"><i class="icon before"></i>Пребарување на недвижен имот</span><meta content="3" itemprop="position"/></li>
+</ol>
+</nav>
+</div>
+</section>
+<!--// Breadcrumb -->
+<div class="container">
+<!-- Row -->
+<div class="row listing">
+<div class="item footer-item col-lg-3 col-md-3 col-12 col item_text-below usn_pod_textimage text-left" data-os-animation="fadeIn" data-os-animation-delay="0s" data-os-animation-duration="1.2s">
+<div class="inner">
+<div class="info">
+<div class="text footer-text">
+<div style="background: #f7f7f7; padding: 2rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem;">
+<div>
+<h6 style="color: #000000; margin: 0 0 0.75rem;">Адреса</h6>
+<div style="color: #2c2c2a;">Ул." Костурски херои" бр.66/4 Скопје</div>
+</div>
+<div>
+<h6 style="color: #000000; margin: 0 0 0.75rem;">Е-пошта</h6>
+<a href="mailto:izvrsitelinarm@yahoo.com" style="display: block; color: #2c2c2a; text-decoration: none; margin-bottom: 0.5rem;">✉ izvrsitelinarm@yahoo.com</a> <a href="mailto:kirm@kirm.mk" style="display: block; color: #2c2c2a; text-decoration: none;">✉ kirm@kirm.mk</a></div>
+<div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="item footer-item offset-lg-1 offset-md-1 col-lg-3 col-md-3 col-12 col item_text-below usn_pod_textimage text-left" data-os-animation="fadeIn" data-os-animation-delay="0s" data-os-animation-duration="1.2s">
+<div class="inner">
+<div class="info">
+<div class="text footer-text">
+<div style="background: #f7f7f7; padding: 2rem 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem;">
+<div>
+<h6 style="color: #000000; margin: 0 0 0.75rem;">Телефонски броеви</h6>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 1.5rem;">
+<div style="font-weight: 500; color: #2c2c2a;">☎ 02/3239-877</div>
+<div style="font-weight: 500; color: #2c2c2a;">✆ 075/342-885</div>
+<div style="font-weight: 500; color: #2c2c2a;">☎ 02/3225-674</div>
+<div style="font-weight: 500; color: #2c2c2a;">✆ 075/342-886</div>
+</div>
+</div>
+<div>
+<h6 style="color: #000000; margin: 0 0 0.75rem;">Работно време</h6>
+<div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid #b0b0b0;"><span>Понеделник - Петок</span> <span>08:30 – 16:30</span></div>
+<div style="display: flex; justify-content: space-between;"><span>Прием на странки</span> <span>12:00 – 15:00</span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="item footer-item offset-lg-1 col-lg-3 col-md-3 col-12 col item_text-below usn_pod_textimage text-left" data-os-animation="fadeIn" data-os-animation-delay="0s" data-os-animation-duration="1.2s">
+<div class="inner">
+<div class="info">
+<div class="text footer-text">
+<div style="background: ##f7f7f7; padding: 2rem 1.5rem;">
+<h6 style="color: #000000; margin: 0 0 1rem;">Корисни линкови</h6>
+<div style="margin-bottom: 1rem;">
+<div style="font-weight: 500; color: #000; margin-bottom: 0.5rem;">Домашни корисни линкови</div>
+<div style="display: flex; flex-direction: column; gap: 5px;"><a href="/korisni-linkovi/domashni-korisni-linkovi/sudovi/" style="color: #2c2c2a; text-decoration: none; font-size: 14px;">› Судови</a> <a href="/korisni-linkovi/domashni-korisni-linkovi/komori/" style="color: #2c2c2a; text-decoration: none; font-size: 14px;">› Комори</a> <a href="/korisni-linkovi/domashni-korisni-linkovi/domashni-institufii/" style="color: #2c2c2a; text-decoration: none; font-size: 14px;">› Домашни институции</a></div>
+</div>
+<div>
+<div style="font-weight: 500; color: #000; margin-bottom: 0.5rem;">Меѓународни линкови</div>
+<div style="display: flex; flex-direction: column; gap: 5px;"><a href="/korisni-linkovi/%D0%BC%D0%B5%D1%93%D1%83%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D0%B8-%D0%BB%D0%B8%D0%BD%D0%BA%D0%BE%D0%B2%D0%B8/komori-na-izvrshiteli-vo-regionot/" style="color: #2c2c2a; text-decoration: none; font-size: 14px;">› Комори на извршители во регионот</a> <a href="/korisni-linkovi/%D0%BC%D0%B5%D1%93%D1%83%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D0%B8-%D0%BB%D0%B8%D0%BD%D0%BA%D0%BE%D0%B2%D0%B8/%D0%BC%D0%B5%D1%93%D1%83%D0%BD%D0%B0%D1%80%D0%BE%D0%B4%D0%BD%D0%B8-%D0%B8%D0%BD%D1%81%D1%82%D0%B8%D1%82%D1%83%D1%86%D0%B8%D0%B8/" style="color: #2c2c2a; text-decoration: none; font-size: 14px;">› Меѓународни институции</a></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!--// Row -->
+<!-- Row -->
+<div class="row">
+<div class="col">
+<nav aria-label="Footer" class="footer-navigation">
+<ul>
+<li><div>© 2026 - КИРСМ</div></li>
+<li><span><a href="/politika-na-privatnost/">Политика на приватност</a></span></li>
+<li><span><a href="/zashtita-na-lichni-podatofi/">Заштита на лични податоци</a></span></li>
+<li><span><a href="/ofifer-za-zashtita-na-lp/">Офицер за заштита на Л.П.</a></span></li>
+<li><span><a href="/информации-и-прашања/често-поставувани-прашања/">Често поставувани прашања</a></span></li>
+<li class="site-credit">
+<div>Developed by </div>
+<span><a href="https://foxit.mk/" rel="noreferrer noopener" target="_blank" title="Link will open in a new window/tab">FoxIT<i class="icon usn_ion-md-open after"></i></a></span>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+<!--// Row -->
+<!-- Back to top -->
+<div class="usn_back-to-top position-right">
+<button aria-label="Back to top" class="btn base-btn-bg base-btn-bg base-btn-bg-solid base-btn-bg-hover-solid base-btn-text base-btn-borders btn-back-to-top" id="back-to-top-link">
+<span></span>
+<i aria-hidden="true" class="icon"></i><span aria-hidden="true" class="d-none">Back to top</span>
+</button>
+</div>
+<!--// Back to top -->
+</div>
+</footer>
+<!--// Footer -->
+</div>
+<!--// Site -->
+<!-- Notification -->
+<div class="usn-notification position-left base-bg base-bg-solid closed" id="NotificationPanel">
+<div class="inner">
+<p class="heading sm base-heading">Поставки за колачиња</p>
+<div class="text base-text">
+<p>Оваа веб страна користи "колачиња" за да го подобри корисничкото искуство. Со кликнување на "Прифати", се согласувате со употребата на ЗАДОЛЖИТЕЛНИ "колачиња".<br/>За повеќе информации, кликнете на следниот <a href="/politika-na-privatnost/" title="Политика на приватност">Приватност</a></p>
+</div>
+<p class="link">
+<button class="btn c3-btn-bg c3-btn-bg-solid c3-btn-bg-hover-solid c3-btn-text c3-btn-borders accept-cookies">
+<span></span>
+
+                        Прифати
+
+                    </button>
+</p>
+</div>
+</div>
+<!--// Notification -->
+<script src="/sb/sitebuilder-js-bundle.js.v4b1b1a595ff46b6468215e236dc317b3cf1540e9" type="text/javascript"></script>
+<!-- Google Translate (hidden, drives the translation) -->
+<div id="google_translate_element"></div>
+<script type="text/javascript">
+
+        function googleTranslateElementInit() {
+
+            new google.translate.TranslateElement({
+
+                pageLanguage: 'mk',
+
+                includedLanguages: 'mk,en,sq',
+
+                autoDisplay: false
+
+            }, 'google_translate_element');
+
+        }
+
+        function doGTranslate(lang) {
+
+            var sel = document.querySelector('select.goog-te-combo');
+
+            if (!sel) return;
+
+            sel.value = lang;
+
+            sel.dispatchEvent(new Event('change'));
+
+        }
+
+        // Brute-force hide of the Google top banner (CSS alone isn't always enough)
+
+        setInterval(function () {
+
+            var banner = document.querySelector('.goog-te-banner-frame, iframe.goog-te-banner-frame, .VIpgJd-ZVi9od-ORHb-OEVmcd');
+
+            if (banner) banner.style.display = 'none';
+
+            if (document.body && document.body.style.top) document.body.style.top = '0px';
+
+            if (document.documentElement && document.documentElement.style.top) document.documentElement.style.top = '0px';
+
+        }, 400);
+
+    </script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<!-- Compact language dropdown (sits next to the Контакт button) -->
+<div class="notranslate" id="lang-switcher" translate="no">
+<button class="lang-current notranslate" onclick="document.getElementById('lang-switcher').classList.toggle('open')" translate="no" type="button">
+<img alt="" id="lang-current-flag" src="https://flagcdn.com/w40/mk.png"/>
+<span class="notranslate" id="lang-current-name" translate="no">MK</span>
+<span class="caret">▼</span>
+</button>
+<ul class="lang-menu notranslate" translate="no">
+<li onclick="pickLang('mk','MK','mk')"><img alt="" src="https://flagcdn.com/w40/mk.png"/> <span class="notranslate" translate="no">MK</span></li>
+<li onclick="pickLang('sq','AL','al')"><img alt="" src="https://flagcdn.com/w40/al.png"/> <span class="notranslate" translate="no">AL</span></li>
+<li onclick="pickLang('en','EN','gb')"><img alt="" src="https://flagcdn.com/w40/gb.png"/> <span class="notranslate" translate="no">EN</span></li>
+</ul>
+</div>
+<script>
+
+        function pickLang(code, label, flag) {
+
+            document.getElementById('lang-current-flag').src = 'https://flagcdn.com/w40/' + flag + '.png';
+
+            document.getElementById('lang-current-name').textContent = label;
+
+            document.getElementById('lang-switcher').classList.remove('open');
+
+            doGTranslate(code);
+
+        }
+
+        document.addEventListener('click', function (e) {
+
+            var sw = document.getElementById('lang-switcher');
+
+            if (sw && !sw.contains(e.target)) sw.classList.remove('open');
+
+        });
+
+        // Move the language switcher into the navigation header AFTER the Контакт button
+
+        function moveLangSwitcherIntoNav() {
+
+            var sw = document.getElementById('lang-switcher');
+
+            if (!sw) return;
+
+            var cta = document.querySelector('#site-header .cta-links');
+
+            if (cta && cta.parentNode) {
+
+                if (cta.nextSibling) {
+
+                    cta.parentNode.insertBefore(sw, cta.nextSibling);
+
+                } else {
+
+                    cta.parentNode.appendChild(sw);
+
+                }
+
+                return;
+
+            }
+
+            // Fallback: append to header row
+
+            var row = document.querySelector('#site-header .row') || document.querySelector('#site-header');
+
+            if (row) row.appendChild(sw);
+
+        }
+
+        if (window.innerWidth > 991) {
+
+            if (document.readyState === 'loading') {
+
+                document.addEventListener('DOMContentLoaded', moveLangSwitcherIntoNav);
+
+            } else {
+
+                moveLangSwitcherIntoNav();
+
+            }
+
+        }
+
+    </script>
+</body>
+<!--
+
+    ____        _ ____              _ __  __             _____ __   _                      __
+
+   / __ )__  __(_) / /_   _      __(_) /_/ /_     __  __/ ___// /__(_)___  ____  ___  ____/ /
+
+  / __  / / / / / / __/  | | /| / / / __/ __ \   / / / /\__ \/ //_/ / __ \/ __ \/ _ \/ __  /
+
+ / /_/ / /_/ / / / /_    | |/ |/ / / /_/ / / /  / /_/ /___/ / ,< / / / / / / / /  __/ /_/ /
+
+/_____/\__,_/_/_/\__/    |__/|__/_/\__/_/ /_/   \__,_//____/_/|_/_/_/ /_/_/ /_/\___/\__,_/
+
+
+
+Find out more at uSkinned.net
+
+
+
+-->
+</html>
