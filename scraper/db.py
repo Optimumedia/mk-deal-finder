@@ -67,6 +67,12 @@ CREATE TABLE IF NOT EXISTS runs (
     message     TEXT
 );
 
+-- Sitemap sources: the lastmod we last fetched per URL, so only changed pages are read.
+CREATE TABLE IF NOT EXISTS sitemap_state (
+    url     TEXT PRIMARY KEY,
+    lastmod TEXT
+);
+
 CREATE TABLE IF NOT EXISTS notified (
     listing_id  TEXT NOT NULL,
     researcher  TEXT NOT NULL,
@@ -227,6 +233,12 @@ class DB:
 
     def has_completed_run(self) -> bool:
         return self.conn.execute("SELECT 1 FROM runs WHERE status = 'ok' AND pages > 0").fetchone() is not None
+
+    def sitemap_known(self) -> dict[str, str | None]:
+        return {r[0]: r[1] for r in self.conn.execute("SELECT url, lastmod FROM sitemap_state")}
+
+    def sitemap_seen(self, url: str, lastmod: str | None) -> None:
+        self.conn.execute("INSERT OR REPLACE INTO sitemap_state VALUES (?, ?)", (url, lastmod))
 
     def count(self) -> int:
         return self.conn.execute("SELECT COUNT(*) FROM listings").fetchone()[0]

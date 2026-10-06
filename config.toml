@@ -167,6 +167,19 @@ max_premium = 0.30             # hide sales starting >30% above the city median
 # co-owner with strangers. Hidden unless you switch this on.
 include_partial_shares = false
 
+# ----------------------------------------------------------------------------
+#  Extra listing sources
+# ----------------------------------------------------------------------------
+[novel]                        # novelestate.com — large Skopje agency, ~1,100 rental flats
+enabled = true
+quick_pages = 3                # evening run: first pages of each list
+full_max_pages = 110           # morning full sweep
+
+[nedviznosti]                  # nedviznosti.com.mk — portal, read via its sitemap
+enabled = true
+per_run = 150                  # changed listings read per run (~8 min)
+backfill_per_run = 250         # until the first run succeeds
+
 [notify]
 # "❓ Needs info" leads (promising, but facts to check with the seller):
 needs_info_min_score = 45

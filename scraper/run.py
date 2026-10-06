@@ -23,7 +23,10 @@ from .http import Blocked, PoliteSession
 from .market import Market, ppm2
 from .researchers.common import days_listed
 from .researchers import airbnb, auctions, flip, land, motivated
-from .sources import kirsm, reklama5
+from .sources import kirsm, nedviznosti, novel, reklama5
+
+# Which parser reads a listing's detail page.
+DETAIL_PARSERS = {reklama5.SOURCE: reklama5.parse_detail, novel.SOURCE: novel.parse_detail}
 from .text import (KeywordSet, classify_deal, redact, detect_furnished, detect_utilities, is_abroad, land_type,
                    mentions_price_per_m2, needs_renovation, norm)
 
@@ -200,6 +203,87 @@ def scrape_kirsm(db: DB, http: PoliteSession, cfg: dict, stats: dict) -> None:
     log.info("%-28s pages so far %4d  bailiff sales read %d", "auctions (KIRSM)", stats["pages"], seen)
 
 
+def scrape_novel(db: DB, http: PoliteSession, cfg: dict, full: bool, stats: dict) -> None:
+    """novelestate.com (big Skopje agency, mostly rentals). Pages aren't sorted
+    by date, so the daily full sweep reads everything; other runs skim."""
+    c = cfg.get("novel", {})
+    if not c.get("enabled", True):
+        return
+    mkd = cfg["market"]["mkd_per_eur"]
+    for deal, kind in (("rent", "apartment"), ("rent", "house"), ("sale", "apartment"), ("sale", "house"),
+                       ("sale", "land")):
+        seen: set[str] = set()
+        for page in range(1, (c.get("full_max_pages", 110) if full else c.get("quick_pages", 3)) + 1):
+            try:
+                html = http.get(novel.search_url(deal, kind, page))
+            except requests.RequestException as e:
+                log.warning("novel %s/%s page %d failed: %s", deal, kind, page, e)
+                break
+            stats["pages"] += 1
+            cards = novel.parse_list(html, mkd)
+            unseen = {c["source_id"] for c in cards} - seen
+            if not cards or not unseen:
+                break
+            seen |= unseen
+            ts = now()
+            for card in cards:
+                card = normalise_card(card)
+                card["deal"] = deal          # the list type is authoritative
+                is_new, changed = db.upsert_card(card, ts)
+                stats["new"] += is_new
+                stats["changed"] += changed
+            db.conn.commit()
+    log.info("%-28s pages so far %4d  new %4d", "novelestate.com", stats["pages"], stats["new"])
+
+
+def scrape_nedviznosti(db: DB, http: PoliteSession, cfg: dict, stats: dict, first_run: bool) -> None:
+    """nedviznosti.com.mk via its sitemap (robots.txt forbids paginated search).
+    Only pages whose <lastmod> changed are fetched, capped per run. Their terms
+    forbid redistributing content: descriptions stay in the private database
+    and photos are not stored, so neither reaches the public dashboard."""
+    c = cfg.get("nedviznosti", {})
+    if not c.get("enabled", True):
+        return
+    try:
+        entries = nedviznosti.parse_sitemap(http.get(nedviznosti.SITEMAP_URL))
+    except requests.RequestException as e:
+        log.warning("nedviznosti sitemap failed: %s", e)
+        return
+    stats["pages"] += 1
+    lastmods = dict(entries)
+    todo = nedviznosti.changed_since(entries, db.sitemap_known())
+    todo.sort(key=lambda u: lastmods.get(u) or "", reverse=True)          # newest changes first
+    cap = c.get("backfill_per_run", 250) if first_run else c.get("per_run", 60)
+    mkd = cfg["market"]["mkd_per_eur"]
+    done = 0
+    for url in todo[:cap]:
+        try:
+            html = http.get(url)
+        except requests.RequestException as e:
+            log.warning("nedviznosti %s failed: %s", url, e)
+            continue
+        stats["pages"] += 1
+        db.sitemap_seen(url, lastmods.get(url))
+        if not html:
+            continue
+        d = nedviznosti.parse_listing(html, url, mkd)
+        deal = d.get("deal")
+        card = normalise_card({**d, "image": None})     # no photos: their terms forbid redistribution
+        if deal in ("sale", "rent", "short_term"):
+            card["deal"] = deal                          # the site's own category is authoritative
+        ts = now()
+        is_new, changed = db.upsert_card(card, ts)
+        stats["new"] += is_new
+        stats["changed"] += changed
+        db.apply_detail(f"{nedviznosti.SOURCE}:{card['source_id']}", {**detail_update(card, d), "deal": card["deal"]}, ts)
+        done += 1
+        if done % 25 == 0:
+            db.conn.commit()
+    db.conn.commit()
+    log.info("%-28s pages so far %4d  %d changed listings read (%d waiting)", "nedviznosti.com.mk",
+             stats["pages"], done, max(0, len(todo) - cap))
+
+
 def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urgent_kw: KeywordSet) -> float:
     """How likely is this listing to matter? Only >0 gets its detail page read."""
     title = norm(l.get("title"))
@@ -245,7 +329,10 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
             continue
         if not html:          # ad was removed
             continue
-        d = reklama5.parse_detail(html, cfg["market"]["mkd_per_eur"])
+        parse = DETAIL_PARSERS.get(l["source"])
+        if parse is None:
+            continue
+        d = parse(html, cfg["market"]["mkd_per_eur"])
         db.apply_detail(l["id"], detail_update(l, d), now())
         done += 1
         if done % 25 == 0:
@@ -312,6 +399,8 @@ def main(argv=None) -> int:
         try:
             scrape_lists(db, http, cfg, full, args.max_pages, stats)
             scrape_kirsm(db, http, cfg, stats)
+            scrape_novel(db, http, cfg, full, stats)
+            scrape_nedviznosti(db, http, cfg, stats, first_run)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
         except Blocked as e:

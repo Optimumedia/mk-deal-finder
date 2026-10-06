@@ -38,6 +38,10 @@ def _words(title: str | None) -> set[str]:
 def _same(a: dict, b: dict) -> bool:
     if a.get("district") and b.get("district") and a["district"] != b["district"]:
         return False
+    if a.get("source") != b.get("source"):
+        # Same type, city, price (±1%) and size (±3%) on two sites is one property —
+        # except rents, which cluster on round numbers: those need the same district too.
+        return a["deal"] == "sale" or bool(a.get("district") and a.get("district") == b.get("district"))
     if a.get("image") and a.get("image") == b.get("image"):
         return True
     # Big sale prices rarely collide by chance; rents and round numbers do,
@@ -56,7 +60,7 @@ def dedupe(listings: list[dict]) -> list[dict]:
     passthrough = []
     for l in listings:
         p, a = total_price(l), l.get("area_m2")
-        if l.get("source") != "reklama5" or not p or not a:
+        if l.get("source") == "kirsm" or not p or not a:      # auctions are never duplicates of ads
             passthrough.append(l)
         else:
             groups[(l["kind"], l["deal"], l.get("city"))].append(l)
@@ -84,8 +88,9 @@ def dedupe(listings: list[dict]) -> list[dict]:
         for i, l in enumerate(items):
             clusters[find(i)].append(l)
         for members in clusters.values():
-            keep = min(members, key=lambda l: (l.get("detail_at") is None, int(l["source_id"])
-                                               if l["source_id"].isdigit() else 0))
+            # Prefer the copy whose details were read, then Reklama5 (more fields), then the oldest ad.
+            keep = min(members, key=lambda l: (l.get("detail_at") is None, l.get("source") != "reklama5",
+                                               int(l["source_id"]) if l["source_id"].isdigit() else 0))
             if len(members) > 1:
                 keep = dict(keep)
                 keep["duplicates"] = len(members) - 1
