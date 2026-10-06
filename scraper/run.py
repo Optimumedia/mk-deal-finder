@@ -306,7 +306,7 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
         p = max(p, (3.5 if l.get("price_eur") else 2.5) if in_region else 0.5)
     if l["kind"] in ("apartment", "house", "weekend_house") and l["deal"] == "sale":
         v = ppm2(l)
-        ref, _, _ = market.reference(l["kind"], "sale", l.get("city"), l.get("district"))
+        ref, _, _ = market.reference(l["kind"], "sale", l.get("city"), l.get("district"), l.get("area_m2"))
         if v and ref and v < ref * (1 - cfg["flip"]["min_discount"] + 0.05):
             p = max(p, 2.5)
         elif l["kind"] == "weekend_house":

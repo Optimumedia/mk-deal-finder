@@ -96,11 +96,13 @@ def verdict(lead: dict, mkt: Market) -> str:
     if not lead.get("city"):
         missing.append("the town / neighbourhood")
     if unit:
-        ref, n, level = mkt.reference(k, deal, lead.get("city"), lead.get("district"), lead.get("area_m2"))
+        rf = mkt.reference(k, deal, lead.get("city"), lead.get("district"), lead.get("area_m2"))
+        ref, n, level = rf
         if ref and level != "national":
             diff = 1 - unit / ref
             where = lead["district"] if level == "district" else lead["city"]
-            lines.append(f"{unit:,.0f} €/m² vs typical {ref:,.0f} €/m² in {where} ({n} listings): "
+            size = f" ({rf.band})" if rf.band else ""
+            lines.append(f"{unit:,.0f} €/m² vs typical {ref:,.0f} €/m² in {where}{size} ({n} listings): "
                          f"{'%d%% below' % round(diff * 100) if diff > 0 else '%d%% above' % round(-diff * 100)}")
             lines.append("💎 Exceptional — verify fast" if diff >= 0.35 else "🔥 Strong deal" if diff >= 0.25
                          else "⭐ Good price" if diff >= 0.15 else "👍 Fair price" if diff >= 0.0

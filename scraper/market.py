@@ -39,15 +39,42 @@ def ppm2(listing: dict) -> float | None:
     return v if lo <= v <= hi else None
 
 
-# Flats ask less per m² the bigger they are; compare like with like.
-SIZE_BANDS = [(0, 45, "<45 m²"), (45, 75, "45–75 m²"), (75, 110, "75–110 m²"), (110, 10**9, "110+ m²")]
+# Bigger property asks less per m² — a 5,000 m² field vs a 300 m² building plot
+# in the same town differ several-fold. Compare like with like.
+SIZE_BANDS = {
+    "apartment": [(0, 45, "under 45 m²"), (45, 75, "45–75 m²"), (75, 110, "75–110 m²"), (110, 10**9, "over 110 m²")],
+    "house": [(0, 100, "under 100 m²"), (100, 180, "100–180 m²"), (180, 300, "180–300 m²"), (300, 10**9, "over 300 m²")],
+    "weekend_house": [(0, 60, "under 60 m²"), (60, 120, "60–120 m²"), (120, 10**9, "over 120 m²")],
+    "land": [(0, 400, "under 400 m²"), (400, 800, "400–800 m²"), (800, 1500, "800–1,500 m²"),
+             (1500, 3000, "1,500–3,000 m²"), (3000, 10000, "3,000–10,000 m²"), (10000, 10**12, "over 10,000 m²")],
+}
+# For land and houses size matters more than the exact neighbourhood: same size
+# anywhere in town beats all sizes next door. For flats, location comes first.
+SIZE_FIRST = {"land", "house", "weekend_house"}
 
 
 def size_band(listing: dict) -> str | None:
-    a = listing.get("area_m2")
-    if listing.get("kind") != "apartment" or not a:
+    a, bands = listing.get("area_m2"), SIZE_BANDS.get(listing.get("kind"))
+    if not a or not bands:
         return None
-    return next(label for lo, hi, label in SIZE_BANDS if lo <= a < hi)
+    return next(label for lo, hi, label in bands if lo <= a < hi)
+
+
+class Ref(tuple):
+    """(median €/m², sample size, level) — unpacks like a 3-tuple; .band says
+    which size band it was compared within (None = all sizes)."""
+    band: str | None = None
+
+    @staticmethod
+    def make(median_ppm2, n, level, band=None) -> "Ref":
+        r = Ref((median_ppm2, n, level))
+        r.band = band
+        return r
+
+    def describe(self, kind: str) -> str:
+        """'city median for 800–1,500 m² plots' / 'district median'."""
+        noun = {"land": "plots", "house": "houses", "weekend_house": "weekend houses", "apartment": "flats"}.get(kind, "")
+        return f"{self[2]} median" + (f" for {self.band} {noun}" if self.band else "")
 
 
 def robust_median(values: list[float]) -> float:
@@ -68,7 +95,9 @@ class Market:
             if v is None:
                 continue
             k, d, band = r["kind"], r["deal"], size_band(r)
-            for key in ((k, d, r.get("city"), r.get("district")), (k, d, r.get("city"), None), (k, d, None, None)):
+            # dict.fromkeys: a listing without a district must not count twice for its town
+            for key in dict.fromkeys(((k, d, r.get("city"), r.get("district")), (k, d, r.get("city"), None),
+                                      (k, d, None, None))):
                 buckets[key].append(v)
                 if band:
                     buckets[key + (band,)].append(v)
@@ -82,15 +111,21 @@ class Market:
         district → city → national.
         """
         band = size_band({"kind": kind, "area_m2": area})
-        for key, level, need in (((kind, deal, city, district), "district", self.mins[0]),
-                                 ((kind, deal, city, None), "city", self.mins[1]),
-                                 ((kind, deal, None, None), "national", self.mins[2])):
-            if (level == "district" and not district) or (level == "city" and not city):
-                continue
-            for k in ((key + (band,)) if band else None, key):
-                if k and len(self.buckets.get(k, ())) >= need:
-                    return self.medians[k], len(self.buckets[k]), level
-        return None, 0, None
+        levels = [((kind, deal, city, district), "district", self.mins[0]),
+                  ((kind, deal, city, None), "city", self.mins[1]),
+                  ((kind, deal, None, None), "national", self.mins[2])]
+        levels = [x for x in levels if not ((x[1] == "district" and not district) or (x[1] == "city" and not city))]
+        if band and kind in SIZE_FIRST:
+            # same size band at every level first, then all sizes
+            tries = [(key + (band,), level, need, band) for key, level, need in levels] + \
+                    [(key, level, need, None) for key, level, need in levels]
+        else:
+            tries = [t for key, level, need in levels
+                     for t in (((key + (band,), level, need, band),) if band else ()) + ((key, level, need, None),)]
+        for k, level, need, b in tries:
+            if len(self.buckets.get(k, ())) >= need:
+                return Ref.make(self.medians[k], len(self.buckets[k]), level, b)
+        return Ref.make(None, 0, None)
 
     def summary(self) -> list[dict]:
         """City-level medians for the dashboard's market tab."""

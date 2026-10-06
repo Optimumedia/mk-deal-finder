@@ -32,7 +32,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if not price or price < c["min_price_eur"]:
             continue
         unit = ppm2({**l, "deal": "sale"})          # sanity bounds of a normal sale
-        ref, samples, level = market.reference(l["kind"], "sale", l.get("city"), None)
+        rf = market.reference(l["kind"], "sale", l.get("city"), None, area)
+        ref, samples, level = rf
         discount = (1 - unit / ref) if (unit and ref and level != "national") else None
         rnd = l.get("auction_round")
         extra = l.get("extra") or {}
@@ -43,7 +44,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         reasons = []
         if discount is not None:
             if discount > 0:
-                reasons.append(f"starts {discount:.0%} below {l.get('city')} asking median ({ref:,.0f} €/m²)")
+                reasons.append(f"starts {discount:.0%} below the {l.get('city')} {rf.describe(l['kind'])} "
+                               f"({ref:,.0f} €/m², {samples} listings)")
             else:
                 reasons.append(f"starts {-discount:.0%} above {l.get('city')} asking median — only worth it after a cut")
         if rnd and rnd > 1:

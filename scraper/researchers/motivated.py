@@ -70,7 +70,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                            else f"on the market {real_age} days")
 
         unit = ppm2(l)
-        ref, _, level = market.reference(l["kind"], "sale", l.get("city"), l.get("district"))
+        ref, _, level = market.reference(l["kind"], "sale", l.get("city"), l.get("district"), l.get("area_m2"))
         # National medians mix Skopje with villages — only compare locally. Houses
         # without a detail page (or in villages) often carry the plot area: skip.
         comparable = level not in (None, "national") and not (

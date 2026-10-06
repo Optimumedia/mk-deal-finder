@@ -250,3 +250,30 @@ class HouseAreaRegressionTests(unittest.TestCase):
         self.assertEqual(maps.query({"city": "Тетово", "extra": {"note": "ИЛ бр.416 КО ГРУПЧИН Продажбата"}}),
                          "Групчин, Тетово, North Macedonia")
         self.assertIn("41.990000,21.430000", maps.url(41.99, 21.43, None))
+
+
+class SizeBandTests(unittest.TestCase):
+    """Owner request: compare with property of similar size (big plots are cheaper per m²)."""
+
+    def rows(self, n, area, ppm2, district=None):
+        return [{"kind": "land", "deal": "sale", "city": "Охрид", "district": district,
+                 "price_eur": ppm2 * area, "area_m2": area}] * n
+
+    def test_land_compared_within_its_size_band(self):
+        m = Market(self.rows(10, 300, 100) + self.rows(10, 2000, 30), 8, 8, 15)
+        big = m.reference("land", "sale", "Охрид", None, 2000)
+        small = m.reference("land", "sale", "Охрид", None, 300)
+        self.assertEqual((big[0], big.band), (30, "1,500–3,000 m²"))
+        self.assertEqual((small[0], small.band), (100, "under 400 m²"))
+        self.assertEqual(big.describe("land"), "city median for 1,500–3,000 m² plots")
+
+    def test_same_size_in_town_beats_all_sizes_next_door(self):
+        rows = self.rows(10, 2000, 30) + self.rows(15, 300, 100, district="Центар")
+        m = Market(rows, 15, 8, 15)
+        self.assertEqual(m.reference("land", "sale", "Охрид", "Центар", 2000).band, "1,500–3,000 m²")
+
+    def test_too_few_in_band_falls_back_to_all_sizes(self):
+        m = Market(self.rows(3, 2000, 30) + self.rows(10, 300, 100), 8, 8, 15)
+        r = m.reference("land", "sale", "Охрид", None, 2000)
+        self.assertIsNone(r.band)
+        self.assertEqual(r[1], 13)

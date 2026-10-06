@@ -122,7 +122,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         payback = upfront / profit if profit > 0 else None
 
         # How cheap is this rent for its spot?
-        ref, n, level = market.reference(l["kind"], "rent", l.get("city"), l.get("district"))
+        ref, n, level = market.reference(l["kind"], "rent", l.get("city"), l.get("district"), l.get("area_m2"))
         rent_discount = None
         if ref and l.get("area_m2"):
             rent_discount = 1 - (rent / l["area_m2"]) / ref

@@ -40,10 +40,11 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
 
         reasons = []
         unit = ppm2(l)
-        ref, samples, level = market.reference("land", "sale", l.get("city"), l.get("district"))
+        rf = market.reference("land", "sale", l.get("city"), l.get("district"), area)
+        ref, samples, level = rf
         discount = (1 - unit / ref) if (ref and unit) else None
         if discount is not None and discount > 0:
-            reasons.append(f"{discount:.0%} below {level} median ({ref:.0f} €/m²)")
+            reasons.append(f"{discount:.0%} below the {rf.describe('land')} ({ref:.0f} €/m², {samples} listings)")
         if peaks:
             reasons.append("mountain area: " + ", ".join(peaks[:3]))
         if ltype == "building":
@@ -79,7 +80,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "€/m²": round(unit, 1) if unit else None,
                 "Area median €/m²": round(ref, 1) if ref else None,
                 "Below market": f"{discount:.0%}" if discount is not None else None,
-                "Compared against": f"{samples} plots ({level})" if level else "not enough data yet",
+                "Compared against": (f"{samples} plots {rf.band or 'of all sizes'} ({level})" if level
+                                     else "not enough data yet"),
                 "Land type": {"building": "Building", "agricultural": "Agricultural"}.get(ltype, "Unknown"),
                 "Region": "Mountain" if peaks else l.get("city"),
             },

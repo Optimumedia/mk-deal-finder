@@ -57,7 +57,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             continue                    # off-plan / developer price list
         # "Скопје Центар" with nothing central in the ad is usually the form default.
         district = None if centar_unconfirmed(l) else l.get("district")
-        ref, samples, level = market.reference(l["kind"], "sale", l.get("city"), district, area)
+        rf = market.reference(l["kind"], "sale", l.get("city"), district, area)
+        ref, samples, level = rf
         # A national median is dominated by Skopje — every small-town flat would
         # look "cheap". Only trust district or city comparables.
         if not ref or level == "national":
@@ -80,13 +81,13 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if roi < c["min_roi"]:
             continue
 
-        reasons = [f"{discount:.0%} below {level} median ({ref:.0f} €/m², {samples} comps)"]
+        reasons = [f"{discount:.0%} below the {rf.describe(l['kind'])} ({ref:.0f} €/m², {samples} listings)"]
         if heavy:
             reasons.append("needs renovation" + (f" (built {year})" if year else ""))
         if l.get("site_old_price") and l["site_old_price"] > price:
             reasons.append(f"price already cut from {l['site_old_price']:,.0f} €")
 
-        rent_ref, _, _ = market.reference("apartment", "rent", l.get("city"), l.get("district"))
+        rent_ref, _, _ = market.reference("apartment", "rent", l.get("city"), l.get("district"), area)
         yield_gross = (rent_ref * area * 12 / price) if (rent_ref and l["kind"] == "apartment") else None
         if yield_gross and yield_gross > 0.07:
             reasons.append(f"or hold & rent: ~{yield_gross:.1%} gross yield")
