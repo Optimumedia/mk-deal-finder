@@ -207,6 +207,9 @@ class DB:
     def mark_notified(self, lid: str, researcher: str):
         self.conn.execute("INSERT OR IGNORE INTO notified VALUES (?,?,?)", (lid, researcher, now()))
 
+    def has_completed_run(self) -> bool:
+        return self.conn.execute("SELECT 1 FROM runs WHERE status = 'ok' AND pages > 0").fetchone() is not None
+
     def count(self) -> int:
         return self.conn.execute("SELECT COUNT(*) FROM listings").fetchone()[0]
 

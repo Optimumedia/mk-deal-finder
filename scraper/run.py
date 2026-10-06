@@ -232,7 +232,7 @@ def main(argv=None) -> int:
     cfg = tomllib.loads(Path(args.config).read_text(encoding="utf-8"))
     sc = cfg["scraper"]
     db = DB(args.db)
-    first_run = db.count() == 0
+    first_run = not db.has_completed_run()     # backfill until one run has succeeded
     full = args.full or first_run or (
         not args.quick and datetime.now(timezone.utc).hour in sc.get("full_sweep_hours_utc", []))
 
