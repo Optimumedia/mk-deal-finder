@@ -16,6 +16,7 @@ Exit codes: 0 ok (or nothing to do), 2 failed (a Telegram warning is sent).
 from __future__ import annotations
 
 import argparse
+import html
 import logging
 import random
 import re
@@ -173,8 +174,7 @@ def deliver(conn, batch: list[tuple[dict, float, bool]], model: learn.Model, dry
     if chat is None:
         for idea, predicted, wildcard in batch:
             print("\n" + "=" * 70)
-            print(re.sub(r"<[^>]+>", "", telegram.format_idea(idea, model.why(idea), wildcard)).replace("&lt;", "<")
-                  .replace("&gt;", ">").replace("&amp;", "&"))
+            print(html.unescape(re.sub(r"<[^>]+>", "", telegram.format_idea(idea, model.why(idea), wildcard))))
             print(f"(expected rating {predicted:.1f})")
         if not dry_run:
             log.warning("Telegram isn't configured, so the ideas were only printed (and stay unsent)")

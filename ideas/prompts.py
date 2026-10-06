@@ -70,7 +70,11 @@ Earlier ideas. Don't repeat these or reword them:
 
 Write {n} distinct ideas. At most {max_per_category} may share a category. Put each idea's research lens in \
 the lens field, exactly as named above. Make 2 of the {n} deliberately unlike what the founder has rated \
-highly so far, so their taste keeps being tested."""
+highly so far, so their taste keeps being tested.
+
+Spread the ambition across the founder's range of €10,000 to €10,000,000 a year: at least 3 ideas should have \
+a realistic ceiling above €250,000 a year (businesses that scale with software, data or a marketplace, not with \
+the founder's hours), each backed by its arithmetic. Keep the conservative year-2 number conservative."""
 
 
 def _str(desc: str) -> dict:
