@@ -111,3 +111,17 @@ class StatusTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class QuickCheckTests(unittest.TestCase):
+    def test_extract_sale_rent_land(self):
+        from scraper.quick_check import extract
+        sale = extract("Се продава стан во Карпош, 65 м2, 3 соби, цена 89.000 €")
+        self.assertEqual((sale["kind"], sale["deal"], sale["city"], sale["district"], sale["price_eur"], sale["area_m2"]),
+                         ("apartment", "sale", "Скопје", "Карпош", 89000, 65))
+        rent = extract("Izdavam stan vo Debar Maalo 55m2 namesten, 350 evra mesecno")
+        self.assertEqual((rent["deal"], rent["price_note"], rent["district"]), ("rent", None, "Скопје Центар"))
+        per_m2 = extract("Stan vo Aerodrom 70m2 1.500 €/m2")
+        self.assertEqual((per_m2["price_eur"], per_m2["price_note"]), (1500, "per_m2"))
+        land = extract("Prodavam plac vo Ohrid 600m2, struja i voda ima, 45.000€")
+        self.assertEqual((land["kind"], land["city"], land["utilities"]["water"]), ("land", "Охрид", True))

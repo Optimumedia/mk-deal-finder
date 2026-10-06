@@ -133,7 +133,7 @@ def classify_deal(title: str, desc: str, price_eur: float | None, kind: str) -> 
 
 
 # ---------------------------------------------------------------- numbers
-_PRICE_RE = re.compile(r"([\d][\d.,\s]*)\s*(€|eur|евра|evra|мкд|mkd|ден|den)", re.I)
+_PRICE_RE = re.compile(r"(?<![\d.,])(\d{1,3}(?:[.,\s]\d{3})+|\d+)(?:,\d{1,2})?\s*(€|eur|евра|evra|мкд|mkd|ден|den)", re.I)
 
 
 def parse_price(text: str, mkd_per_eur: float = 61.5) -> float | None:

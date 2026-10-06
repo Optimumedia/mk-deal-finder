@@ -33,7 +33,8 @@ HELP = ("MK Deal Finder bot\n\n"
         "Tap 👍 / 👎 under a deal: 👎 hides it for good, and your votes tune future scores "
         "for similar deals (same district, city, property type).\n\n"
         "Tap ❌ / 👎 and pick a reason: deals like it rank lower from then on.\n"
-        "Reply to a deal with what the seller told you, e.g. 'water yes, area 450, price 32000'.\n\n"
+        "Reply to a deal with what the seller told you, e.g. 'water yes, area 450, price 32000'.\n"
+        "Found something on Facebook / Viber? Forward or paste it here (or a Reklama5 link) for an instant check.\n\n"
         "/top – best current deals\n/status – last run\n/learn – what your rejections taught me\n"
         "/help – this message")
 
@@ -180,6 +181,34 @@ def on_reply(msg: dict, conn) -> None:
     log.info("reply %s %s facts=%s", researcher, listing_id, facts)
 
 
+_R5_LINK = re.compile(r"https?://(?:m\.|www\.)?reklama5\.mk/AdDetails\?ad=(\d+)", re.I)
+
+
+def cmd_quick_check(chat: str, text: str, reply_to: int) -> None:
+    """A forwarded post or a Reklama5 link → instant verdict against the market data."""
+    import tomllib
+    from . import quick_check
+    from .http import PoliteSession
+    from .sources import reklama5
+    cfg = tomllib.loads((ROOT / "config.toml").read_text(encoding="utf-8"))
+    m = _R5_LINK.search(text)
+    if m:
+        try:
+            d = reklama5.parse_detail(PoliteSession(0.5, 0.5).get(reklama5.detail_url(m.group(1))))
+            text = "\n".join(filter(None, [
+                d.get("title"), d.get("description"), d.get("address"),
+                " ".join(f"{k}: {v}" for k, v in (d.get("fields") or {}).items()),
+                f"{d['price_eur']:.0f} €" if d.get("price_eur") else "",
+                f"{d['area_m2']:.0f} m2" if d.get("area_m2") else "",
+                d.get("city"), d.get("district")]))
+        except Exception as e:      # a bad link must never stop the bot
+            log.warning("quick check fetch failed: %s", e)
+    lead = quick_check.extract(text)
+    notify.api("sendMessage", chat_id=chat, reply_to_message_id=reply_to,
+               text=quick_check.verdict(lead, quick_check.market(cfg))
+               + "\n\n(Private: forwarded leads are never published.)")
+
+
 def cmd_learn(chat: str) -> None:
     from .learn import report
     notify.api("sendMessage", chat_id=chat, text=report()[:4000])
@@ -257,7 +286,9 @@ def main() -> int:
                     msg = u["message"]
                     if str(msg["chat"]["id"]) != my_chat:
                         continue                      # not you — ignore
-                    text = (msg.get("text") or "").strip().lower()
+                    # Forwarded photo posts carry their text as a caption.
+                    original = (msg.get("text") or msg.get("caption") or "").strip()
+                    text = original.lower()
                     if msg.get("reply_to_message") and not text.startswith("/"):
                         on_reply(msg, conn)
                     elif text.startswith("/learn"):
@@ -266,8 +297,10 @@ def main() -> int:
                         cmd_top(my_chat, conn)
                     elif text.startswith("/status"):
                         cmd_status(my_chat)
-                    else:
+                    elif text.startswith(("/help", "/start")) or not re.search(r"\d|http", text):
                         notify.api("sendMessage", chat_id=my_chat, text=HELP)
+                    else:
+                        cmd_quick_check(my_chat, original, msg["message_id"])
             except Exception:
                 log.exception("failed to handle update %s", u.get("update_id"))
 
