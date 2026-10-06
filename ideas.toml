@@ -9,7 +9,7 @@
 [profile]
 about = "Based in Skopje, North Macedonia. Can sell online to the EU, UK, US and the Balkans. Uses Claude (API and Claude Code) to automate research, writing, coding, outreach drafts, support and reporting."
 languages = "Macedonian, English"
-skills = ""              # e.g. "performance marketing, Meta and Google ads, Shopify, sales"
+skills = "Generalist: can do or learn whatever an idea needs, so don't rule ideas out for missing skills"
 assets = ""              # e.g. "agency with 20 clients, 5k LinkedIn followers, a dev on retainer"
 hours_per_week = 10      # time you can give a new idea
 avoid = ""               # e.g. "crypto, gambling, anything needing a physical shop"
