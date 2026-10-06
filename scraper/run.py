@@ -14,6 +14,8 @@ import tomllib
 from datetime import datetime, timezone
 from pathlib import Path
 
+import requests
+
 from . import export, notify
 from .db import DB, now
 from .http import Blocked, PoliteSession
@@ -115,16 +117,21 @@ def expand_queries(cfg: dict) -> list[tuple[str, int, int]]:
     return out
 
 
-def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_override: int | None) -> dict:
+def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_override: int | None,
+                 stats: dict) -> None:
+    """Read search pages; counts go into `stats` so a crash midway keeps them."""
     sc = cfg["scraper"]
     mkd = cfg["market"]["mkd_per_eur"]
-    stats = {"pages": 0, "new": 0, "changed": 0}
     for name, cat, city in expand_queries(cfg):
         max_pages = max_pages_override or (sc["full_sweep_max_pages"] if full else sc["max_pages"])
         known_streak = 0
         seen_in_query: set[str] = set()
         for page in range(1, max_pages + 1):
-            html = http.get(reklama5.search_url(cat, city, page))
+            try:
+                html = http.get(reklama5.search_url(cat, city, page))
+            except requests.RequestException as e:
+                log.warning("%s page %d failed, skipping the rest of this query: %s", name, page, e)
+                break
             stats["pages"] += 1
             cards = reklama5.parse_list(html, cat, mkd)
             # Past the last page the site repeats earlier results — stop there.
@@ -144,7 +151,6 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
             if not full and known_streak >= sc["stop_after_known_pages"]:
                 break
         log.info("%-28s pages so far %4d  new %4d  price changes %3d", name, stats["pages"], stats["new"], stats["changed"])
-    return stats
 
 
 def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urgent_kw: KeywordSet) -> float:
@@ -179,7 +185,13 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
     log.info("detail queue: %d listings worth reading, budget %d", len(queue), budget)
     done = 0
     for _, l in queue[:budget]:
-        html = http.get(l["url"])
+        try:
+            html = http.get(l["url"])
+        except requests.RequestException as e:
+            log.warning("detail %s failed: %s", l["url"], e)
+            continue
+        if not html:          # ad was removed
+            continue
         d = reklama5.parse_detail(html, cfg["market"]["mkd_per_eur"])
         db.apply_detail(l["id"], detail_update(l, d), now())
         done += 1
@@ -230,12 +242,15 @@ def main(argv=None) -> int:
         http = PoliteSession(sc["delay_seconds"], sc["jitter_seconds"], sc["timeout_seconds"])
         log.info("run #%d — %s sweep", run_id, "full" if full else "quick")
         try:
-            stats = scrape_lists(db, http, cfg, full, args.max_pages)
+            scrape_lists(db, http, cfg, full, args.max_pages, stats)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
         except Blocked as e:
             status, message = "blocked", str(e)
             log.error("STOPPED — the site is refusing automated requests: %s", e)
+        except Exception as e:     # still analyse + publish what we have
+            status, message = "error", f"{type(e).__name__}: {e}"[:300]
+            log.exception("run failed — publishing what was collected")
         db.prune(sc["prune_after_days"])
 
     results, market = analyse(db, cfg)

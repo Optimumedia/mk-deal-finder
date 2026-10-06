@@ -72,6 +72,8 @@ class PoliteSession:
             head = r.text[:4000]
             if r.status_code in (403, 503) or any(m in head for m in _CHALLENGE_MARKERS[:4]):
                 raise Blocked(f"{r.status_code} bot challenge at {url}")
+            if r.status_code == 404:          # e.g. past the last search page
+                return ""
             if r.status_code == 429:
                 time.sleep(30 * (attempt + 1))
                 continue

@@ -8,7 +8,8 @@ $env:PYTHONIOENCODING = "utf-8"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8   # read Python's output as UTF-8
 New-Item -ItemType Directory -Force "data" | Out-Null
 $log = Join-Path $PSScriptRoot "data\local-run.log"
-function Log { process { $_ | Out-File -FilePath $log -Append -Encoding utf8 } }
+# "$_" turns PowerShell's stderr error records into plain text lines.
+function Log { process { "$_" | Out-File -FilePath $log -Append -Encoding utf8 } }
 
 "==== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ====" | Log
 git pull --rebase --autostash 2>&1 | Log
