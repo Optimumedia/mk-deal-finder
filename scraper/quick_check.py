@@ -16,7 +16,7 @@ from pathlib import Path
 from . import places
 from .market import Market, ppm2
 from .places import infer_district
-from .text import classify_deal, detect_utilities, norm, parse_area, parse_price, parse_rooms
+from .text import detect_utilities, mentions_price_per_m2, norm, parse_area, parse_price, parse_rooms
 
 ROOT = Path(__file__).resolve().parent.parent
 DEALS_DB = ROOT / "data" / "deals.db"
@@ -63,12 +63,11 @@ def extract(text: str) -> dict:
     district = infer_district(text, city or "Скопје")
     if district and not city:
         city = "Скопје"
-    price = parse_price(text)
     area = parse_area(text)
-    deal = classify_deal(text, "", price, kind)
-    note = None
-    if price is not None and ((kind == "land" and price < 400) or (deal == "sale" and kind != "land" and price < 6000 and area)):
-        note = "per_m2"          # "1.400 €" for a flat is per m², not the total
+    from .run import price_and_deal          # same price/deal rules as the scraper
+    price, note, deal = price_and_deal(parse_price(text), kind, area, text)
+    if price and note is None and price < 6000 and mentions_price_per_m2(text):
+        note, deal = "per_m2", "sale"         # "1.500 €/m²" said explicitly
     return {"kind": kind, "city": city, "district": district, "price_eur": price, "price_note": note,
             "area_m2": area, "rooms": parse_rooms(text), "deal": deal,
             "utilities": detect_utilities(text), "title": text[:120]}
