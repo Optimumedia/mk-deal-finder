@@ -19,7 +19,7 @@ full_sweep_max_pages = 110
 full_sweep_hours_utc = [3, 4, 5, 6]
 # Detail pages fetched per run (detail = description, GPS, land type).
 # Highest-potential listings are fetched first; the rest wait for next run.
-detail_budget = 450
+detail_budget = 900          # ~50 min; clears the backlog of promising listings faster
 backfill_detail_budget = 1800
 # Listings not seen for this many days are treated as sold/removed.
 stale_after_days = 10
