@@ -1,8 +1,10 @@
 # MK Deal Finder
 
 Scans North Macedonian real estate listings twice a day and surfaces deals for four
-"researchers". It runs on GitHub's free infrastructure, so it costs **€0** and needs
-no computer of yours to stay on.
+"researchers". It costs **€0**: a free Windows scheduled task on your PC does the scraping,
+and GitHub hosts the code, the data and the dashboard.
+
+**Dashboard:** https://optimumedia.github.io/mk-deal-finder/
 
 | # | Researcher | Looks for | Where |
 |---|------------|-----------|-------|
@@ -14,7 +16,7 @@ no computer of yours to stay on.
 ## How it works
 
 ```
-GitHub Actions (06:15 and 18:15 Skopje time)
+Windows Task Scheduler on your PC (06:15 and 18:15) → run_local.ps1
   └─ python -m scraper.run
        1. read Reklama5 search pages      (morning: every page; evening: new ads only)
        2. read detail pages of promising listings  (description, GPS, land type)
@@ -22,7 +24,7 @@ GitHub Actions (06:15 and 18:15 Skopje time)
        4. run the 4 researchers → score 0–100 each
        5. write docs/data.json   → dashboard on GitHub Pages
        6. send new top deals to Telegram (optional)
-       7. commit data/deals.db   (history: price cuts, days on market)
+       7. commit + push data/deals.db and docs/data.json → GitHub Pages updates
 ```
 
 **Utilities rule.** Each deal shows ⚡ power, 💧 water and 🛣 road badges:
@@ -31,26 +33,40 @@ GitHub Actions (06:15 and 18:15 Skopje time)
 
 **"Under market"** means asking €/m² compared with the median of similar listings in the same district, falling back to city and then country when there are too few comparables. Each deal says which level it was compared against. Asking prices run above final sale prices, so treat discounts as a lead to check, not a fact.
 
-## Setup (once, about 10 minutes)
+## Why it runs on your PC, not on GitHub
 
-1. **Create a GitHub repository** and push this folder to it.
-   A **public** repo gets unlimited Actions minutes and free GitHub Pages. A private repo
-   gets 2,000 free minutes/month, which is enough (about 1,700 used), but GitHub Pages on
-   private repos needs a paid plan. If the repo is private, rely on Telegram alerts or open
-   `docs/index.html` locally.
-2. **Enable Pages:** Settings → Pages → Source: *Deploy from a branch* → `main` / `/docs`.
-   Your dashboard will be at `https://<you>.github.io/<repo>/`.
-3. **Let the workflow push:** Settings → Actions → General → Workflow permissions →
-   *Read and write permissions*.
-4. **Start the first run:** Actions → *Scrape deals* → *Run workflow* → mode `full`.
+Reklama5's Cloudflare protection answers requests from GitHub's data-centre servers with
+a 403 bot challenge (checked 2026-10-06). From a home connection the site works normally.
+The scraper never tries to get around a block. If one happens, the run stops and the
+dashboard's Run log shows `blocked`.
+
+The cloud workflow (`.github/workflows/scrape.yml`) can still be started by hand. Its
+schedule is commented out; if the block is ever lifted, put the schedule back in.
+
+## Setup on a PC (done once)
+
+1. `pip install -r requirements.txt`
+2. Register the two daily tasks (06:15 and 18:15). Re-running the script replaces them:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File setup_schedule.ps1
+   ```
+   The tasks still run on battery, and a run missed while the PC was off starts as soon
+   as it's back on. Results are pushed to GitHub, and the log is `data\local-run.log`.
+3. Start a run right away: `Start-ScheduledTask "MK Deal Finder - morning"`.
    The first run reads about 2,300 pages slowly and politely, so it takes about 2 hours.
    After that, runs take about 45 minutes (morning) and 10 minutes (evening).
-5. **Telegram alerts (optional, free):**
+4. **Telegram alerts (optional, free):**
    - Message [@BotFather](https://t.me/BotFather) → `/newbot` and copy the token.
    - Send your bot any message, then open `https://api.telegram.org/bot<TOKEN>/getUpdates`
      and copy `chat.id`.
-   - Repo → Settings → Secrets and variables → Actions → add secrets
-     `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. You can also add the variable `DASHBOARD_URL`.
+   - Store them as Windows user environment variables (the scheduled tasks pick them up):
+     ```powershell
+     setx TELEGRAM_BOT_TOKEN "<token>"
+     setx TELEGRAM_CHAT_ID "<chat id>"
+     setx DASHBOARD_URL "https://optimumedia.github.io/mk-deal-finder/"
+     ```
+
+To stop it: `Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false`
 
 ## Tuning
 
@@ -63,7 +79,7 @@ are starting estimates. Check 10–15 comparable Airbnb/Booking listings near Ma
 for real nightly prices and calendar availability, then update them. The profit figures are
 only as good as these two numbers.
 
-## Run it on your PC
+## Manual commands
 
 ```bash
 pip install -r requirements.txt
@@ -73,11 +89,6 @@ python -m unittest discover tests     # tests against saved real pages
 ```
 
 Open the dashboard locally with `python -m http.server -d docs 8000`, then go to http://localhost:8000.
-
-**If GitHub's servers get blocked.** Sites sometimes refuse cloud IPs. The run then stops
-on its own (it never tries to get around a block), the Run log shows `blocked`, and GitHub
-emails you. The free fallback is to run it from your own PC with Windows Task Scheduler
-twice a day (`run_local.ps1`), then push the data.
 
 ## Data sources
 

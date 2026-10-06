@@ -1,11 +1,13 @@
 name: Scrape deals
 
+# Scheduled scraping runs on a home PC (setup_schedule.ps1): Reklama5's
+# Cloudflare answers GitHub's data-centre IPs with a 403 bot challenge
+# (checked 2026-10-06). This workflow stays for manual runs only. To bring
+# the cloud schedule back if that changes, add:
+#   schedule:
+#     - cron: "15 4 * * *"    # 06:15 Skopje (summer) — full sweep
+#     - cron: "15 16 * * *"   # 18:15 Skopje
 on:
-  schedule:
-    # 04:15 and 16:15 UTC = 06:15 and 18:15 in Skopje (summer time),
-    # 05:15 / 17:15 in winter. The morning run does the full sweep.
-    - cron: "15 4 * * *"
-    - cron: "15 16 * * *"
   workflow_dispatch:
     inputs:
       mode:

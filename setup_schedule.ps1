@@ -1,0 +1,21 @@
+# Registers two Windows scheduled tasks (06:15 and 18:15) that run run_local.ps1.
+# Re-run this script any time; it replaces the existing tasks.
+# Remove with:  Unregister-ScheduledTask -TaskName "MK Deal Finder*" -Confirm:$false
+$python = (Get-Command python).Source
+$script = Join-Path $PSScriptRoot "run_local.ps1"
+$action = New-ScheduledTaskAction -Execute "powershell.exe" `
+    -Argument "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$script`" -Python `"$python`"" `
+    -WorkingDirectory $PSScriptRoot
+$settings = New-ScheduledTaskSettingsSet `
+    -StartWhenAvailable `
+    -WakeToRun `
+    -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+    -MultipleInstances IgnoreNew `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 4)
+
+foreach ($t in @(@{Name = "MK Deal Finder - morning"; At = "06:15"}, @{Name = "MK Deal Finder - evening"; At = "18:15"})) {
+    $trigger = New-ScheduledTaskTrigger -Daily -At $t.At
+    Register-ScheduledTask -TaskName $t.Name -Action $action -Trigger $trigger -Settings $settings `
+        -Description "Scrapes North Macedonian real estate deals and pushes them to GitHub." -Force | Out-Null
+    Write-Output "registered: $($t.Name) at $($t.At)"
+}
