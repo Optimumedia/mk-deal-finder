@@ -6,6 +6,8 @@ and GitHub hosts the code, the data and the dashboard.
 
 **Dashboard:** https://optimumedia.github.io/mk-deal-finder/
 
+**Also here:** a daily [Business Idea Finder](#business-idea-finder) that sends you researched business ideas to rate 1-10 and learns from your ratings.
+
 | # | Researcher | Looks for | Where |
 |---|------------|-----------|-------|
 | 1 | **Airbnb / Booking arbitrage** | Flats for long-term rent that are cheap for their location, with estimated short-term revenue, costs, monthly profit and payback | Skopje |
@@ -145,6 +147,65 @@ Open the dashboard locally with `python -m http.server -d docs 8000`, then go to
 
 To add a source, create a module in `scraper/sources/` with `parse_list` and `parse_detail`
 that return the same fields as `reklama5.py`.
+
+## Business Idea Finder
+
+Every morning at 07:45, Claude researches the web for fresh market signals and turns them into business
+ideas that fit your filters (start for at most €5,000, a realistic path to €10k+ profit a year, at least 40%
+of the recurring work done by Claude). The best 5 arrive in the same Telegram bot as the deals, each with
+**1-10 buttons**. Your ratings train a model that picks and shapes the next day's ideas.
+
+```
+run_ideas.ps1 (07:45 daily) → python -m ideas.run
+  1. fit the taste model on all your ratings            ideas/learn.py
+  2. pick 2 research lenses: your best rated + least used  (lenses in ideas.toml)
+  3. Claude searches the web for signals (about 10 searches)  ideas/claude.py
+  4. Claude writes 10 ideas from them, told your taste, your notes and every earlier title
+  5. drop ideas outside the filters and repeats of earlier ideas
+  6. rank today's + the last 14 days' unsent ideas by the rating you're expected to give
+  7. send the best 5 (after 5 ratings, one is a 🧪 wildcard of a kind you've rated least)
+```
+
+**How it learns.** Each idea has traits: category, business model, sales channel, customer, market,
+research lens, startup cost, automation share, time to first revenue, profit ceiling and topic tags.
+A ridge regression turns your ratings into a weight per trait ("Micro-SaaS +1.3, Paid ads −0.9"),
+shrunk towards zero until enough ratings back it. The ranking blends this with Claude's own score:
+with 8 ratings each counts half, with 30 ratings your taste counts 79%. Your likes, dislikes, best and worst
+ideas and your **notes** go into the next prompt, so Claude also writes different ideas, not just
+ranks them differently.
+
+**In Telegram**
+- Tap **1-10** under an idea. Tap another number to change it.
+- **Reply to an idea** to say why ("needs cold calling, I hate that", "love recurring B2B revenue").
+  Notes teach it more than numbers. Replying with just a number also rates it.
+- `/ideas`: ideas still waiting for a rating · `/taste`: what it learned, and whether it's working
+  (the gap between the rating it predicted and yours should shrink over time).
+
+**Setup (once, after `setup_telegram.ps1`):**
+1. Edit `[profile]` in [`ideas.toml`](ideas.toml): skills, assets, hours, what to avoid. Claude can only
+   fit ideas to what it knows about you. Commit the change, or edit it on the PC.
+2. Run `powershell -ExecutionPolicy Bypass -File setup_ideas.ps1`. It asks for an Anthropic API key
+   (console.anthropic.com → API keys), checks it, saves it to `.anthropic` (git-ignored), registers the
+   daily task, restarts the bot so the rating buttons work, and offers a first run.
+
+**Cost.** This part isn't free: it uses the Claude API (Claude Opus 5.5 and web search). Expect very roughly
+$0.30-1.00 a run, about $10-30 a month. Each morning's Telegram summary shows that run's estimated cost.
+Set a monthly limit in the Anthropic console. To spend less, lower `max_web_searches`,
+`candidates_per_run` or the effort settings in `ideas.toml`.
+
+**Privacy.** Ideas, ratings and notes stay in `data/ideas.db` on your PC (git-ignored, never pushed),
+like your deal votes. Back that file up: it holds everything the model has learned.
+
+**Manual commands**
+```bash
+python -m ideas.run --dry-run   # research + ideas, printed instead of sent
+python -m ideas.run --force     # run again today
+python -m ideas.learn           # same report as /taste
+```
+Stop it: `Unregister-ScheduledTask -TaskName "MK Deal Finder - ideas" -Confirm:$false`
+
+**Treat the numbers as hypotheses.** Profit ranges are Claude's estimates from public signals, not
+forecasts. Every idea comes with a one-week, under-€100 validation test: run that before you spend more.
 
 ## Not advice
 

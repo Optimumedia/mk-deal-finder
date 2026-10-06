@@ -9,3 +9,7 @@ data/local-run.log
 .telegram
 data/feedback.db
 data/bot.log*
+data/ideas.db
+data/ideas.db-journal
+data/ideas-run.log
+.anthropic

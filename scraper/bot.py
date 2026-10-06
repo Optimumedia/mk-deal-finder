@@ -5,6 +5,8 @@
 Commands (only from your own chat; everyone else is ignored):
     /top     best 3 current deals per researcher
     /status  when the last run happened and how it went
+    /ideas   business ideas still waiting for your 1-10 rating (ideas/)
+    /taste   what your idea ratings taught the idea finder
     /help    this list
 Log: data/bot.log
 """
@@ -36,6 +38,7 @@ HELP = ("MK Deal Finder bot\n\n"
         "Reply to a deal with what the seller told you, e.g. 'water yes, area 450, price 32000'.\n"
         "Found something on Facebook / Viber? Forward or paste it here (or a Reklama5 link) for an instant check.\n\n"
         "/top – best current deals\n/status – last run\n/learn – what your rejections taught me\n"
+        "/ideas – business ideas waiting for a 1–10 rating\n/taste – what your idea ratings taught me\n"
         "/help – this message")
 
 
@@ -276,7 +279,10 @@ def main() -> int:
                     cb = u["callback_query"]
                     if str(cb.get("message", {}).get("chat", {}).get("id")) == my_chat:
                         data = cb.get("data", "")
-                        if data.startswith("r|"):
+                        if data.startswith("i|"):
+                            from ideas import telegram as idea_bot
+                            idea_bot.on_rate(cb)
+                        elif data.startswith("r|"):
                             on_reason(cb, conn)
                         elif data.startswith("v|"):
                             on_vote(cb, conn)
@@ -290,7 +296,15 @@ def main() -> int:
                     original = (msg.get("text") or msg.get("caption") or "").strip()
                     text = original.lower()
                     if msg.get("reply_to_message") and not text.startswith("/"):
-                        on_reply(msg, conn)
+                        from ideas import telegram as idea_bot
+                        if not idea_bot.on_reply(msg):
+                            on_reply(msg, conn)
+                    elif text.startswith("/ideas"):
+                        from ideas import telegram as idea_bot
+                        idea_bot.cmd_ideas(my_chat)
+                    elif text.startswith("/taste"):
+                        from ideas import telegram as idea_bot
+                        idea_bot.cmd_taste(my_chat)
                     elif text.startswith("/learn"):
                         cmd_learn(my_chat)
                     elif text.startswith("/top"):
