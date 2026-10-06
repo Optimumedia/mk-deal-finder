@@ -12,6 +12,27 @@ and GitHub hosts the code, the data and the dashboard.
 | 2 | **Land for a house / villa** | Plots priced below the local median €/m², preferring building land (градежно), with electricity, water and road confirmed in the ad | Skopje, Ohrid, and mountain areas anywhere |
 | 3 | **Fix & flip** | Flats and houses priced well under the local median €/m², with renovation, taxes, profit and ROI worked out | Whole country |
 | 4 | **Motivated sellers** *(added)* | Sellers who cut their price, use "urgent" wording or have been listed for weeks. Good targets for a low offer. | Whole country, every property type |
+| 5 | **Bailiff auctions** *(added)* | Official enforcement sales (KIRSM register) compared with what similar property asks on the open market; sales of a mere ownership share are hidden | Whole country |
+
+### Ratings
+
+Every deal gets a rating, and every list is sorted by it:
+
+| | Rating | Score | Notes |
+|---|---|---|---|
+| 💎 | Once-in-a-lifetime | 90+ | only with solid evidence |
+| 🔥 | Exceptional deal | 80+ | only with solid evidence |
+| ⭐ | Great deal | 70+ | |
+| 👍 | Good deal | 55+ | |
+| 👀 | Worth a look | under 55 | |
+
+"Solid evidence" means the detail page has been read, nothing is left to ask the seller, there are no ⚠ warnings, and the comparison is local, not national. Without it a deal is capped at ⭐, so a parsing glitch can never be called once-in-a-lifetime.
+
+### Statuses
+
+- **Ready**: nothing left to check.
+- **❓ Needs info**: promising, but key facts aren't confirmed in the ad. The deal lists the exact questions to ask the seller, for example "Is there a water connection?" or "Is it building land?".
+- **⏳ Checking details**: the platform hasn't read the detail page yet. That usually happens on the next run.
 
 ## How it works
 
@@ -64,8 +85,19 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
    After each run you get the new deals scoring at least 60 (`[notify]` in `config.toml`),
    up to 5 per researcher. Each deal is sent only once.
 
-5. **Telegram bot** (registered by `setup_schedule.ps1`, starts at logon, no window):
-   - Every alert has **👍 Interested / 👎 Not for me** buttons. 👎 hides that deal for good;
+5. **Telegram bot.** It's registered by `setup_schedule.ps1` and starts at logon with no window.
+   - **❓ Needs-info leads** come with the questions to ask and two buttons: **✅ Fits** and **❌ Not a fit**.
+     Reply to the message with what you learned, for example `water yes, area 450, price 32000, building yes`.
+     The facts are saved and the deal is re-scored with them on every run.
+   - **Rejecting a deal.** Tap **❌** or **👎**, then pick a reason from the list: bad location, too small,
+     basement, no clean title, agricultural, not a real discount, and about 20 more.
+     Deals that match that reason lose points from then on.
+     `/learn` (or `python -m scraper.learn`) shows what your rejections taught the platform and suggests settings.
+   - **Quick check.** Forward a post from Facebook or Viber to the bot, or paste a Reklama5 link,
+     and it replies at once with €/m² against the market and what's still unknown.
+     Those platforms can't be scraped (they need a login and their terms forbid it), so this is how leads
+     from them get in. Forwarded leads are never published.
+   - Every other alert has **👍 Interested / 👎 Not for me** buttons. 👎 hides that deal for good;
      votes on similar deals (same district, city, property type) nudge their future alert
      scores by up to ±20. Votes stay on your PC (`data/feedback.db`), and the public
      dashboard never shows them.
@@ -103,6 +135,10 @@ Open the dashboard locally with `python -m http.server -d docs 8000`, then go to
 | Source | Status |
 |--------|--------|
 | Reklama5.mk (mobile site) | ✅ used. robots.txt allows crawling, about 3 s between requests |
+| KIRSM (kirm.mk), the bailiffs' register | ✅ used. Public official register, plain HTML, about 7 pages a run |
+| novelestate.com, nedviznosti.com.mk | 🔧 being added (large Skopje rental stock; sitemap + structured data) |
+| Facebook, Instagram, Viber | ⛔ login required and terms forbid scraping. Forward posts to the bot instead |
+| mojdom.mk | ⛔ terms explicitly forbid scraping |
 | Pazar3.mk | ⛔ not used. Answers automated requests with a Cloudflare bot challenge |
 | Reklama5.mk desktop | ⛔ same bot challenge (the mobile site serves the same ads) |
 | Airbnb / Booking | ⛔ not scraped. Their terms forbid it and they block bots, so the nightly rates are config estimates |
