@@ -1,0 +1,151 @@
+# ============================================================================
+#  Real Estate Deal Finder — North Macedonia
+#  Every threshold and estimate lives here. Edit, commit, next run uses it.
+# ============================================================================
+
+[scraper]
+# Seconds between requests (plus random jitter). Keep it polite.
+delay_seconds = 2.5
+jitter_seconds = 1.5
+timeout_seconds = 25
+# Normal (twice-daily) run: stop paging a query after this many pages in a
+# row contain no new listings, or after max_pages.
+stop_after_known_pages = 2
+max_pages = 40
+# Full sweep (daily, and first run): walk every page so we notice what is
+# still listed and what disappeared.
+full_sweep_max_pages = 110
+# UTC hours at which a run does a full sweep (04 UTC = 06:00 Skopje).
+full_sweep_hours_utc = [3, 4, 5, 6]
+# Detail pages fetched per run (detail = description, GPS, land type).
+# Highest-potential listings are fetched first; the rest wait for next run.
+detail_budget = 450
+backfill_detail_budget = 1800
+# Listings not seen for this many days are treated as sold/removed.
+stale_after_days = 10
+# Delete listings from the database after this many days unseen.
+prune_after_days = 200
+
+# Listing queries. cat ids are Reklama5 categories; city 0 = whole country,
+# "each" = one query per city. The site stops at ~109 pages (~4,100 ads) per
+# query: nationwide flats only reach ~2 weeks back, so flats go city by city.
+# Full sweeps (every page) run once a day; the other run only reads new ads.
+[[scraper.queries]]
+name = "apartments"
+cat = 159
+city = "each"
+
+[[scraper.queries]]
+name = "houses"
+cat = 158
+city = 0
+
+[[scraper.queries]]
+name = "land"
+cat = 173
+city = 0
+
+[[scraper.queries]]
+name = "weekend_houses"
+cat = 161
+city = 0
+
+[market]
+# Market value = median €/m² of comparable SALE listings seen in this window.
+window_days = 150
+# Minimum comparables before trusting a district median; otherwise fall back
+# to city median, then to national median for that property type.
+min_samples_district = 8
+min_samples_city = 8
+min_samples_national = 15
+# MKD → EUR (denar is pegged to the euro).
+mkd_per_eur = 61.5
+
+# ----------------------------------------------------------------------------
+#  Researcher 1 — Airbnb / Booking rental arbitrage in Skopje
+#  Rent a flat long-term, list it short-term, keep the difference.
+# ----------------------------------------------------------------------------
+[airbnb]
+enabled = true
+city = "Скопје"
+min_rent = 120
+max_rent = 900
+# Popularity comes from GPS distance to Macedonia Square + district fallback.
+center_lat = 41.9961
+center_lng = 21.4317
+# Average nightly rate (EUR) for a well-presented flat AT THE CENTER,
+# by bedroom count. ⚠ These are starting estimates — calibrate them by
+# checking 10–15 comparable Airbnb/Booking listings for your dates.
+adr_by_rooms = { "1" = 38, "2" = 52, "3" = 68, "4" = 82 }
+# Occupancy at the center; both ADR and occupancy decay with distance.
+occupancy_center = 0.62
+# Multiplier applied per km from the center (0.93 = −7% per km), floored.
+decay_per_km = 0.93
+decay_floor = 0.45
+platform_fee = 0.15        # Airbnb/Booking host fee + payment costs
+utilities_monthly = 110    # electricity, heating, water, internet, TV
+cleaning_per_stay = 12
+avg_stay_nights = 2.6
+supplies_monthly = 35      # linen, toiletries, coffee
+furnishing_cost = 3500     # one-off if the flat is unfurnished
+furnishing_months = 24     # amortise the furnishing over this many months
+min_monthly_profit = 150
+# District popularity fallback when GPS is missing (0–1).
+district_score = { "Скопје Центар" = 1.0, "Центар" = 1.0, "Карпош" = 0.85, "Чаир" = 0.7, "Аеродром" = 0.65, "Кисела Вода" = 0.6, "Гази Баба" = 0.5, "Ѓорче Петров" = 0.4, "Бутел" = 0.35, "Шуто Оризари" = 0.15, "Сарај" = 0.15 }
+# Hotspot words in the ad text that add popularity.
+hotspot_keywords = ["плоштад", "plostad", "дебар маало", "debar maalo", "кеј", "kej", "стара чаршија", "stara carsija", "градски парк", "gradski park", "капиштец", "kapistec", "водно", "vodno", "city mall", "сити мол", "рамстор", "ramstore", "west gate", "вест гејт", "skopje east gate", "тафталиџе", "taftalidze", "мала станица", "mala stanica", "универзална сала", "univerzalna sala"]
+
+# ----------------------------------------------------------------------------
+#  Researcher 2 — Land for a house / villa
+# ----------------------------------------------------------------------------
+[land]
+enabled = true
+# Plots in these cities always qualify (any part of the municipality).
+cities = ["Скопје", "Охрид"]
+# Plots anywhere else qualify if the ad mentions one of these mountain areas.
+mountain_keywords = ["маврово", "mavrovo", "попова шапка", "popova sapka", "шар планина", "sar planina", "крушево", "krusevo", "пелистер", "pelister", "брајчино", "brajcino", "галичица", "galicica", "вевчани", "vevcani", "берово", "berovo", "пехчево", "pehcevo", "малешево", "malesevo", "кожуф", "kozuf", "осогово", "osogovo", "пониква", "ponikva", "кратово", "kratovo", "никиште", "nikiste", "јабланица", "jablanica", "водно", "vodno", "матка", "matka", "китка", "kitka", "даутица", "dautica", "лазаропоље", "lazaropole", "галичник", "galicnik", "бистра", "bistra", "дојран", "dojran", "нижепоље", "nizepole", "трново", "trnovo", "магарево", "magarevo", "љубаниште", "ljubaniste", "велгошти", "velgosti", "планина", "planina", "планинск", "planinsk"]
+min_area_m2 = 250
+max_area_m2 = 20000
+max_price_eur = 250000
+# Building land ("градежно") is strongly preferred; agricultural land usually
+# can't legally get a house permit without re-zoning.
+require_building_land = false
+building_land_bonus = 15
+# Utilities: electricity, water and road access must be confirmed in the ad.
+require_all_utilities = true
+
+# ----------------------------------------------------------------------------
+#  Researcher 3 — Fix & flip (whole country)
+# ----------------------------------------------------------------------------
+[flip]
+enabled = true
+min_discount = 0.15          # at least 15% below the local median €/m²
+suspicious_discount = 0.65   # deeper than this is probably a data error
+min_area_m2 = 25
+max_price_eur = 400000
+renovation_light_per_m2 = 70     # paint, floors, fixtures
+renovation_heavy_per_m2 = 260    # when the ad says "for renovation" / old build
+transaction_costs = 0.05         # property tax (2–4%) + notary + agency
+resale_discount = 0.04           # you'll sell slightly under median
+min_roi = 0.10
+
+# ----------------------------------------------------------------------------
+#  Researcher 4 — Motivated Seller Radar (my addition)
+#  Price cuts, "urgent" language and stale listings = room to negotiate.
+# ----------------------------------------------------------------------------
+[motivated]
+enabled = true
+min_price_drop = 0.05
+max_believable_drop = 0.5   # bigger "cuts" are typos or a switch to €/m²
+min_price_eur = 5000
+stale_listing_days = 45
+urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent", "povolno", "поволно", "можност за договор", "договорлива", "dogovorliva"]
+
+[notify]
+# Telegram alerts are optional and free. Set TELEGRAM_BOT_TOKEN and
+# TELEGRAM_CHAT_ID as GitHub secrets (see README). Leave empty to disable.
+max_items_per_researcher = 5
+min_score = 60
+
+[export]
+max_items_per_researcher = 300

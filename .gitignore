@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+docs/*.tmp
+data/*.db-journal
+data/local-run.log
+.claude/

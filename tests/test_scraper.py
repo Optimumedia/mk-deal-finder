@@ -1,0 +1,128 @@
+"""Run:  python -m unittest discover tests"""
+import unittest
+from datetime import date
+from pathlib import Path
+
+from scraper.market import Market, total_price
+from scraper.run import price_and_deal
+from scraper.sources import reklama5
+from scraper.text import (classify_deal, detect_furnished, detect_utilities, is_abroad, land_type,
+                          mentions_price_per_m2, norm, parse_area, parse_price, redact)
+
+FIX = Path(__file__).parent / "fixtures"
+
+
+def fixture(name):
+    return (FIX / name).read_text(encoding="utf-8")
+
+
+class TextTests(unittest.TestCase):
+    def test_norm_folds_scripts(self):
+        self.assertEqual(norm("Се продава ЌЕЛИЈА"), norm("se prodava kjelija"))
+        self.assertEqual(norm("Струја"), norm("struja"))
+        self.assertEqual(norm("Štip"), norm("Штип"))
+
+    def test_prices(self):
+        self.assertEqual(parse_price("155.000 €"), 155000)
+        self.assertIsNone(parse_price("По Договор"))
+        self.assertAlmostEqual(parse_price("6.150.000 МКД"), 100000)
+
+    def test_areas(self):
+        self.assertEqual(parse_area("Плац 825м²"), 825)
+        self.assertEqual(parse_area("Површина:40 130м2"), 40130)
+        self.assertEqual(parse_area("plac 3.581 M2"), 3581)
+        self.assertEqual(parse_area("5 ари"), 500)
+        self.assertEqual(parse_area("1,5 хектари"), 15000)
+
+    def test_utilities(self):
+        self.assertEqual(detect_utilities("Плац со струја, вода и асфалтен пат"),
+                         {"electricity": True, "water": True, "road": True})
+        self.assertEqual(detect_utilities("nema struja i voda, pristap so makadam"),
+                         {"electricity": False, "water": False, "road": True})
+        # District names and "travel" must not count as water / road.
+        self.assertEqual(detect_utilities("Plac vo Kisela Voda, pogoden za patuvanje"),
+                         {"electricity": None, "water": None, "road": None})
+        self.assertEqual(set(detect_utilities("Комунално опремен плац").values()), {True})
+
+    def test_deal_type(self):
+        self.assertEqual(classify_deal("Се издава стан во Центар", "", 400, "apartment"), "rent")
+        self.assertEqual(classify_deal("Se prodava stan", "", 90000, "apartment"), "sale")
+        self.assertEqual(classify_deal("НОВ СТАН 70м²", "", 95000, "apartment"), "sale")
+        self.assertEqual(classify_deal("НОВ СТАН 70м²", "", 450, "apartment"), "rent")
+        self.assertEqual(classify_deal("Apartman za nokevanje", "", 30, "apartment"), "short_term")
+        self.assertEqual(classify_deal("Kupuvam stan vo Karpos", "", None, "apartment"), "wanted")
+
+    def test_misc(self):
+        self.assertTrue(mentions_price_per_m2("цена 45 евра за м2"))
+        self.assertFalse(mentions_price_per_m2("Plac 1200m2 cena 80000€"))
+        self.assertTrue(is_abroad("Плац Сани, Халкидики"))
+        self.assertFalse(is_abroad("Плац во Драчево"))
+        self.assertEqual(land_type("Градежно", ""), "building")
+        self.assertEqual(land_type(None, "se prodava niva"), "agricultural")
+        self.assertTrue(detect_furnished("Комплетно наместен стан"))
+        self.assertFalse(detect_furnished("Полу наместен"))
+
+    def test_redact_contacts(self):
+        self.assertEqual(redact("Сашо на 076 506 300 или 070/200-700"), "Сашо на [тел.] или [тел.]")
+        self.assertEqual(redact("+389 2 3123 456, ana@mail.mk"), "[тел.], [e-mail]")
+        self.assertEqual(redact("цена 105.000 €, 81 m², 2014"), "цена 105.000 €, 81 m², 2014")
+
+    def test_price_resolution(self):
+        self.assertEqual(price_and_deal(1, "land", 500, "Plac"), (None, "placeholder", "sale"))
+        self.assertEqual(price_and_deal(80, "land", 500, "Plac"), (80, "per_m2", "sale"))
+        self.assertEqual(price_and_deal(40000, "land", 500, "Plac"), (40000, None, "sale"))
+        # Flats: per-m² prices must not become 99% bargains or fake rentals.
+        self.assertEqual(price_and_deal(1400, "apartment", 100, "Се продава стан"), (1400, "per_m2", "sale"))
+        self.assertEqual(price_and_deal(1200, "apartment", 60, "Стан 60м2 Центар"), (1200, "per_m2", "sale"))
+        self.assertEqual(price_and_deal(400, "apartment", 60, "Стан 60м2 Центар"), (400, None, "rent"))
+        self.assertEqual(price_and_deal(1200, "apartment", 60, "Се издава стан"), (1200, None, "rent"))
+        self.assertEqual(price_and_deal(95000, "apartment", 60, "Стан 60м2"), (95000, None, "sale"))
+        self.assertEqual(total_price({"price_eur": 80, "price_note": "per_m2", "area_m2": 500}), 40000)
+
+
+class Reklama5Tests(unittest.TestCase):
+    def test_location_with_macedonian_month(self):
+        html = fixture("list_apartments.html").replace("23 сеп", "15 мај", 1)
+        card = reklama5.parse_list(html, 159, today=date(2026, 10, 6))[0]
+        self.assertEqual((card["district"], card["posted"]), ("Карпош", "2026-05-15"))
+
+    def test_list_page(self):
+        cards = reklama5.parse_list(fixture("list_apartments.html"), 159, today=date(2026, 10, 6))
+        self.assertGreaterEqual(len(cards), 30)
+        first = cards[0]
+        self.assertEqual(first["source_id"], "5810131")
+        self.assertEqual(first["price_eur"], 105000)
+        self.assertEqual(first["area_m2"], 81)
+        self.assertEqual(first["city"], "Скопје")
+        self.assertEqual(first["district"], "Карпош")
+        self.assertTrue(first["promoted"])
+
+    def test_detail_page(self):
+        d = reklama5.parse_detail(fixture("detail_apartment.html"))
+        self.assertEqual(d["price_eur"], 105000)
+        self.assertEqual(d["area_m2"], 81)
+        self.assertEqual(d["rooms"], 4)
+        self.assertAlmostEqual(d["lat"], 41.987, places=2)
+        self.assertIn("Тафталиџе", d["description"])
+        self.assertEqual(d["fields"]["Година на градба"], "2014")
+
+    def test_land_detail_uses_text_area(self):
+        d = reklama5.parse_detail(fixture("detail_land.html"))
+        self.assertEqual(d["area_m2"], 40130)   # form says "1 m²"; text says 40 130 m²
+
+
+class MarketTests(unittest.TestCase):
+    def test_fallback_levels(self):
+        rows = [{"kind": "apartment", "deal": "sale", "city": "Скопје", "district": "Карпош",
+                 "price_eur": 2000 * 60, "area_m2": 60}] * 10
+        rows += [{"kind": "apartment", "deal": "sale", "city": "Скопје", "district": "Бутел",
+                  "price_eur": 1000 * 60, "area_m2": 60}] * 3
+        m = Market(rows, 8, 8, 15)
+        self.assertEqual(m.reference("apartment", "sale", "Скопје", "Карпош")[2], "district")
+        ref, n, level = m.reference("apartment", "sale", "Скопје", "Бутел")
+        self.assertEqual((level, n), ("city", 13))
+        self.assertEqual(m.reference("land", "sale", "Скопје", None), (None, 0, None))
+
+
+if __name__ == "__main__":
+    unittest.main()

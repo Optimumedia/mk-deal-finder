@@ -1,0 +1,64 @@
+name: Scrape deals
+
+on:
+  schedule:
+    # 04:15 and 16:15 UTC = 06:15 and 18:15 in Skopje (summer time),
+    # 05:15 / 17:15 in winter. The morning run does the full sweep.
+    - cron: "15 4 * * *"
+    - cron: "15 16 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "auto = full sweep in the morning, quick otherwise"
+        type: choice
+        options: [auto, full, quick]
+        default: auto
+
+permissions:
+  contents: write
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run scraper + researchers
+        id: run
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
+        run: |
+          case "${{ inputs.mode }}" in
+            full)  python -m scraper.run --full ;;
+            quick) python -m scraper.run --quick ;;
+            *)     python -m scraper.run ;;
+          esac
+
+      - name: Save data
+        run: |
+          git config user.name  "deal-finder-bot"
+          git config user.email "deal-finder-bot@users.noreply.github.com"
+          git add data/deals.db docs/data.json
+          git diff --cached --quiet || git commit -m "data: $(date -u +'%Y-%m-%d %H:%M') UTC"
+          git push
+
+      - name: Report a blocked or failed run
+        if: steps.run.outcome != 'success'
+        run: |
+          echo "::error::Scraper did not finish cleanly — see the 'Run scraper' step and the dashboard Run log."
+          exit 1

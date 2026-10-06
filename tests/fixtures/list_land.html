@@ -1,0 +1,5371 @@
+
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Oglasi | Reklama5.mk | Огласи | Автомобили | Недвижнини | Компјутери | Мобилн телефони | Услуги,Бизнис | Вработување | Реклами |</title>
+
+    <link rel="SHORTCUT ICON" href="/favicon.ico" type="image/vnd.microsoft.icon" />
+
+    <link rel="icon" type="image/png" href="/favicon.ico">
+
+    
+
+    
+
+    <link href="/Content/Mobile/cssant?v=3S8TUnpqGcojlAMFAwkerjY6QZM22B023S3q5Cw2s4A1" rel="stylesheet"/>
+
+
+
+    <script src="/bundles/modernizr?v=wBEWDufH_8Md-Pbioxomt90vm6tJN2Pyy9u9zHtWsPo1"></script>
+
+
+
+    <script async='async' src='https://www.googletagservices.com/tag/js/gpt.js'></script>
+
+    <script>
+
+        var googletag = googletag || {};
+
+        googletag.cmd = googletag.cmd || [];
+
+    </script>
+
+	<style type="text/css">
+
+		#cookiePopup
+
+		{
+
+			display: none;
+
+			z-index: 9999;
+
+		}
+
+	</style>
+
+    
+
+  <script>
+
+
+
+googletag.cmd.push(function () {
+
+googletag.defineSlot('/21619973618/search-top-mobile', [320, 100], 'div-gpt-ad-1502983835886-0').setTargeting('City', ['Skopje']).setTargeting('Category', ['Nedvizhnosti','Nedvizhnosti - Placevi i Nivi'])
+
+.addService(googletag.pubads());
+
+googletag.pubads().collapseEmptyDivs();
+
+googletag.enableServices();
+
+});
+
+googletag.cmd.push(function () {
+
+googletag.defineSlot('/21619973618/search-bottom-mobile', [300, 250], 'div-gpt-ad-1502984013300-0').setTargeting('City', ['Skopje']).setTargeting('Category', ['Nedvizhnosti','Nedvizhnosti - Placevi i Nivi'])
+
+.addService(googletag.pubads());
+
+googletag.pubads().collapseEmptyDivs();
+
+googletag.enableServices();
+
+});
+
+  </script>
+
+<script>
+
+  function loadCities(parentCityId) {
+
+    var citySnippet = "<li class='city-item hasChilds-#hasChilds'>\
+
+        <input type='checkbox' class='city_all chk-city' value='#cityId' id='cityCheck_#cityId'>\
+
+        <a class='city-label' onclick='#hasChilds? loadCities(#cityId): CityOnClick(#cityId);'>\
+
+          #cityName\
+
+          <a class='btn btn-link btn-sm text-decoration-none text-secondary' onclick='#hasChilds? loadCities(#cityId): CityOnClick(#cityId);'>\
+
+            <i class='fa fa-angle-right'></i>\
+
+          </a>\
+
+        </a>\
+
+      </li>"
+
+    $("#cities-container > .city-item").remove();
+
+    if (parentCityId == 'null' || parentCityId == 0) parentCityId = null;
+
+    if (parentCityId == null) {
+
+      $("#cities-container").append(
+
+        "<li class='city-item category-parent'>\
+
+            <div>\
+
+            <a class='btn-city-parent' onclick='CityOnClick(0);'>- Цела Македонија -</a>\
+
+            </div>\
+
+          </li>")
+
+    }
+
+    var parentCity = {};
+
+    window.r5cities.forEach(function (item) {
+
+      if (item.id == parentCityId) {
+
+        parentCity = item;
+
+        $("#cities-container").append(
+
+          "<li class='city-item category-parent'>\
+
+              <div style='width:100%'>\
+
+              <i class='fa fa-arrow-left cities-back-btn' onclick='loadCities(" + item.parentId + ");'></i>\
+
+              <a class='btn-city-parent' \
+
+                onclick='CityOnClick(" + item.id + ");'\
+
+              >- Сите " + item.name + " - \
+
+              </button>\
+
+              </div>\
+
+            </li>")
+
+      }
+
+    });
+
+    window.r5cities.forEach(function (item) {
+
+      if (item.parentId == parentCityId && item.id != 0) {
+
+        $("#cities-container").append(
+
+          citySnippet
+
+            .replace("#cityName", item.name)
+
+            .replace(/#cityId/g, item.id)
+
+            .replace(/#hasChilds/g, item.hasChilds));
+
+      }
+
+    });
+
+    var selectedCities = getUrlParameter('city').split(',') || [];
+
+    selectedCities.forEach(function (item) {
+
+      $('#cityCheck_' + item).prop("checked", true);
+
+    });
+
+    window.scrollTo(0, 0);
+
+  }
+
+  function showCities() {
+
+    $('.popup-bg-con').show(200);
+
+    $("#divCities1").animate({ right: '0' });
+
+    loadCities(null);
+
+  }
+
+  function hideCities() {
+
+    $('.popup-bg-con').hide(200);
+
+    $("#divCities1").animate({ right: '-102%' });
+
+  }
+
+  function checkMainCity(id, el) {
+
+    if (id == 0) {
+
+      selectAll(el);
+
+    }
+
+    else {
+
+      if ($(el).is(':checked')) {
+
+        $('.city_sub_' + id).prop('checked', true);
+
+      }
+
+      else {
+
+        $('.city_sub_' + id).prop('checked', false);
+
+      }
+
+
+
+      $('#cityCheck_0').prop('checked', checkIfAllCityesChecked(el));
+
+    }
+
+  }
+
+  function checkSubCity(id, el) {
+
+    $('#cityCheck_' + id).prop('checked', checkIfAllChecked(id, el));
+
+    $('#cityCheck_0').prop('checked', checkIfAllCityesChecked(el));
+
+  }
+
+
+
+  function checkIfAllChecked(id, el) {
+
+    var res = true;
+
+    if (!$(el).is(':checked')) {
+
+      return false;
+
+    }
+
+
+
+    $('.city_sub_' + id).each(function () {
+
+      if (!$(this).is(':checked')) {
+
+        res = false;
+
+      }
+
+    });
+
+    return res;
+
+  }
+
+  function checkIfAllCityesChecked(el) {
+
+    var res = true;
+
+    if (!$(el).is(':checked')) {
+
+      return false;
+
+    }
+
+
+
+    $('.city_all').each(function () {
+
+      if (!$(this).is(':checked') && this.id != 'cityCheck_0') {
+
+        res = false;
+
+      }
+
+    });
+
+    return res;
+
+  }
+
+  function selectAll(el) {
+
+    if ($(el).is(':checked')) {
+
+      $('.city_all').prop('checked', true);
+
+    }
+
+    else {
+
+      $('.city_all').prop('checked', false);
+
+    }
+
+  }
+
+  function filterCityClick() {
+
+    var cityCheck = [];
+
+    if ($('#cityCheck_0').is(':checked')) {
+
+      // all options are checked
+
+    }
+
+    else {
+
+      $('.city_all').each(function () {
+
+        if ($(this).is(':checked')) {
+
+          cityCheck.push(this.value);
+
+        }
+
+      });
+
+    }
+
+    $('#city').val(cityCheck.join(","));
+
+    $('#page').val("1");
+
+    document.getElementById('myFrom').submit()
+
+  }
+
+  function CityOnClick(id) {
+
+    $('#city').val(id);
+
+    if (document.getElementById("page")) document.getElementById("page").value = '1';
+
+    if (document.getElementById("myFrom")) document.getElementById('myFrom').submit();
+
+  }
+
+  function CatOnClick(id) {
+
+    refreshFilter();
+
+    var catName = $("#catddl_" + id);
+
+    if (catName.length > 0) {
+
+      $('#dLabel span#site_name').html(catName.val());
+
+    }
+
+    if (id == 0) {
+
+      $('#cat option:first-child').prop("selected", "selected");
+
+    }
+
+    else {
+
+      $('#cat option[value=' + id + ']').prop('selected', 'selected');
+
+    }
+
+    document.getElementById("cat").value = id;
+
+    $('#cat').val(id);
+
+    if (document.getElementById("page")) document.getElementById("page").value = '1';
+
+    document.getElementById('myFrom').submit();
+
+  }
+
+</script>
+
+
+
+</head>
+
+<body style="position:relative">
+
+
+
+
+
+    <div class="visible-lg visible-md hidden-sm hidden-xs" style=""><div class=" scrollup" id="ScrollUpDiv"><a id="btnScrollUp" style="cursor:pointer"><span class="glyphicon glyphicon-chevron-up" style="font-size:22px; color:#ffffff"></span></a></div></div>
+
+
+
+    <div class="popup-bg-con" onclick="hideRightSideMenu()"></div>
+
+    <div class="container body-content">
+
+        <div style="" class="col-xs-12 clear-padding">
+
+            <div class="clearfix"></div>
+
+            <div id="dvLoginInfo" style="height: 50px">
+
+                <div class="col-xs-12">
+
+                    <div class="logo-content"><a href="/"><img width="154" height="29" src="/Content/images/icons/logo.svg" /></a></div>
+
+                    <div class="menu-content">
+
+                        <div class="col-xs-3 clear-padding"><a id="lnkNewAd" href="/PlaceAd/Index"><img style="width:37px; height:30px" src="/Content/images/icons/user.svg"></a></div>
+
+                        <div class="col-xs-3 clear-padding"><a href="/Favorites?visited=1"><img style="width:37px; height:30px" src="/Content/images/icons/fav-menu.svg"></a></div>
+
+                        <div class="col-xs-3 clear-padding"><a id="lnkMessages" href="/Messages/NewMessages"><img style="width:37px; height:30px" src="/Content/images/icons/messages.svg"></a></div>
+
+                        <div class="col-xs-3 clear-padding"><a id="lnkLogin" class="nav-link text-secondary big-header-text" href="/Register"><img style="width:37px; height:30px" src="/Content/images/icons/user-menu.svg"></a></div>
+
+                    </div>
+
+                </div>
+
+                <script>(function () { var xhr = new XMLHttpRequest(); xhr.open('GET', '/LoginInfo', true); xhr.onload = function () { if (xhr.status === 200) { document.getElementById('dvLoginInfo').innerHTML = xhr.responseText; } }; xhr.send(); })();</script>
+
+            </div>
+
+            <div class="clearfix"></div>
+
+        </div>
+
+
+
+        
+
+
+<div id="divCat"></div>
+
+<div class="col-xs-12 clear-padding">
+
+<form action="/Search" id="myFrom" method="get"><input type="hidden" id="city" name="city" value="1" />
+
+  <input type="hidden" id="cat" name="cat" value="173" />
+
+  <div class="ant-search-bar">
+
+    <div class="row margin-none">
+
+      <div class="col-xs-10 clear-padding">
+
+        <div class="col-xs-12 clear-padding">
+
+          <input type="text" id="q" name="q" onchange="document.getElementById('page').value='1';" class="form-control " placeholder="BMW, Iphone, Samsung, Оглас број" />
+
+        </div>
+
+        <div class="col-xs-6 clear-padding pad-right-2">
+
+          <a class="cat-btn cities-btn" onclick="showCat()">
+
+
+
+            <svg version="1.0" xmlns="http://www.w3.org/2000/svg" width="17px" height="14px" viewBox="0 0 4750 3900" preserveAspectRatio="xMidYMid meet">
+
+              <g id="layer1" fill="#000000" stroke="none">
+
+                <path d="M285 3758 c-3 -7 -4 -389 -3 -848 l3 -835 940 0 940 0 0 845 0 845 -938 3 c-745 2 -939 0 -942 -10z m1715 -833 l0 -705 -780 0 -780 0 0 705 0 705 780 0 780 0 0 -705z" />
+
+                <path d="M2515 3758 c-3 -7 -4 -389 -3 -848 l3 -835 940 0 940 0 0 845 0 845 -938 3 c-745 2 -939 0 -942 -10z m1725 -833 l0 -705 -780 0 -780 0 0 705 0 705 780 0 780 0 0 -705z" />
+
+                <path d="M285 1758 c-3 -7 -4 -389 -3 -848 l3 -835 940 0 940 0 0 845 0 845 -938 3 c-745 2 -939 0 -942 -10z m1715 -843 l0 -705 -780 0 -780 0 0 705 0 705 780 0 780 0 0 -705z" />
+
+                <path d="M2515 1758 c-3 -7 -4 -389 -3 -848 l3 -835 940 0 940 0 0 845 0 845 -938 3 c-745 2 -939 0 -942 -10z m1725 -843 l0 -705 -780 0 -780 0 0 705 0 705 780 0 780 0 0 -705z" />
+
+              </g>
+
+
+
+            </svg>
+
+
+
+            <span class="search-box-font">Плацеви и Ниви</span>
+
+          </a>
+
+          <select class="form-control hidden" id="maincat" name="maincat" onchange="MainCatOnChange()"><option value="">Сите Категории</option>
+
+<option value="1">Моторни Возила</option>
+
+<option value="157">Недвижности</option>
+
+<option value="189">Дом и Градина </option>
+
+<option value="396">Мода и Облека и Обувки</option>
+
+<option value="558">Мобилни телефони и додатоци</option>
+
+<option value="580">Компјутери</option>
+
+<option value="637">ТВ, Видео, Фото и Мултимедија</option>
+
+<option value="753">Музички инструменти и опрема</option>
+
+<option value="776">Часовници и Накит</option>
+
+<option value="856">Беби и Детски производи</option>
+
+<option value="919">Здравје, Убавина додат. и опрема </option>
+
+<option value="959">CD, DVD, VHS Музика, Филмови</option>
+
+<option value="987">Книги и литература</option>
+
+<option value="1019">Канцелариски и Школски прибор </option>
+
+<option value="1032">Слободно време и хоби, Животни</option>
+
+<option value="1063">Спортска опрема и активности</option>
+
+<option value="1193">Антиквитети, Уметност, Колекц.</option>
+
+<option value="1207">Бизнис и дејности, Машини алати </option>
+
+<option value="1235">Храна и готвење</option>
+
+<option value="1254">Продавници, Трговија</option>
+
+<option value="1255">Услуги, Сервисери </option>
+
+<option value="1256">Вработување</option>
+
+<option value="1257">Настани, Ноќен живот, Изложби </option>
+
+<option value="1258">Одмор, Туризам, Билети, Патувања</option>
+
+<option value="1259">Лични контакти</option>
+
+<option value="1260">Останато</option>
+
+</select>
+
+        </div>
+
+
+
+        <div class="col-xs-6 clear-padding pad-left-2">
+
+          <a class="cat-btn cities-btn" onclick="showCities()">
+
+            <div class="form-control">
+
+              <embed type="image/svg+xml" src="/Content/images/v2/lokation.svg" />
+
+              <span class="search-box-font">Скопје</span>
+
+            </div>
+
+          </a>
+
+        </div>
+
+
+
+      </div>
+
+      <div class="col-xs-2 clear-padding pad-left-5">
+
+        <button type="submit" class="btn btn-search" title="Барај" value="Барај">
+
+          <img style="width:30px; height:30px" src="/Content/images/icons/search.svg" />
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="row margin-none mar-top-20">
+
+      <div class="col-xs-6 clear-padding pad-top-5">
+
+        <div class="col-xs-4 clear-padding text-center">
+
+          <a class="search-total" onclick="document.getElementById('myFrom').submit();">3330</a>
+
+        </div>
+
+        <div class="col-xs-8 clear-padding text-center">
+
+          <a class="col-xs-4 clear-padding" id="spanSaveSearch" onclick="saveSearch(); return false;">
+
+            <img style="width:27px; height:22px" src="/Content/images/icons/save-search.svg" />
+
+          </a>
+
+          <a class="col-xs-4 clear-padding" onclick="ChangeStyle(1)">
+
+            <img id="imgDefault" style="width:27px; height:22px; opacity: 1" src="/Content/images/icons/style1.svg" />
+
+          </a>
+
+          <a class="col-xs-4 clear-padding" onclick="ChangeStyle(2)">
+
+            <img id="imgCustom" style="width: 27px; height: 22px; opacity: 0.4" src="/Content/images/icons/style2.svg" />
+
+          </a>
+
+        </div>
+
+
+
+      </div>
+
+
+
+      <div class="col-xs-6 clear-padding">
+
+        <a class="filter-btn" onclick="showFilter()">
+
+          <span id="checkedFilters"></span>
+
+          Филтер
+
+          <button type="submit" id="uncheckAll">X</button>
+
+        </a>
+
+      </div>
+
+    </div>
+
+    <div class="input-group" id="catDiv" style="display:none">
+
+      <select class="form-control filterDdlStyle" name="cat" onchange="CatOnChange()" style="display:none"></select>
+
+    </div>
+
+  </div>
+
+  <div class="input-group ant-popup antFilter">
+
+    <div class="panel-body">
+
+      <div class="panel-title pad-top-10 pad-bot-10">
+
+        <a class="refresh" onclick="refreshFilter()">
+
+          <i class="fa fa-repeat"></i>
+
+        </a>
+
+
+
+        <button type="submit" class="btn btn-search" title="Барај" value="Барај">
+
+          Барај
+
+        </button>
+
+        <a class="cancle" onclick="closeAntFilter()">
+
+          <img style="width:27px; height:22px" src="/Content/images/icons/close.svg" />
+
+        </a>
+
+      </div>
+
+      <div class="panel-content" id="dvCatFilter">
+
+
+
+<div class="col-xs-12 text-left clear-padding">
+
+    <div class="col-xs-6 clear-padding">
+
+        <select id="f63_from" name="f63_from" class="form-control filterDdlStyle" onchange="document.getElementById('page').value='1';">
+
+            <option value="">Квад. Од (m²)</option>
+
+            <option value="40" >40</option>
+
+            <option value="60" >60</option>
+
+            <option value="80" >80</option>
+
+            <option value="100" >100</option>
+
+            <option value="150" >150</option>
+
+            <option value="300" >300</option>
+
+            <option value="500" >500</option>
+
+            <option value="1000" >1000</option>
+
+            <option value="2000" >2000</option>
+
+            <option value="3000" >3000</option>
+
+            <option value="5000" >5000</option>
+
+            <option value="10000" >10000</option>
+
+        </select>
+
+    </div>
+
+    <div class="col-xs-6 clear-padding">
+
+        <select id="f63_to" name="f63_to" class="form-control filterDdlStyle" onchange="document.getElementById('page').value='1';">
+
+            <option value="">Квад. До (m²)</option>
+
+            <option value="40" >40</option>
+
+            <option value="60" >60</option>
+
+            <option value="80" >80</option>
+
+            <option value="100" >100</option>
+
+            <option value="150" >150</option>
+
+            <option value="300" >300</option>
+
+            <option value="500" >500</option>
+
+            <option value="1000" >1000</option>
+
+            <option value="2000" >2000</option>
+
+            <option value="3000" >3000</option>
+
+            <option value="5000" >5000</option>
+
+            <option value="10000" >10000</option>
+
+        </select>
+
+    </div>
+
+    
+
+    
+
+</div>
+
+<div style="clear:both; padding:2px"></div>
+
+<div class="col-xs-12 text-left clear-padding">
+
+    <div class="col-xs-6 clear-padding">
+
+        <select name="priceFrom" id="priceFrom" class="form-control filterDdlStyle" onchange="document.getElementById('page').value = '1'; document.getElementById('SortByPrice').value = '1';">
+
+            <option value="" selected="selected">Цена (€) Од</option>
+
+            <option value="500">500</option>
+
+            <option value="1000">1.000</option>
+
+            <option value="2000">2.000</option>
+
+            <option value="3000">3.000</option>
+
+            <option value="4000">4.000</option>
+
+            <option value="5000">5.000</option>
+
+            <option value="6000">6.000</option>
+
+            <option value="7000">7.000</option>
+
+            <option value="8000">8.000</option>
+
+            <option value="9000">9.000</option>
+
+            <option value="10000">10.000</option>
+
+            <option value="11000">11.000</option>
+
+            <option value="12000">12.000</option>
+
+            <option value="13000">13.000</option>
+
+            <option value="14000">14.000</option>
+
+            <option value="15000">15.000</option>
+
+            <option value="16000">16.000</option>
+
+            <option value="17000">17.000</option>
+
+            <option value="18000">18.000</option>
+
+            <option value="19000">19.000</option>
+
+            <option value="20000">20.000</option>
+
+            <option value="21000">21.000</option>
+
+            <option value="22000">22.000</option>
+
+            <option value="23000">23.000</option>
+
+            <option value="24000">24.000</option>
+
+            <option value="25000">25.000</option>
+
+            <option value="26000">26.000</option>
+
+            <option value="27000">27.000</option>
+
+            <option value="28000">28.000</option>
+
+            <option value="29000">29.000</option>
+
+            <option value="30000">30.000</option>
+
+            <option value="35000">35.000</option>
+
+            <option value="40000">40.000</option>
+
+            <option value="45000">45.000</option>
+
+            <option value="50000">50.000</option>
+
+            <option value="60000">60.000</option>
+
+            <option value="70000">70.000</option>
+
+            <option value="80000">80.000</option>
+
+            <option value="90000">90.000</option>
+
+            <option value="120000">120.000</option>
+
+            <option value="150000">150.000</option>
+
+            <option value="250000">250.000</option>
+
+        </select>
+
+    </div>
+
+    <div class="col-xs-6 clear-padding">
+
+        <select name="priceTo" id="priceTo" class="form-control filterDdlStyle" onchange="document.getElementById('page').value = '1'; document.getElementById('SortByPrice').value = '1';">
+
+            <option value="" selected="selected">Цена (€) До</option>
+
+            <option value="500">500</option>
+
+            <option value="1000">1.000</option>
+
+            <option value="2000">2.000</option>
+
+            <option value="3000">3.000</option>
+
+            <option value="4000">4.000</option>
+
+            <option value="5000">5.000</option>
+
+            <option value="6000">6.000</option>
+
+            <option value="7000">7.000</option>
+
+            <option value="8000">8.000</option>
+
+            <option value="9000">9.000</option>
+
+            <option value="10000">10.000</option>
+
+            <option value="11000">11.000</option>
+
+            <option value="12000">12.000</option>
+
+            <option value="13000">13.000</option>
+
+            <option value="14000">14.000</option>
+
+            <option value="15000">15.000</option>
+
+            <option value="16000">16.000</option>
+
+            <option value="17000">17.000</option>
+
+            <option value="18000">18.000</option>
+
+            <option value="19000">19.000</option>
+
+            <option value="20000">20.000</option>
+
+            <option value="21000">21.000</option>
+
+            <option value="22000">22.000</option>
+
+            <option value="23000">23.000</option>
+
+            <option value="24000">24.000</option>
+
+            <option value="25000">25.000</option>
+
+            <option value="26000">26.000</option>
+
+            <option value="27000">27.000</option>
+
+            <option value="28000">28.000</option>
+
+            <option value="29000">29.000</option>
+
+            <option value="30000">30.000</option>
+
+            <option value="35000">35.000</option>
+
+            <option value="40000">40.000</option>
+
+            <option value="45000">45.000</option>
+
+            <option value="50000">50.000</option>
+
+            <option value="60000">60.000</option>
+
+            <option value="70000">70.000</option>
+
+            <option value="80000">80.000</option>
+
+            <option value="90000">90.000</option>
+
+            <option value="120000">120.000</option>
+
+            <option value="150000">150.000</option>
+
+            <option value="250000">250.000</option>
+
+        </select>
+
+    </div>
+
+    
+
+    
+
+</div>
+
+
+
+<div class="col-xs-12 text-left clear-padding"><div class='fValues'><select class='form-control form-control-sm register-input valid' id='f88' name='f88' onchange="if (document.getElementById('page') != null) document.getElementById('page').value='1';"><option value=''>Одберете тип на земјиште</option><option value='2085'>Градежно</option><option value='2086'>Земјоделско</option><option value='2087'>Останато</option></select></div></div>
+
+
+
+
+
+
+
+        <div class="col-xs-12 clear-padding mar-top-15 filter-li-s1">
+
+          <div class="filter-li">
+
+            <label class="checkAll1 filter-all">
+
+              Сите
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="company" value="0" />
+
+            <input type="checkbox" id="company" class="all1" checked name="company" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="company">
+
+              Претпријатие
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="private" value="0" />
+
+            <input type="checkbox" id="private" class="all1" checked name="private" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="private">
+
+              Приватно лице
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="col-xs-12 clear-padding mar-top-10 filter-li-s2">
+
+          <div class="filter-li">
+
+            <label class="checkAll2 filter-all">
+
+              Сите
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="sell" value="0" />
+
+            <input type="checkbox" id="sell" class="all2" checked name="sell" value="1" onchange="document.getElementById('page').value='1';" />
+
+
+
+            <label for="sell">
+
+              Се продава
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="buy" value="0" />
+
+            <input type="checkbox" id="buy" class="all2" checked name="buy" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="buy">
+
+              Се купува
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+
+
+
+        <div class="col-xs-12 clear-padding mar-top-10 filter-li-s4">
+
+          <div class="filter-li">
+
+            <label class="checkAll4 filter-all">
+
+              Сите
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="includeOld" value="0" />
+
+            <input type="checkbox" id="includeOld" class="all4" checked name="includeOld" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="includeOld">
+
+              Половни
+
+            </label>
+
+          </div>
+
+          <div class="filter-li">
+
+            <input type="hidden" name="includeNew" value="0" />
+
+            <input type="checkbox" id="includeNew" class="all4" checked name="includeNew" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="includeNew">
+
+              Нови
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="col-xs-12 clear-padding mar-top-8">
+
+          <div class="filter-li">
+
+            <input type="hidden" name="trade" value="0" />
+
+            <input type="checkbox" id="trade" checked name="trade" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="trade">
+
+              Можна е замена
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="col-xs-12 clear-padding mar-top-10">
+
+
+
+          <div class="filter-li">
+
+            <input checked
+
+                  id="SortByPrice1"
+
+                  name="SortByPrice"
+
+                  type="radio"
+
+                  value="0" />
+
+            <label for="SortByPrice1">
+
+              Hајновите
+
+            </label>
+
+          </div>
+
+
+
+          <div class="filter-li">
+
+            <input 
+
+                  id="SortByPrice2"
+
+                  name="SortByPrice"
+
+                  type="radio"
+
+                  value="1" />
+
+            <label for="SortByPrice2">
+
+              Hајефтините
+
+            </label>
+
+          </div>
+
+
+
+          <div class="filter-li">
+
+            <input 
+
+                  id="SortByPrice3"
+
+                  name="SortByPrice"
+
+                  type="radio"
+
+                  value="2" />
+
+            <label for="SortByPrice3">
+
+              Hововнесените
+
+            </label>
+
+          </div>
+
+        </div>
+
+        <div class="col-xs-12 clear-padding mar-top-8">
+
+          <div class="filter-li">
+
+            <input type="hidden" name="cargoReady" value="0" />
+
+            <input type="checkbox" id="cargoReady"  name="cargoReady" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="cargoReady">Со карго достава</label>
+
+          </div>
+
+        </div>
+
+        <div class="col-xs-12 clear-padding mar-top-8">
+
+          <div class="filter-li">
+
+            <input type="hidden" name="DDVIncluded" value="0" />
+
+            <input type="checkbox" id="DDVIncluded"  name="DDVIncluded" value="1" onchange="document.getElementById('page').value='1';" />
+
+            <label for="DDVIncluded">Со вклучен ДДВ</label>
+
+          </div>
+
+        </div>
+
+                                
+
+        </div>
+
+    </div>
+
+  </div>
+
+                                <input type="hidden" name="page" id="page" value="1" /> <input type="hidden" id="m" name="m" value="1" /></form>
+
+  
+
+ 
+
+<div class="input-group ant-popup" id="divCities1">
+
+    <div class="panel-body">
+
+        <div class="panel-title pad-bot-10">
+
+            <span><small>Можете да изберете повеќе градови</small></span>
+
+            <button type="submit" class="btn btn-search" onclick="filterCityClick()">
+
+                Барај
+
+            </button>
+
+            <a class="cancle" onclick="hideCities()"> 
+
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="25px">
+
+                    <g>
+
+                        <image width="30" height="25" xlink:href="data:image/png;base64,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" />
+
+                    </g>
+
+                </svg>
+
+            </a>
+
+        </div>
+
+        <div class="panel-content">
+
+            <ul id="cities-container" class="list-unstyled">
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div> 
+
+
+
+  <div class="col-xs-12 lrpadding_5 search-results" id="search-results">
+
+
+
+    <!--Start Ad Box-->
+
+    <div style="padding-top:0px;">
+
+
+
+<img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5365713&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile topAdResults">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5365713">
+
+<img src="//reklama5.mk/photos/big/65c1a2fa-a093-4386-a923-170c3afe776e.jpg" class="img-responsive profilethumbs" />      </a>
+
+      <span class="topPromotedAdSign">Промовирано</span>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo" style="height:100%; width:100%">
+
+
+
+    <div class="text-left text-info adTitle-mobile-Box">
+
+      <a href="/AdDetails?ad=5365713" class="SearchAdTitle">
+
+Plac vo Volkovo              </a>
+
+    </div>
+
+
+
+
+
+    <div class="oglasSection">
+
+      <div class=" oglasPriceSection">
+
+        <div class="big-size">
+
+          <div class="text-left text-success price-mobile-box">
+
+80 €
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+
+
+
+
+        <div class="col-xs-12 clear-padding oglas-info2">
+
+
+
+          <div id="saveAd1" class="favAd-mobile" data-adid="5365713">
+
+            <a style="cursor:pointer" onclick="SaveAd('5365713'); return false;">
+
+              <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+              <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+            </a>
+
+          </div>
+
+
+
+
+
+        </div>
+
+
+
+      </div>
+
+    </div>
+
+
+
+    <div class="clear-margin adCitydateInfo">
+
+      <div class="text-center clear-padding adDate">
+
+        Скопје &gt; Ѓорче Петров &nbsp;
+
+        02 окт
+
+        13:00
+
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+</div>        <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5859225&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile topAdResults">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5859225">
+
+<img src="//reklama5.mk/photos/big/abc0a469-3977-4ed9-b231-32bc9e3afd16.jpg" class="img-responsive profilethumbs" />      </a>
+
+      <span class="topPromotedAdSign">Промовирано</span>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo" style="height:100%; width:100%">
+
+
+
+    <div class="text-left text-info adTitle-mobile-Box">
+
+      <a href="/AdDetails?ad=5859225" class="SearchAdTitle">
+
+Se izdava deloven plac od 2530m2 vo centarot na In ...              </a>
+
+    </div>
+
+
+
+
+
+    <div class="oglasSection">
+
+      <div class=" oglasPriceSection">
+
+        <div class="big-size">
+
+          <div class="text-left text-success price-mobile-box">
+
+По Договор
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+
+
+
+
+        <div class="col-xs-12 clear-padding oglas-info2">
+
+
+
+          <div id="saveAd2" class="favAd-mobile" data-adid="5859225">
+
+            <a style="cursor:pointer" onclick="SaveAd('5859225'); return false;">
+
+              <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+              <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+            </a>
+
+          </div>
+
+
+
+
+
+        </div>
+
+
+
+      </div>
+
+    </div>
+
+
+
+    <div class="clear-margin adCitydateInfo">
+
+      <div class="text-center clear-padding adDate">
+
+        Скопје &gt; Гази Баба &nbsp;
+
+        Денес
+
+        18:27
+
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+</div>        <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5857474&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile topAdResults">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5857474">
+
+<img src="//reklama5.mk/photos/big/6a288afb-d2b4-4572-8f2c-3de29446ee09.jpg" class="img-responsive profilethumbs" />      </a>
+
+      <span class="topPromotedAdSign">Промовирано</span>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo" style="height:100%; width:100%">
+
+
+
+    <div class="text-left text-info adTitle-mobile-Box">
+
+      <a href="/AdDetails?ad=5857474" class="SearchAdTitle">
+
+САНИ, ХАЛИКИДИКИ              </a>
+
+    </div>
+
+
+
+
+
+    <div class="oglasSection">
+
+      <div class=" oglasPriceSection">
+
+        <div class="big-size">
+
+          <div class="text-left text-success price-mobile-box">
+
+1 €
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+
+
+
+
+        <div class="col-xs-12 clear-padding oglas-info2">
+
+
+
+          <div id="saveAd3" class="favAd-mobile" data-adid="5857474">
+
+            <a style="cursor:pointer" onclick="SaveAd('5857474'); return false;">
+
+              <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+              <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+            </a>
+
+          </div>
+
+
+
+
+
+        </div>
+
+
+
+      </div>
+
+    </div>
+
+
+
+    <div class="clear-margin adCitydateInfo">
+
+      <div class="text-center clear-padding adDate">
+
+        Скопје &gt; Карпош &nbsp;
+
+        Денес
+
+        11:05
+
+      </div>
+
+    </div>
+
+
+
+  </div>
+
+</div>         <!-- End top positioned -->
+
+
+
+
+
+
+
+<img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5472995&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5472995">
+
+<img src="//reklama5.mk/photos/big/6f770209-fb62-4b00-b9d5-5c3724a41f92.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5472995" class="SearchAdTitle">
+
+Се продава  плац,Нива до ресторанот ЗЛАТНО БУРЕ во ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 МКД                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd4" class="favAd-mobile" data-adid="5472995">
+
+      <a style="cursor:pointer" onclick="SaveAd('5472995'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Ѓорче Петров &nbsp;
+
+          Денес
+
+          20:41
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=3940717&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=3940717">
+
+<img src="//reklama5.mk/photos/big/5670dc69-52e8-4e51-b25d-7c6482b66526.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=3940717" class="SearchAdTitle">
+
+Plac pod Teferich-Pripor INFO HARI [тел.]                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+По Договор                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd5" class="favAd-mobile" data-adid="3940717">
+
+      <a style="cursor:pointer" onclick="SaveAd('3940717'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Аеродром &nbsp;
+
+          Денес
+
+          19:47
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=3502293&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=3502293">
+
+<img src="//reklama5.mk/photos/big/24acda94-00d8-4e6e-a99d-723cebccfe36.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=3502293" class="SearchAdTitle">
+
+ПРОДАВАМ ПЛАЦ ВО ДРАЧЕВО                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+70 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd6" class="favAd-mobile" data-adid="3502293">
+
+      <a style="cursor:pointer" onclick="SaveAd('3502293'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          19:34
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5817703&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5817703">
+
+<img src="//reklama5.mk/photos/big/ebc8155d-c91f-416d-a485-7b38486afc28.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5817703" class="SearchAdTitle">
+
+KUPUVAM NIVA VO BLIZINA NA SKOPJE ZA CUVANJE PCELI                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+15.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+<div class="col-xs-12 clear-padding oglasInfoBox"><div class="isCompany bottom0">Претпријатие</div></div>  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd7" class="favAd-mobile" data-adid="5817703">
+
+      <a style="cursor:pointer" onclick="SaveAd('5817703'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          18:38
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5859225&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5859225">
+
+<img src="//reklama5.mk/photos/big/abc0a469-3977-4ed9-b231-32bc9e3afd16.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5859225" class="SearchAdTitle">
+
+Se izdava deloven plac od 2530m2 vo centarot na In ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+По Договор                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd8" class="favAd-mobile" data-adid="5859225">
+
+      <a style="cursor:pointer" onclick="SaveAd('5859225'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Гази Баба &nbsp;
+
+          Денес
+
+          18:27
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5386200&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5386200">
+
+<img src="//reklama5.mk/photos/big/cddf2eb4-0eb8-47bb-bd4e-2a7a285c206c.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5386200" class="SearchAdTitle">
+
+Niva vo Nerezi                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+50 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd9" class="favAd-mobile" data-adid="5386200">
+
+      <a style="cursor:pointer" onclick="SaveAd('5386200'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Карпош &nbsp;
+
+          Денес
+
+          18:08
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5754789&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5754789">
+
+<img src="//reklama5.mk/photos/big/2e723df9-f624-430b-9ab6-8895ab182aee.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5754789" class="SearchAdTitle">
+
+Се продава плац                 </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd10" class="favAd-mobile" data-adid="5754789">
+
+      <a style="cursor:pointer" onclick="SaveAd('5754789'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          17:19
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5505926&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5505926">
+
+<img src="//reklama5.mk/photos/big/c29d318f-7850-438d-a4dd-9113f9a34df7.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5505926" class="SearchAdTitle">
+
+Се продава лозје                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd11" class="favAd-mobile" data-adid="5505926">
+
+      <a style="cursor:pointer" onclick="SaveAd('5505926'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          17:19
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5818408&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5818408">
+
+<img src="//reklama5.mk/photos/big/4dac6105-62e8-48b9-9edb-26a671962aa6.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5818408" class="SearchAdTitle">
+
+SE PRODAVA PLAC VO DOLNO SONJE                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+25 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd12" class="favAd-mobile" data-adid="5818408">
+
+      <a style="cursor:pointer" onclick="SaveAd('5818408'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          16:04
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5799178&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5799178">
+
+<img src="//reklama5.mk/photos/big/8eb4e76e-d57b-45eb-9b9f-704f81928e12.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5799178" class="SearchAdTitle">
+
+PRODAZBA PLAC 26000M2-KAMNIK                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+35 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd13" class="favAd-mobile" data-adid="5799178">
+
+      <a style="cursor:pointer" onclick="SaveAd('5799178'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          15:44
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5737718&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5737718">
+
+<img src="//reklama5.mk/photos/big/a81ae694-32b6-4b44-bed6-3f48c656b98a.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5737718" class="SearchAdTitle">
+
+PARCELI ZA FOTOVOLTAICI OD 1MW-30 MW                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+12.345 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd14" class="favAd-mobile" data-adid="5737718">
+
+      <a style="cursor:pointer" onclick="SaveAd('5737718'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          15:44
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5842479&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5842479">
+
+<img src="//reklama5.mk/photos/big/896d94d4-d022-4110-949e-20c4f789ff1d.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5842479" class="SearchAdTitle">
+
+PLAC ZA KUKA -PRIPOR-1500M2-TOP PONUDA                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+70.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd15" class="favAd-mobile" data-adid="5842479">
+
+      <a style="cursor:pointer" onclick="SaveAd('5842479'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          15:44
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=4777993&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=4777993">
+
+<img src="//reklama5.mk/photos/big/8bd6e5ab-5112-4f34-8986-6e392a13fa57.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=4777993" class="SearchAdTitle">
+
+Продавам плац на Водно / Prodavam plac na Vodno                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+380.000 €                          </div>
+
+<p class="ratePrice">или Предлог цена</p>          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd16" class="favAd-mobile" data-adid="4777993">
+
+      <a style="cursor:pointer" onclick="SaveAd('4777993'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Карпош &nbsp;
+
+          Денес
+
+          15:41
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5797029&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5797029">
+
+<img src="//reklama5.mk/photos/big/c52cd929-d548-43a4-a042-4523f73ac812.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5797029" class="SearchAdTitle">
+
+Se prodava plac vo Ajvatovci                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+45 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd17" class="favAd-mobile" data-adid="5797029">
+
+      <a style="cursor:pointer" onclick="SaveAd('5797029'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Илинден &nbsp;
+
+          Денес
+
+          15:34
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5449639&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5449639">
+
+<img src="//reklama5.mk/photos/big/0f52cf52-564c-4d77-bd24-755bea7f889d.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5449639" class="SearchAdTitle">
+
+Plac 1081m2 vo Sopiste vo gradezen reon                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+95 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd18" class="favAd-mobile" data-adid="5449639">
+
+      <a style="cursor:pointer" onclick="SaveAd('5449639'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Сопиште &nbsp;
+
+          Денес
+
+          14:52
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5840547&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5840547">
+
+<img src="//reklama5.mk/photos/big/476cab6e-35b7-4469-a15b-b9c33d2cf5d3.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5840547" class="SearchAdTitle">
+
+Prodavam niva vo Trubarevo                 </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+35 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd19" class="favAd-mobile" data-adid="5840547">
+
+      <a style="cursor:pointer" onclick="SaveAd('5840547'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Карпош &nbsp;
+
+          Денес
+
+          14:49
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5850043&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5850043">
+
+<img src="//reklama5.mk/photos/big/ee4296a2-af66-4f0d-a7c8-5fe08f3ac643.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5850043" class="SearchAdTitle">
+
+Градежен плац во населба Пинтија                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+50 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd20" class="favAd-mobile" data-adid="5850043">
+
+      <a style="cursor:pointer" onclick="SaveAd('5850043'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          14:41
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5746180&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5746180">
+
+<img src="//reklama5.mk/photos/big/1c19b8eb-1a5d-459a-b6e8-4cebe414b0b4.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5746180" class="SearchAdTitle">
+
+Неа Потидеа Халкидики плац од 21.000 м2                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1.500.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd21" class="favAd-mobile" data-adid="5746180">
+
+      <a style="cursor:pointer" onclick="SaveAd('5746180'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          14:39
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5746448&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5746448">
+
+<img src="//reklama5.mk/photos/big/7cb8978c-bbdd-4cfb-adf4-c07624fb500b.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5746448" class="SearchAdTitle">
+
+Psakudia Халкидики плац од 5200 м2                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+130.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd22" class="favAd-mobile" data-adid="5746448">
+
+      <a style="cursor:pointer" onclick="SaveAd('5746448'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          14:39
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5731505&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5731505">
+
+<img src="//reklama5.mk/photos/big/dc290d5d-c571-4c67-ab0c-1504e7ffd7b5.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5731505" class="SearchAdTitle">
+
+Неа Потидеа Халкидики парцела земја 2.700м2.                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+50.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd23" class="favAd-mobile" data-adid="5731505">
+
+      <a style="cursor:pointer" onclick="SaveAd('5731505'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+<div id="video-box"><img style="width:24px; height:20px" src="/Content/images/icons/video-box.svg"></div>  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          14:39
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5714042&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5714042">
+
+<img src="//reklama5.mk/photos/big/ceb3ecd8-99ce-4836-8327-a147ccaf91d9.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5714042" class="SearchAdTitle">
+
+Се продава плац во Пинтија | Pintija                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+60.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd24" class="favAd-mobile" data-adid="5714042">
+
+      <a style="cursor:pointer" onclick="SaveAd('5714042'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+<div id="video-box"><img style="width:24px; height:20px" src="/Content/images/icons/video-box.svg"></div>  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          14:36
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5853048&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5853048">
+
+<img src="//reklama5.mk/photos/big/b5d12388-ab56-4491-a388-7fbdf73519cc.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5853048" class="SearchAdTitle">
+
+Prodavam plac vo Stopanski dvor, Skopje                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd25" class="favAd-mobile" data-adid="5853048">
+
+      <a style="cursor:pointer" onclick="SaveAd('5853048'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Ѓорче Петров &nbsp;
+
+          Денес
+
+          14:33
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5799706&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5799706">
+
+<img src="//reklama5.mk/photos/big/a9a1e7cc-9c03-4004-8d3c-11a0de5fe45a.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5799706" class="SearchAdTitle">
+
+Prodavam plac vo Stopanski dvor                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd26" class="favAd-mobile" data-adid="5799706">
+
+      <a style="cursor:pointer" onclick="SaveAd('5799706'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Ѓорче Петров &nbsp;
+
+          Денес
+
+          14:33
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=4730700&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=4730700">
+
+<img src="//reklama5.mk/photos/big/585487a8-e3be-42b3-9d20-5f5e3b5a351a.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=4730700" class="SearchAdTitle">
+
+ ПЛАЦЕВИ ВО ЗЕЛЕНИКОВО                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd27" class="favAd-mobile" data-adid="4730700">
+
+      <a style="cursor:pointer" onclick="SaveAd('4730700'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Зелениково &nbsp;
+
+          Денес
+
+          14:14
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5769337&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5769337">
+
+<img src="//reklama5.mk/photos/big/c9fb3bee-41e6-4d8a-a20a-5992d8839082.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5769337" class="SearchAdTitle">
+
+Продавам плац во Радишани 3181 м2 кај Коњичкиот кл ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd28" class="favAd-mobile" data-adid="5769337">
+
+      <a style="cursor:pointer" onclick="SaveAd('5769337'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Бутел &nbsp;
+
+          Денес
+
+          13:46
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5339807&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5339807">
+
+<img src="//reklama5.mk/photos/big/ed99505a-1957-44b2-9fd1-e7830b6e448d.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5339807" class="SearchAdTitle">
+
+Се продава плац/земјиште во Пинтија (Plac zemjiste ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+55 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd29" class="favAd-mobile" data-adid="5339807">
+
+      <a style="cursor:pointer" onclick="SaveAd('5339807'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Кисела Вода &nbsp;
+
+          Денес
+
+          13:37
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5824933&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5824933">
+
+<img src="//reklama5.mk/photos/big/88038914-85d6-421d-97cf-ada9bfed8e8d.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5824933" class="SearchAdTitle">
+
+NIVA                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+25 €                    <div class="oglasDiscount">
+
+        <label>- 17 % Попуст
+
+        </label>
+
+        <span><s>30 €</s></span>
+
+      </div>            </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd30" class="favAd-mobile" data-adid="5824933">
+
+      <a style="cursor:pointer" onclick="SaveAd('5824933'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Илинден &nbsp;
+
+          Денес
+
+          13:35
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5817063&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5817063">
+
+<img src="//reklama5.mk/photos/big/c3ad38ce-19e6-4054-b0b5-[тел.]d82.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5817063" class="SearchAdTitle">
+
+PLAC ZLOKUKANI                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd31" class="favAd-mobile" data-adid="5817063">
+
+      <a style="cursor:pointer" onclick="SaveAd('5817063'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Скопје Центар &nbsp;
+
+          Денес
+
+          13:17
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=4995309&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=4995309">
+
+<img src="//reklama5.mk/photos/big/7c193a80-3891-4662-9128-e55ca3c09a22.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=4995309" class="SearchAdTitle">
+
+Plac 1880 m2, gradezno zemjiste, vo Dolno Sonje -  ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+97.000 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd32" class="favAd-mobile" data-adid="4995309">
+
+      <a style="cursor:pointer" onclick="SaveAd('4995309'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Сопиште &nbsp;
+
+          Денес
+
+          13:00
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5283172&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResultsHighlighted mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5283172">
+
+<img src="//reklama5.mk/photos/big/3cfca4b2-1898-4ce9-9e06-a8f466e83df9.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5283172" class="SearchAdTitle">
+
+Лисиче Плац / Lisice Plac                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+<p class="ratePrice">или Предлог цена</p>          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd33" class="favAd-mobile" data-adid="5283172">
+
+      <a style="cursor:pointer" onclick="SaveAd('5283172'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Аеродром &nbsp;
+
+          Денес
+
+          13:00
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5507921&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5507921">
+
+<img src="//reklama5.mk/photos/big/5b1740be-82a4-4a7b-b114-398d976ad85e.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5507921" class="SearchAdTitle">
+
+SE PRODAVAAT DVA PLACEVI VO OPSTINA ILINDEN AJVATO ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+1 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd34" class="favAd-mobile" data-adid="5507921">
+
+      <a style="cursor:pointer" onclick="SaveAd('5507921'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Илинден &nbsp;
+
+          Денес
+
+          13:00
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5833415&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5833415">
+
+<img src="/Content/images/noImage2.jpg" class="img-responsive profilethumbs" />       </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5833415" class="SearchAdTitle">
+
+SE IZDAVA PLAC 900m2 , AERODROM, Gorno Lisice do S ...                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+700 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd35" class="favAd-mobile" data-adid="5833415">
+
+      <a style="cursor:pointer" onclick="SaveAd('5833415'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Аеродром &nbsp;
+
+          Денес
+
+          13:00
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5845084&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5845084">
+
+<img src="//reklama5.mk/photos/big/cdcbdb91-fdcc-441f-86c3-558bdac4dad5.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5845084" class="SearchAdTitle">
+
+Se prodava parcela na skopska obikolnica                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+31 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd36" class="favAd-mobile" data-adid="5845084">
+
+      <a style="cursor:pointer" onclick="SaveAd('5845084'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Шуто Оризари &nbsp;
+
+          Денес
+
+          13:00
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5652238&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5652238">
+
+<img src="//reklama5.mk/photos/big/e9522040-553d-4ab4-8005-e96b71fd51ed.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5652238" class="SearchAdTitle">
+
+Градежна парцела 616 м2 во Волково                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+75 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd37" class="favAd-mobile" data-adid="5652238">
+
+      <a style="cursor:pointer" onclick="SaveAd('5652238'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Ѓорче Петров &nbsp;
+
+          Денес
+
+          12:47
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>      <img src='//stats.reklama5.mk/pixel.gif?fkType=0&fkNum=5652232&type=imp' height='0px' widht=0px' style='display:none'/><div class="OglasResults mobile">
+
+  <div class="col-xs-12 text-center clear-padding oglasSlika">
+
+    <div class="oglasSlikaContent">
+
+      <a href="/AdDetails?ad=5652232">
+
+<img src="//reklama5.mk/photos/big/cb215698-8773-4ab0-bb5d-a2d158528c7d.jpg" class="img-responsive profilethumbs" />      </a>
+
+    </div>
+
+  </div>
+
+  <div class="col-xs-8 clear-padding lrpadding_5 oglasInfo">
+
+    <div>
+
+      <div class="text-left text-info adTitle-mobile-Box">
+
+        <a href="/AdDetails?ad=5652232" class="SearchAdTitle">
+
+Плац 678м2 во Волково                </a>
+
+      </div>
+
+      <div class="oglasSection">
+
+        <div class=" oglasPriceSection">
+
+          <div class="big-size">
+
+            <div class="text-left text-success price-mobile-box">
+
+50 €                          </div>
+
+          </div>
+
+        </div>
+
+
+
+<div class="text-right text-to-bottom adInfoDate oglasInfoSection">
+
+  <div class="col-xs-12 clear-padding oglas-info2">
+
+    <div id="saveAd38" class="favAd-mobile" data-adid="5652232">
+
+      <a style="cursor:pointer" onclick="SaveAd('5652232'); return false;">
+
+        <img class="imgSelect active" style="width: 30px; height: 25px" src="/Content/images/icons/fav-selected.svg">
+
+        <img class="imgSelected" style="width: 30px; height: 25px" src="/Content/images/icons/fav.svg">
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+
+      <div class="clear-margin adCitydateInfo">
+
+        <div class="text-center clear-padding adDate">
+
+          Скопје &gt; Ѓорче Петров &nbsp;
+
+          Денес
+
+          12:47
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>          </div>
+
+
+
+
+
+    <div id="chPremiumAds"></div>
+
+    <div class="clear-2"></div>
+
+
+
+    <div style="margin:auto;" class="text-center">
+
+      <!-- /21619973618/search-bottom-mobile -->
+
+      <div id='div-gpt-ad-1502984013300-0' style='height:250px; width:300px;margin:auto'>
+
+        <script>googletag.cmd.push(function () { googletag.display('div-gpt-ad-1502984013300-0'); });</script>
+
+      </div>
+
+    </div>
+
+    <div class="clear-2"></div>
+
+    <!--Start Paging-->
+
+    <div class="col-lg-12 text-center clear-padding pad-top-10">
+
+
+
+
+
+      <ul class="pagination">
+
+
+
+  <li class="previous-page-mobile"><a href="/Search?cat=173&amp;city=1&amp;page=1" title="Предходна" class="fa fa-chevron-left link-disabled"></a></li>
+
+<li><span class="pageCountMobile">Страна 1 од 96</span></li> <li class="next-page-mobile"><a class=" fa fa-chevron-right" href="/Search?cat=173&amp;city=1&amp;page=2" title="Следна"></a></li>      </ul>
+
+
+
+      <a id="btnScrollUp" class="scrollBtnMobile" onclick="javascript:$('html,body').animate({ scrollTop: 0 }, 1);return false;">
+
+        <span class="fa fa-chevron-up"></span> нагоре <span class="fa fa-chevron-up"></span>
+
+      </a>
+
+    </div>
+
+  </div>
+
+</div> 
+
+
+
+        <div class="login-modal">
+
+             <div class="bg-white d-none sidebar-right">
+
+    <div class="w-100 border-bottom p-3" style="height:50px;">
+
+        
+
+        <a href="#" onclick="hideRightSideMenu()" class="text-secondary float-left"><i class="fas fa-times" style="font-size:22px"></i></a>
+
+    </div>
+
+      
+
+    <div class="col-xs-12 clear-padding registerContainer-mobile">
+
+<form action="/Register/Login" id="frmLogin2" method="post"><input name="__RequestVerificationToken" type="hidden" value="IMKexMqnEFm0sqUXTb06V4V0FxGYLwpp8xiBe27mTBMQKmf5Xs_jVvFxH6LetmvJ8wDLOoDQa_iykIHAJFFFJzSez0PIRZK7qT03TaJIIbc1" />            <div class="col-xs-12 loginPanel">
+
+                <div>
+
+                    <h3 class="registerTitle">
+
+                        <img src="/Content/images/ant-icons/usercheck.svg" alt="Најави се" />
+
+                        Најави се
+
+                    </h3>
+
+
+
+                    <div class="login-content">
+
+                        <input type="email" class="form-control tdrightVal" id="loginEmail" name="loginEmail" maxlength="100" placeholder="Е-Маил" />
+
+                        <input type="password" class="form-control tdrightVal" id="loginPassword" name="loginPassword" placeholder="Лозинка" />
+
+                
+
+                        <div class="clearfix">
+
+                            <input type="checkbox" name="chkRememberMe" id="chkRememberMe" checked="checked" value="1" class="remember-input" />
+
+                            <label for="chkRememberMe" class="remember-label">Запомни ме</label>
+
+                        </div>
+
+                    
+
+                    
+
+                 
+
+                        <input type="submit" id="btnSubmit" class="btn btn-primary" value="Најави се" />
+
+                        <div class="text-center">
+
+                            <a class="forgetPassBtn" href="/Register/ForgotPassword">Ја заборавивте лозинката?</a> 
+
+                        </div>
+
+                    </div> 
+
+                </div>
+
+            </div>
+
+</form>        <hr class="login-hr-divider" />
+
+<form action="/Register/RegisterUser" id="frmRegister2" method="post"><input name="__RequestVerificationToken" type="hidden" value="cG0MtP8hRIE_DQA0qd4MaVZy0k3FmyJh7WFFMsYcQlG5YZEWhfVL4dyOgez8RkRaPD8KhlRHFM5RvD_jFoZXnHWC2RXcTAVHI1BoPxdy9e41" />            <div id="regDiv" class="col-xs-12 loginPanel">
+
+             
+
+                <h3 class="registerTitle">
+
+                    <img src="/Content/images/ant-icons/useradd.svg" alt="register" />
+
+                    <label>
+
+                        <span>
+
+                            Регистрирај се
+
+                        </span>
+
+                        <span class="subtitle">
+
+                            *Верификацијата на профилот е задолжителна
+
+                        </span>
+
+                    </label> 
+
+                </h3> 
+
+                 
+
+                <div class="ant-ch-2">
+
+                    <div class="ant-ch">
+
+                        <input type="radio" name="options" id="optLice" value="0" checked />
+
+                        <label for="optLice">
+
+                            Лице
+
+                        </label>
+
+                    </div> 
+
+                    <div class="ant-ch">
+
+                        <input type="radio" name="options" id="optPretprijatie" value="1" />
+
+                        <label for="optPretprijatie">
+
+                            Претпријатие
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+  
+
+                <div class="login-content">
+
+                    <input type="text" class="form-control tdrightVal" id="regName" name="regName" autocomplete="off" maxlength="60" placeholder="Име" />
+
+                     
+
+                    <select class="form-control tdrightVal" id="regCity" name="regCity" onchange="CityOnChangeMobile(this.value)" placeholder="Одберете локација" style="margin-left:0px;"><option value="">Одбери Локација</option>
+
+<option value="1">Скопје</option>
+
+<option value="2">Битола</option>
+
+<option value="3">Куманово</option>
+
+<option value="4">Прилеп</option>
+
+<option value="5">Тетово</option>
+
+<option value="6">Велес</option>
+
+<option value="7">Штип</option>
+
+<option value="8">Охрид</option>
+
+<option value="9">Гостивар</option>
+
+<option value="10">Струмица</option>
+
+<option value="11">Кавадарци</option>
+
+<option value="12">Кочани</option>
+
+<option value="13">Кичево</option>
+
+<option value="14">Струга</option>
+
+<option value="15">Радовиш</option>
+
+<option value="16">Гевгелија</option>
+
+<option value="17">Дебар</option>
+
+<option value="18">Крива Паланка</option>
+
+<option value="19">Свети Николе</option>
+
+<option value="20">Неготино</option>
+
+<option value="21">Делчево</option>
+
+<option value="22">Виница</option>
+
+<option value="23">Ресен</option>
+
+<option value="24">Пробиштип</option>
+
+<option value="25">Берово</option>
+
+<option value="26">Кратово</option>
+
+<option value="28">Крушево</option>
+
+<option value="29">Македонски Брод</option>
+
+<option value="30">Валандово</option>
+
+<option value="34">Демир Хисар</option>
+
+</select>
+
+                    
+
+                    
+
+                    <span id="popstina" style="display: none;">
+
+                        <select id="regopstina" name="regOpstina" class="form-control tdrightVal" style="display: inline-block;">
+
+                            <option value="">Одбери Општина</option>
+
+                        </select>
+
+                    </span>
+
+                    
+
+                    <input type="email" class="form-control tdrightVal" id="regEmail" name="regEmail" autocomplete="off" maxlength="60" placeholder="Е-Маил" />
+
+                     
+
+                    <div class="login-p-content">
+
+                        <input type="tel" class="form-control tdrightVal pull-left" autocomplete="off" onkeyup="this.value=this.value.replace(/[^\d]/,'')" id="regPhone" name="regPhone" maxlength="30" placeholder="Телефон" />
+
+
+
+                        <div class="pull-left">
+
+                            <input class="form-check-input" type="checkbox" value="1" name="chkViber" id="chkViber1" >
+
+                            <label for="chkViber1"><img src="/Content/images/ant-icons/viber.svg" alt="viber icon"></label>
+
+                        </div>
+
+                        <div class="pull-left">
+
+                            <input class="form-check-input" type="checkbox" value="1" name="chkWhatsup" id="chkWhatsup2">
+
+                            <label for="chkWhatsup2"><img src="/Content/images/ant-icons/whatsapp.svg" alt="whatsapp icon"></label>
+
+                        </div>
+
+                    </div>
+
+                     
+
+                    <input type="password" class="form-control tdrightVal" autocomplete="off" id="regPass" name="regPass" placeholder="Лозинка" />
+
+                     
+
+                    <input type="password" class="form-control tdrightVal" autocomplete="off" id="regPass2" name="regPass2" placeholder="Повтори лозинка" />
+
+                      
+
+                    <div class="form-check">
+
+                        <input class="form-check-input" type="checkbox" value="1" name="chkAgree" id="chkAgree1" checked="checked">
+
+                        <label class="form-check-label" for="chkAgree1">
+
+                            <small>Се согласувам и ги прифаќам <a href="/Help/HelpTerms">условите на употреба</a></small>
+
+                        </label>
+
+                    </div>
+
+
+
+                    <div class="form-check">
+
+                        <input class="form-check-input" type="checkbox" value="1" name="chkAgreeNews" id="chkAgreeNews1" checked="checked">
+
+                        <label class="form-check-label" for="chkAgreeNews1">
+
+                            <small>Се согласувам да добивам новости</small>
+
+                        </label>
+
+                    </div>
+
+                     
+
+                    <div class="recaptcha-holder"></div>
+
+                    <div class="pt-4"></div>
+
+                    <div class="col-xs-12 clear-padding">
+
+                        <input type="submit" id="btnRegister" class="btn btn-primary btn-success" value="Регистрирај се" />
+
+                         
+
+                    </div>
+
+                    
+
+                </div> 
+
+            </div>
+
+</form>        <div style="clear:both"></div>
+
+    </div>
+
+</div>
+
+
+
+        </div> 
+
+       
+
+        <footer style="">
+
+
+
+
+
+    <div class="text-center" style="background-color: #fff; padding: 15px 0 0 0; margin-bottom: 15px;">
+
+        <div class="col-xs-6 text-center">
+
+            <a href="https://play.google.com/store/apps/details?id=mk.reklama5.bigmedia" target="_blank" rel="noopener" class="btn" style="color: #000; border-radius: 999px; padding: 10px 16px; display: inline-flex; align-items: center; justify-content: center;border: 2px #eaebf0 solid">
+
+                <img style="width:22px; height:22px; margin-right: 8px;" src="/Content/images/icons-png/play-store.png" alt="Google Play">
+
+                Google Play
+
+            </a>
+
+        </div>
+
+
+
+        <div class="col-xs-6 text-center">
+
+            <a href="https://apps.apple.com/us/app/reklama5/id1457178587" target="_blank" rel="noopener" class="btn" style="color: #000; border-radius: 999px; padding: 10px 16px; display: inline-flex; align-items: center; justify-content: center;border: 2px #eaebf0 solid">
+
+                <img style="width:25px; height:22px; margin-right: 8px;" src="/Content/images/icons/apple-store.svg" alt="App Store">
+
+                App Store
+
+            </a>
+
+        </div>
+
+
+
+        <div class="clearfix"></div>
+
+
+
+        <div class="social-media" style="background-color: #fff; margin: 18px 0 0 0;">
+
+            <ul style="margin: 0; padding-bottom: 18px; justify-content: center; gap: 36px;">
+
+                <li>
+
+                    <a href="https://www.facebook.com/share/1GN4ZrbxnG/?mibextid=wwXIfr" target="_blank" rel="noopener" aria-label="Facebook">
+
+                        <img src="/Content/images/icons-png/FB2_grey.png" alt="Facebook" />
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="https://www.instagram.com/reklama5mk?igsh=ZjMxcXlyNmthbGho" target="_blank" rel="noopener" aria-label="Instagram">
+
+                        <img src="/Content/images/icons-png/ISTA2_grey.png" alt="Instagram" />
+
+                    </a>
+
+                </li>
+
+                <li>
+
+                    <a href="https://www.tiktok.com/@reklama5_?_r=1&amp;_t=ZM-91wNwPxA3eF" target="_blank" rel="noopener" aria-label="TikTok">
+
+                        <img src="/Content/images/icons-png/tiktok2_grey.png" alt="TikTok" />
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+    <div class="view-switcher ui-bar-a">
+
+        <div class="col-xs-12 clear-padding lrpadding_5">
+
+            <div class="col-xs-6 text-center">
+
+                <a class="btn btn-default" href="/ViewSwitcher?mobile=False&returnUrl=https%3A%2F%2Fm.reklama5.mk%2FSearch"> 
+
+                    <img style="width:22px; height:18px" src="/Content/images/icons/desktop.svg">
+
+                    Десктоп верзија
+
+                </a> 
+
+            </div>
+
+            <div class="col-xs-6 text-center con-to-red">
+
+                <a href="/Help/HelpContact" class="btn btn-default pad-left-5"> 
+
+                    <img style="width:22px; height:18px" src="/Content/images/icons/kontakt.svg">
+
+                    Контакт до редакцијата
+
+                </a>
+
+            </div>
+
+            <div class="col-xs-6 text-center">
+
+                <a href="/PremiumDetails/List" class="btn btn-default">
+
+                    <i class="fa fa-star"></i>
+
+                    Премиум продавници
+
+                </a>
+
+            </div>
+
+            <div class="col-xs-6 text-center">
+
+                <a href="/Help/Index" class="btn btn-default">
+
+                    <i class="fa fa-question-circle"></i>
+
+                    Помош
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+<div class="menu-footer">
+
+
+
+    <div class="col-xs-6">
+
+        <label class="mar-bot-10">Компанија</label>
+
+        <ul>
+
+            <li><a href="http://bigmedia.mk/" target="_blank">Бигмедиа Дооел</a></li>
+
+            <li><a href="/Help/HelpUs">За Реклама5</a></li>
+
+            <li><a href="/Help/HelpMarketing">Маркетинг</a></li>
+
+            <li><a href="/Help/PrivacyPolicy">Политика за приватност</a></li>
+            <li><a href="/Help/TermsOfService">Услови на употреба</a></li>
+            <li><a href="/Help/HelpContact">Контакт</a></li>
+
+        </ul>
+
+    </div>
+
+    <div class="col-xs-6">
+
+        <label class="mar-bot-10">Услуги</label>
+
+        <ul>
+
+            <li><a href="/Register">Регистрирај се</a></li>
+
+            <li><a href="/Profile/Verifikacija">Верификација</a></li>
+
+            <li><a href="/Help/HelpAdvertisment">Како да ставам оглас</a></li>
+
+            <li><a href="/Help/HelpTopads">Промовирај оглас</a></li>
+
+            <li><a href="/Help/HelpShop">Премиум член</a></li>
+            <li><a href="/Help/UserDataDeletion">Бришење на податоци</a></li>
+        </ul>
+
+    </div>
+
+    <div class="col-xs-6">
+
+        <label class="mar-bot-10"> Страница</label>
+
+        <ul>
+
+            <li><a href="/Search">Сите огласи</a></li>
+
+            <li><a href="/PlaceAd">Нов Оглас</a></li>
+
+            <li><a href="/Categories">Категории</a></li>
+
+            <li><a href="/Help">Помош</a></li>
+
+            <li><a href="/PremiumDetails/List">Премиум ченови</a></li>
+
+        </ul>
+
+    </div>
+
+    <div class="col-xs-6">
+
+        <label class="mar-bot-10">Помош</label>
+
+        <ul>
+
+            <li><a href="/Help/HelpSearch">Пребарување на огласи</a></li>
+
+            <li><a href="/Help/HelpScams">Избегнување на измами</a></li>
+
+            <li><a href="/Register/ForgotPassword">Заборавена лозинка</a></li>
+
+            <li><a href="/Help/HelpCooperation">Соработка</a></li>
+
+            <li><a href="/Help/HelpFaq">Прашања и одговори</a></li>
+
+        </ul>
+
+    </div>
+
+</div>
+
+
+
+
+            <div class="footer-present">
+
+                <div class="col-xs-6 text-left clear-padding"><span class="footer-link-mobile">Copyright © Reklama5.mk</span></div>
+
+                <div class="col-xs-6 text-right clear-padding"><a href="http://www.bigmedia.mk" target="_blank">powered by BIGMEDIA</a></div>
+
+            </div>
+
+
+
+        </footer>
+
+    </div>
+
+
+
+    
+
+    <script type="text/javascript" src="https://platform-api.sharethis.com/js/sharethis.js#property=5ea93e34ff8d[тел.]bc39&product=inline-share-buttons" async="async"></script>
+
+
+
+    <script src="/bundles/jquery?v=9xHKS_6X1e2GxOJIraP2DyjqFyAAJtSWbv2t4rWoEQI1"></script>
+
+
+
+    <script src="/bundles/bootstrap?v=SEY8cDcTe7itu6eRTWufEc4we6vhLDdg_2hxCqATMGM1"></script>
+
+
+
+    <script src="/bundles/jqueryval?v=_ifDUftB7LNkdScWQS3sN86soX-BtuyQ8nWWuIvJlhE1"></script>
+
+
+
+    
+
+  <script type="text/javascript">
+
+var categoryId = '173';
+
+var subCategoryId = '';
+
+var pageNum = '';
+
+var isPrivate = '';
+
+var isCompany = '';
+
+var priceFrom = '';
+
+var priceTo = '';
+
+var ddlPriceFrom = document.getElementById('priceFrom');
+
+var ddlPriceTo = document.getElementById('priceTo');
+
+var kwFrom = '';
+
+var kwTo = '';
+
+var ddlKwFrom = document.getElementById('kwFrom');
+
+var ddlKwTo = document.getElementById('kwTo');
+
+var f32 = '';
+
+var mainCat = '';
+
+var cookieDomain = '.reklama5.mk';
+
+var mainCatId = [];
+
+mainCatId.push(1)
+
+mainCatId.push(157)
+
+mainCatId.push(189)
+
+mainCatId.push(396)
+
+mainCatId.push(558)
+
+mainCatId.push(580)
+
+mainCatId.push(637)
+
+mainCatId.push(753)
+
+mainCatId.push(776)
+
+mainCatId.push(856)
+
+mainCatId.push(919)
+
+mainCatId.push(959)
+
+mainCatId.push(987)
+
+mainCatId.push(1019)
+
+mainCatId.push(1032)
+
+mainCatId.push(1063)
+
+mainCatId.push(1193)
+
+mainCatId.push(1207)
+
+mainCatId.push(1235)
+
+mainCatId.push(1254)
+
+mainCatId.push(1255)
+
+mainCatId.push(1256)
+
+mainCatId.push(1257)
+
+mainCatId.push(1258)
+
+mainCatId.push(1259)
+
+mainCatId.push(1260)
+
+
+
+  </script>
+
+  <script src="/Scripts/search.mobile.js"></script>
+
+
+
+    <script src="/Scripts/master.mobile.js"></script>
+
+    
+
+    <script src="/Scripts/sidebar.mobile.js" rel="preload" as="script"></script>
+
+
+
+
+
+	<script>
+
+            var cookieDomain = '.reklama5.mk';
+
+    </script>
+
+    <script type="text/javascript">
+
+        
+
+        $('select[name=regCity] > option:first-child')
+
+        .text('Одберете локација');
+
+
+
+        var opstiniArray = [[267, 1, 'Скопје Центар', [тел.], [тел.]],[268, 1, 'Карпош', [тел.], 21.39781],[269, 1, 'Кисела Вода', [тел.], [тел.]],[270, 1, 'Аеродром', [тел.], [тел.]],[271, 1, 'Гази Баба', 42.00877, 21.45126],[272, 1, 'Бутел', [тел.], [тел.]],[273, 1, 'Чаир', [тел.], [тел.]],[274, 1, 'Ѓорче Петров', [тел.], 21.32586],[275, 1, 'Сарај', [тел.], [тел.]],[276, 1, 'Шуто Оризари', [тел.], 21.42584],[277, 1, 'Сопиште', [тел.], [тел.]],[278, 1, 'Студеничани', [тел.], [тел.]],[279, 1, 'Зелениково', [тел.], [тел.]],[280, 1, 'Петровец', 41.93375, [тел.]],[281, 1, 'Илинден', [тел.], [тел.]],[282, 1, 'Арачиново', [тел.], [тел.]],[283, 1, 'Чучер Сандево', [тел.], [тел.]],[284, 1, 'Автокоманда', [тел.], [тел.]],[285, 2, 'Битола', [тел.], [тел.]],[286, 2, 'Могила', 41.17531, [тел.]],[287, 2, 'Новаци', [тел.], [тел.]],[288, 3, 'Куманово', [тел.], [тел.]],[289, 3, 'Старо Нагоричане', [тел.], [тел.]],[290, 3, 'Ранковце', [тел.], [тел.]],[291, 4, 'Прилеп', [тел.], [тел.]],[292, 4, 'Кривогаштани', [тел.], 21.33078],[293, 4, 'Долнени', [тел.], [тел.]],[294, 5, 'Тетово', [тел.], [тел.]],[295, 5, 'Боговиње', [тел.], [тел.]],[296, 5, 'Теарце', [тел.], [тел.]],[297, 5, 'Јегуновце', [тел.], [тел.]],[298, 5, 'Брвеница', [тел.], [тел.]],[299, 5, 'Желино', [тел.], [тел.]],[300, 6, 'Велес', [тел.], [тел.]],[301, 6, 'Чашка', 41.64664, [тел.]],[302, 6, 'Градско', [тел.], [тел.]],[303, 7, 'Штип', [тел.], 22.19396],[304, 7, 'Карбинци', [тел.], [тел.]],[305, 8, 'Охрид', [тел.], [тел.]],[306, 8, 'Дебарца', [тел.], [тел.]],[307, 9, 'Гостивар', [тел.], [тел.]],[308, 9, 'Врапчиште', [тел.], [тел.]],[309, 9, 'Маврово и Ростуша', [тел.], [тел.]],[310, 10, 'Струмица', [тел.], [тел.]],[311, 10, 'Василево', [тел.], [тел.]],[312, 10, 'Босилово', [тел.], [тел.]],[313, 10, 'Ново Село', [тел.], [тел.]],[314, 11, 'Кавадарци', [тел.], [тел.]],[315, 11, 'Росоман', [тел.], [тел.]],[316, 12, 'Кочани', [тел.], [тел.]],[317, 12, 'Чешиново', [тел.], 22.29332],[318, 14, 'Струга', [тел.], [тел.]],[319, 14, 'Вевчани', [тел.], [тел.]],[320, 15, 'Радовиш', [тел.], [тел.]],[321, 15, 'Конче', [тел.], [тел.]],[322, 16, 'Гевгелија', 41.14712, [тел.]],[323, 16, 'Богданци', [тел.], [тел.]],[324, 16, 'Дојран', [тел.], [тел.]],[325, 17, 'Дебар', [тел.], [тел.]],[326, 17, 'Центар Жупа', [тел.], [тел.]],[327, 18, 'Крива Паланка', [тел.], [тел.]],[328, 18, 'Ранковце', [тел.], [тел.]],[329, 19, 'Свети Николе', [тел.], [тел.]],[330, 19, 'Лозово', [тел.], [тел.]],[331, 20, 'Неготино', [тел.], [тел.]],[332, 20, 'Демир Капија', 41.4085, [тел.]],[333, 21, 'Делчево', [тел.], [тел.]],[334, 21, 'Македонска Каменица', [тел.], [тел.]],[335, 22, 'Виница', [тел.], [тел.]],[336, 22, 'Зрновци', [тел.], [тел.]],[337, 25, 'Берово', [тел.], [тел.]],[338, 25, 'Пехчево', [тел.], [тел.]],[339, 28, 'Крушево', [тел.], [тел.]],[340, 28, 'Пласница', [тел.], [тел.]]];
+
+
+
+        function CityOnChangeMobile(cityId) {
+
+            $("#regopstina").clearSelect();
+
+            var ddlOpstina = document.getElementById('regopstina');
+
+            opt = document.createElement("option");
+
+            opt.value = "";
+
+            opt.text = "Одберете Општина";
+
+            ddlOpstina.appendChild(opt);
+
+            var opstinaFound = false;
+
+            $.each(opstiniArray, function (index, optionData) {
+
+                if (optionData[1] == cityId) {
+
+                    opt = document.createElement("option");
+
+                    opt.value = optionData[0];
+
+                    opt.text = optionData[2];
+
+                    ddlOpstina.appendChild(opt);
+
+                    opstinaFound = true;
+
+                }
+
+            });
+
+
+
+            if (opstinaFound == false) {
+
+                $("#popstina").hide();
+
+                $("#divopstina").hide();
+
+            }
+
+            else {
+
+                $("#popstina").show();
+
+                $("#divopstina").show();
+
+            }
+
+        }
+
+
+
+        $.fn.clearSelect = function () {
+
+            return this.each(function () {
+
+                if (this.tagName == 'SELECT')
+
+                    this.options.length = 0;
+
+            });
+
+        }
+
+    
+
+        $(document).ready(function () {
+
+			
+
+			 if (!$.cookie('cookiesAgreed')) {
+
+                $('#cookiePopup').show(0);
+
+            } 
+
+        });
+
+
+
+		function cookiesAgreed() {
+
+            $.cookie('cookiesAgreed', "1", { expires: 365, path: '/', domain: cookieDomain });
+
+            $('#cookiePopup').hide(0);
+
+        }
+
+    </script>
+
+
+
+    <script src="/Scripts/ant-mobile.js" rel="preload" as="script"></script>
+
+	<div id="cookiePopup" style="width:100%; background-color:#fff; position:fixed; bottom:0; min-height: 40%;">
+
+        <div style="width:95%; margin:auto; padding:15px 0 10px 0; display:table; position:relative">
+
+            <div style="float:left; width:100%">
+
+                <p style="font-size:16px; font-weight:bold">Добредојдовте на Reklama5.mk</p>
+
+                <p style="font-size:14px;">Со цел да ја направиме Реклама5 полесна и подостапна за употреба, ние користиме колачиња на нашата веб-страница. Со сурфање на reklama5.mk се согласувате со користењето на колачиња. Нашите услуги ви овозможуваат бесплатно прегледување на огласите. Регистрацијата кај нас подразбира задолжителна верификација на профилот со плаќање. По верификацијата, ќе можете да објавувате огласи бесплатно. Детални информации можете да најдете во <a href="/Help/TermsOfService">Услови на употреба</a> / <a href="/Help/PrivacyPolicy#cookies">Политика за колачиња</a>.</p>
+            </div>
+
+            <div style="float:left; margin-top:0px;cursor:pointer; ">
+
+                <div class="btn btn-xs btn-primary" style="cursor:pointer; font-size:14px" onclick="cookiesAgreed();">Се согласувам</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a4671c67ab7468dd',t:'MTc5MTMxNTM0NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+</html>
+
