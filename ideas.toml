@@ -1,0 +1,50 @@
+# ============================================================================
+#  Business Idea Finder: settings
+#  Edit, commit, and the next daily run uses them.
+# ============================================================================
+
+# Who the ideas are for. This matters more than anything else in this file:
+# Claude can only fit ideas to what it knows about you. Fill in the empty
+# fields; empty ones are left out of the prompt.
+[profile]
+about = "Based in Skopje, North Macedonia. Can sell online to the EU, UK, US and the Balkans. Uses Claude (API and Claude Code) to automate research, writing, coding, outreach drafts, support and reporting."
+languages = "Macedonian, English"
+skills = "Generalist: can do or learn whatever an idea needs, so don't rule ideas out for missing skills"
+assets = ""              # e.g. "agency with 20 clients, 5k LinkedIn followers, a dev on retainer"
+hours_per_week = 10      # time you can give a new idea
+avoid = ""               # e.g. "crypto, gambling, anything needing a physical shop"
+
+[filters]
+# Ideas outside these limits are dropped before you ever see them.
+max_startup_cost_eur = 5000
+min_annual_profit_eur = 10000      # the realistic upper estimate must reach this
+min_automation_pct = 40            # share of recurring work Claude can do
+
+[run]
+# Runs on Claude Code with your Claude subscription: $0 extra, it uses part of
+# your plan's usage limits. "opus" gives the best ideas; "sonnet" uses less of
+# your limits. fallback_model is used if the first one is overloaded.
+model = "opus"
+fallback_model = "sonnet"
+research_effort = "medium"         # low | medium | high | xhigh | max
+ideate_effort = "high"
+max_web_searches = 10              # asked of Claude in the research prompt
+timeout_minutes = 25               # per Claude Code call
+candidates_per_run = 10            # Claude writes this many ...
+send_per_run = 5                   # ... you get the best this many (one is a wildcard after 5 ratings)
+keep_candidates_days = 14          # unsent ideas compete again for this long
+max_per_category = 2               # variety in each daily batch
+exploration = 0.6                  # 0 = only send what you liked before; higher = try more new kinds
+
+# Research lenses: each day the run picks two. One is the lens whose ideas you
+# rated best so far, the other one you've seen least. Add your own.
+[lenses]
+"Regulation and deadlines" = "New EU or national rules with a compliance deadline (AI Act, accessibility, e-invoicing, NIS2, CSRD, GDPR enforcement) that force small companies to buy help"
+"New AI capabilities" = "Model, API or tool launches in the last 60 days that make a costly service suddenly cheap to automate"
+"Complaints and unmet demand" = "Reddit, forums, reviews and Q&A sites where people describe a recurring pain and say they would pay"
+"Marketplace trends" = "Rising categories and gaps on Etsy, Amazon, Shopify app store, Fiverr/Upwork, Gumroad, app stores"
+"SMB operations" = "Boring back-office work (bookkeeping prep, scheduling, quoting, compliance paperwork, reporting) small firms still do by hand"
+"Balkans and North Macedonia" = "Local or regional gaps: services common in the EU but missing or expensive in North Macedonia and the Balkans, EU funds, diaspora demand"
+"Price arbitrage" = "Services sold cheaply in one market and expensively in another, which AI plus a local operator can deliver"
+"Content and media" = "Niche newsletters, data products, directories and media sites that earn from subscriptions, sponsors or leads"
+"Lead generation and data" = "Businesses that pay for qualified leads, enriched lists, monitoring or alerts built from public data"
