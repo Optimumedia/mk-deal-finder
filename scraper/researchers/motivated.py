@@ -20,7 +20,7 @@ def _opening_offer(price, drop, ref, area, discount) -> int:
     offer = price * (0.92 if drop >= 0.15 else 0.85)
     if ref and area and discount is not None:
         offer = max(offer, ref * area * 0.9)
-    return int(round(min(offer, price * 0.92), -2))
+    return int(min(offer, price * 0.92) // 100 * 100)      # round down: never above the cap
 
 
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
