@@ -51,10 +51,6 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             reasons.append(f"{discount:.0%} below the {rf.describe('land')} ({ref:.0f} €/m², {samples} listings)")
         if peaks:
             reasons.append("mountain area: " + ", ".join(peaks[:3]))
-        if l.get("elevation") is not None:
-            approx = (l.get("elevation_src") or "").startswith("place:")
-            reasons.append(f"⛰ {'~' if approx else ''}{l['elevation']:,.0f} m altitude"
-                           + (f" ({l['elevation_src'][6:]})" if approx else ""))
         if ltype == "building":
             reasons.append("building land (градежно)")
         elif ltype == "agricultural":
