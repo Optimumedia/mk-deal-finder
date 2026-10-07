@@ -83,7 +83,8 @@ CREATE TABLE IF NOT EXISTS notified (
 
 JSON_COLS = ("utilities", "fields", "extra")
 # Columns added after the first release — created on older databases at startup.
-MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT"}
+MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT",
+              "elevation": "REAL", "elevation_src": "TEXT"}     # altitude (m) and where it came from
 
 
 def now() -> str:

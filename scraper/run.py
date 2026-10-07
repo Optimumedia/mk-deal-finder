@@ -17,7 +17,7 @@ from pathlib import Path
 
 import requests
 
-from . import clean, export, feedback, needs_info, notify, places, rating
+from . import clean, export, feedback, geo, needs_info, notify, places, rating
 from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
@@ -453,6 +453,10 @@ def main(argv=None) -> int:
             scrape_nedviznosti(db, http, cfg, stats, first_run)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
+            try:
+                geo.enrich(db, cfg)                 # altitude for land / houses (free Open-Meteo)
+            except Exception:                       # never let altitude stop a run
+                log.exception("altitude lookup failed")
         except Blocked as e:
             status, message = "blocked", str(e)
             log.error("STOPPED — the site is refusing automated requests: %s", e)

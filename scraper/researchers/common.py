@@ -68,6 +68,11 @@ def base(listing: dict) -> dict:
         "city": listing.get("city"),
         "district": listing.get("district"),
         "map_query": maps.query(listing),   # Google Maps search when there's no GPS
+        # Altitude (m). Approximate when taken from the village / area, not the exact pin.
+        "elevation": round(listing["elevation"]) if listing.get("elevation") is not None else None,
+        "elevation_approx": (listing.get("elevation_src") or "").startswith("place:"),
+        "elevation_place": (listing.get("elevation_src") or "")[6:] or None
+                           if (listing.get("elevation_src") or "").startswith("place:") else None,
         "lat": listing.get("lat"),
         "lng": listing.get("lng"),
         "price": round(total_price(listing)) if total_price(listing) else None,

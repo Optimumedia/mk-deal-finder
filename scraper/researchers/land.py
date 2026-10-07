@@ -27,8 +27,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         text = text_of(l)
         n = norm(text)
         peaks = mountains.find(n)
+        high = (l.get("elevation") or 0) >= c.get("mountain_min_elevation", 700)
         in_city = l.get("city") in c["cities"]
-        if not (in_city or peaks):
+        if not (in_city or peaks or high):
             continue
 
         ltype = l.get("land_type_confirmed") or land_type((l.get("fields") or {}).get("Тип на земјиште"), text)
@@ -50,6 +51,10 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             reasons.append(f"{discount:.0%} below the {rf.describe('land')} ({ref:.0f} €/m², {samples} listings)")
         if peaks:
             reasons.append("mountain area: " + ", ".join(peaks[:3]))
+        if l.get("elevation") is not None:
+            approx = (l.get("elevation_src") or "").startswith("place:")
+            reasons.append(f"⛰ {'~' if approx else ''}{l['elevation']:,.0f} m altitude"
+                           + (f" ({l['elevation_src'][6:]})" if approx else ""))
         if ltype == "building":
             reasons.append("building land (градежно)")
         elif ltype == "agricultural":
@@ -67,7 +72,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             + 0.25 * (len(confirmed) / 3)
             + (c["building_land_bonus"] / 100) * (ltype == "building")
             + 0.10 * villa_size
-            + 0.10 * (1 if peaks else 0.6)
+            + 0.10 * (1 if (peaks or high) else 0.6)
         )
         if ltype == "agricultural":
             score *= 0.7
@@ -87,7 +92,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                                      if level and level != "national"
                                      else "too few comparable plots nearby to judge the price"),
                 "Land type": {"building": "Building", "agricultural": "Agricultural"}.get(ltype, "Unknown"),
-                "Region": "Mountain" if peaks else l.get("city"),
+                "Region": "Mountain" if (peaks or high) else l.get("city"),
+                "Altitude (m)": round(l["elevation"]) if l.get("elevation") is not None else None,
             },
             "sort_value": discount or 0,
         })

@@ -87,6 +87,8 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
     m = {k: v for k, v in item["metrics"].items() if v is not None}
     top = [(k, m[k]) for k in HEADLINE if k in m][:5] or list(m.items())[:4]
     where = " / ".join(x for x in (item.get("city"), item.get("district")) if x)
+    if item.get("elevation") is not None:
+        where += f" · ⛰ {'~' if item.get('elevation_approx') else ''}{item['elevation']:,} m"
     lines = []
     if researcher_title:
         lines.append(f"{ICON.get(researcher, '🏠')} <i>{html.escape(researcher_title)}</i>")

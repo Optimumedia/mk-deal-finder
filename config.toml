@@ -147,6 +147,12 @@ require_building_land = false
 building_land_bonus = 15
 # Utilities: electricity, water and road access must be confirmed in the ad.
 require_all_utilities = true
+# Plots this high count as "mountain" even if the ad names no mountain area.
+mountain_min_elevation = 700
+
+[geo]
+enabled = true                 # altitude from Open-Meteo (free, no key), cached in deals.db
+max_lookups_per_run = 400      # place searches per run (each place is looked up once, ever)
 
 # ----------------------------------------------------------------------------
 #  Researcher 3 — Fix & flip (whole country)

@@ -1,4 +1,5 @@
 """Run:  python -m unittest discover tests"""
+import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -277,3 +278,30 @@ class SizeBandTests(unittest.TestCase):
         r = m.reference("land", "sale", "Охрид", None, 2000)
         self.assertIsNone(r.band)
         self.assertEqual(r[1], 13)
+
+
+class AltitudeTests(unittest.TestCase):
+    def test_place_candidates(self):
+        from scraper.geo import place_candidates, to_cyrillic
+        self.assertEqual(to_cyrillic("Kuckovo"), "Куцково")      # plain c → ц (č would be ч)
+        c = place_candidates({"title": "Се продава плац во близина на Охрид, Мешеишта", "district": "Дебарца", "city": "Охрид"})
+        self.assertEqual(c[0], "Мешеишта")
+        self.assertIn("Групчин", place_candidates({"title": "Bailiff sale", "city": "Тетово",
+                                                   "extra": {"note": "ИЛ бр.416 КО ГРУПЧИН Продажбата"}}))
+
+    def test_prefers_villages_over_peaks(self):
+        from scraper.db import DB
+        from scraper.geo import Geo
+        with tempfile.TemporaryDirectory() as d:
+            db = DB(Path(d) / "t.db")
+            g = Geo(db, delay=0)
+            answers = {"Илинден": {"results": []},
+                       "Ilinden": {"results": [{"name": "Ilinden", "feature_code": "PK", "elevation": 2511,
+                                                "latitude": 41.0, "longitude": 21.0},
+                                               {"name": "Ilinden", "feature_code": "PPLA", "elevation": 231,
+                                                "latitude": 41.99, "longitude": 21.58}]}}
+            g._get = lambda url, params: answers.get(params["name"], {})
+            self.assertEqual(g.place("Илинден")[2], 231)
+            g._get = lambda url, params: (_ for _ in ()).throw(AssertionError("should be cached"))
+            self.assertEqual(g.place("Илинден")[2], 231)
+            db.conn.close()
