@@ -155,7 +155,7 @@ enabled = true                 # altitude from Open-Meteo (free, no key), cached
 max_lookups_per_run = 400      # place searches per run (each place is looked up once, ever)
 # Driving distance / time to Skopje and Ohrid (public OpenStreetMap router).
 routes_per_request = 90
-max_route_requests_per_run = 10
+max_route_requests_per_run = 30     # ~2,700 places per run; each place routed once
 
 # ----------------------------------------------------------------------------
 #  Researcher 3 — Fix & flip (whole country)

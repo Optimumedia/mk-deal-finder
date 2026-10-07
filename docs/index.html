@@ -163,6 +163,9 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .alt{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface-3);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .altline{font-size:14px;color:var(--ink-2);margin:0 0 var(--s2)}
 .altline b{color:var(--ink)}
+.distline{font-size:14px;color:var(--ink-2);margin:0 0 4px}
+.distline b{color:var(--ink)}
+.distnote{font-size:12.5px;color:var(--ink-3);margin:0 0 var(--s2)}
 .pill.soon{background:var(--t1-soft);color:var(--t1)}
 .ni{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;background:var(--ni-soft);color:var(--ni);border:1px solid var(--ni-line)}
 .badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -713,7 +716,7 @@ let checks = store.get("mkdeal.checks", {});
 const save = () => store.set("mkdeal.v2", {tab:state.tab, f:state.f});
 const PAGE = 24;
 let shown = PAGE;
-const F_DEF = {q:"", city:"", tiers:[], status:"", minAlt:0, util:false, newOnly:false, sort:"best", view:"cards", tsort:null, tdir:-1};
+const F_DEF = {q:"", city:"", tiers:[], status:"", minAlt:0, maxSk:0, maxOh:0, util:false, newOnly:false, sort:"best", view:"cards", tsort:null, tdir:-1};
 const F = key => { let f = state.f[key];
   if (!f || f._v !== 2) { f = state.f[key] = Object.assign({}, F_DEF, {tiers:[]}, f && typeof f === "object" ? {q:f.q || "", city:f.city || "", view:f.view || "cards"} : {}, {_v:2}); }
   if (!Array.isArray(f.tiers)) f.tiers = []; return f; };
@@ -756,6 +759,23 @@ const hasAlt = i => isNum(i && i.elevation);
 function altTip(i){ return i.elevation_approx ? `approximate — altitude of ${i.elevation_place || "the village / area"}, the ad has no exact pin` : "from the ad's GPS pin"; }
 function altChip(i){ if (!hasAlt(i)) return ""; const v = (i.elevation_approx ? "~" : "") + nf0.format(i.elevation) + " m";
   return `<span class="alt" title="${esc("Altitude " + v + " — " + altTip(i))}"><span aria-hidden="true">⛰</span> ${esc(v)}<span class="sr"> above sea level, ${esc(altTip(i))}</span></span>`; }
+const okDist = d => d && typeof d === "object" && (isNum(d.air_km) || isNum(d.km) || isNum(d.min));
+const hasDist = i => !!i && (okDist(i.to_skopje) || okDist(i.to_ohrid));
+const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, "0")}` : `${Math.round(m)} min`;
+function distShort(d){ if (!okDist(d)) return null; return isNum(d.min) ? fmtMin(d.min) : isNum(d.km) ? nf0.format(d.km) + " km" : nf0.format(d.air_km) + " km"; }
+function distLong(d){ if (!okDist(d)) return null;
+  if (isNum(d.min) || isNum(d.km)) return [isNum(d.km) ? nf0.format(d.km) + " km" : null, isNum(d.min) ? fmtMin(d.min) : null].filter(Boolean).join(" · ") + " by car";
+  return "~" + nf0.format(d.air_km) + " km straight line"; }
+const distSortVal = d => !okDist(d) ? null : isNum(d.min) ? d.min : isNum(d.km) ? d.km : d.air_km; // minutes, else km (≈ 1 min/km)
+function distChip(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
+  const parts = [["Skopje", i.to_skopje], ["Ohrid", i.to_ohrid]].filter(([, d]) => okDist(d)).map(([n, d]) => `${n} ${ap}${distShort(d)}${!isNum(d.min) && !isNum(d.km) ? " (air)" : ""}`);
+  const tip = parts.join(" · ") + (i.distance_approx ? " — measured from the village/area, the ad has no exact pin" : " — from the ad's map pin");
+  return `<span class="alt" title="${esc(tip)}"><span aria-hidden="true">🚗</span> ${esc(parts.join(" · "))}<span class="sr">${esc(i.distance_approx ? ", approximate" : "")}</span></span>`; }
+function distLines(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
+  return [["To Skopje (Macedonia Square)", i.to_skopje], ["To Ohrid (centre)", i.to_ohrid]].filter(([, d]) => okDist(d))
+    .map(([l, d]) => `<p class="distline"><span aria-hidden="true">🚗</span> ${esc(l)}: <b>${esc((distLong(d).startsWith("~") ? "" : ap) + distLong(d))}</b></p>`).join("")
+    + (i.distance_approx ? `<p class="distnote">Measured from the village/area — the ad has no exact pin.</p>` : ""); }
+const locLines = i => altLine(i) + distLines(i);
 function altLine(i){ if (!hasAlt(i)) return "";
   return `<p class="altline"><span aria-hidden="true">⛰</span> <b>${i.elevation_approx ? "~" : ""}${esc(nf0.format(i.elevation))} m</b> above sea level · ${i.elevation_approx ? "altitude of " + esc(i.elevation_place || "the village / area") : "from the ad's map pin"}</p>`; }
 function footLeft(i){ if (i._r === "auctions") { const cn = M(i, "Case no."); return cn ? "Case no. " + cn : (countdown(i) || ageText(i)); } return ageText(i); }
@@ -778,7 +798,7 @@ function card(i){
     <div class="cbody">
       ${keyHtml(i)}${subsHtml(i)}
       <h3 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h3>
-      <div class="loc">${esc(placeLine(i))}${hasAlt(i) ? " " + altChip(i) : ""}</div>
+      <div class="loc">${esc(placeLine(i))}${hasAlt(i) ? " " + altChip(i) : ""}${hasDist(i) ? " " + distChip(i) : ""}</div>
       ${why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
       ${i._r === "land" || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChips(i) : ""}
       ${PRIV && !i._gone ? voteBtns(i, false) : ""}
@@ -957,6 +977,7 @@ function renderResearcher(R){
       <label class="sr" for="fstatus">Status</label>
       <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","❓ Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
       ${R.items.some(hasAlt) ? `<label class="sr" for="falt">Minimum altitude</label><select class="select" id="falt">${[[0,"Any altitude"],[500,"⛰ 500 m+"],[800,"⛰ 800 m+"],[1000,"⛰ 1,000 m+"],[1200,"⛰ 1,200 m+"]].map(([v,l]) => `<option value="${v}" ${(+f.minAlt || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
+      ${[["maxSk","to_skopje","Skopje"],["maxOh","to_ohrid","Ohrid"]].filter(([, key]) => R.items.some(i => okDist(i[key]))).map(([fk, key, n]) => `<label class="sr" for="f${fk}">Max drive to ${n}</label><select class="select" id="f${fk}" data-fdist="${fk}">${[[0,`🚗 ${n}: any distance`],[30,`🚗 ${n} ≤ 30 min`],[60,`🚗 ${n} ≤ 1 h`],[120,`🚗 ${n} ≤ 2 h`]].map(([v,l]) => `<option value="${v}" ${(+f[fk] || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>`).join("")}
       <label class="toggle"><input type="checkbox" id="fnew" ${f.newOnly ? "checked" : ""}> New only</label>
       <div class="seg" role="group" aria-label="View as">${[["cards","Cards"],["table","Table"],["map","Map"]].map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${f.view === v}">${l}</button>`).join("")}</div>
     </div>
@@ -972,14 +993,16 @@ function renderResearcher(R){
   $("#fsort").onchange = e => { f.sort = e.target.value; f.tsort = null; redraw(); };
   $("#fstatus").onchange = e => { f.status = e.target.value; redraw(); };
   $("#fnew").onchange = e => { f.newOnly = e.target.checked; redraw(); };
+  $$("[data-fdist]").forEach(el => el.onchange = e => { f[el.dataset.fdist] = +e.target.value; redraw(); });
   if ($("#falt")) $("#falt").onchange = e => { f.minAlt = +e.target.value; redraw(); };
   $(".seg").onclick = e => { const b = e.target.closest("button"); if (!b) return; f.view = b.dataset.v; $$(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); redraw(); };
-  $("#fclear").onclick = () => { Object.assign(f, {q:"", city:"", tiers:[], status:"", minAlt:0, util:false, newOnly:false, sort:"best", tsort:null}); renderResearcher(R); };
+  $("#fclear").onclick = () => { Object.assign(f, {q:"", city:"", tiers:[], status:"", minAlt:0, maxSk:0, maxOh:0, util:false, newOnly:false, sort:"best", tsort:null}); renderResearcher(R); };
   drawList(R);
 }
+function distOk(i, key, max, R){ if (!max || !R.items.some(x => okDist(x[key]))) return true; const v = distSortVal(i[key]); return v != null && v <= max; }
 function filtered(R){
   const f = F(R.key), q = f.q.trim().toLowerCase();
-  const items = R.items.filter(i => (!f.tiers.length || f.tiers.includes(rankOf(i))) && (!f.city || i.city === f.city) && (!f.newOnly || i.is_new) && (!f.status || statusOf(i) === f.status) && (!(+f.minAlt) || !R.items.some(hasAlt) || (hasAlt(i) && i.elevation >= +f.minAlt)) &&
+  const items = R.items.filter(i => (!f.tiers.length || f.tiers.includes(rankOf(i))) && (!f.city || i.city === f.city) && (!f.newOnly || i.is_new) && (!f.status || statusOf(i) === f.status) && distOk(i, "to_skopje", +f.maxSk, R) && distOk(i, "to_ohrid", +f.maxOh, R) && (!(+f.minAlt) || !R.items.some(hasAlt) || (hasAlt(i) && i.elevation >= +f.minAlt)) &&
     (!q || [i.title, i.city, i.district, ratingOf(i).label, ...(i.reasons || [])].join(" ").toLowerCase().includes(q)));
   const by = {best:bestSort, soon:(a,b) => { const x = daysUntil(a), y = daysUntil(b); return (x == null || x < 0 ? 1e9 : x) - (y == null || y < 0 ? 1e9 : y); }, value:(a,b) => (b.sort_value ?? -1e15) - (a.sort_value ?? -1e15),
     new:(a,b) => ageDays(a) - ageDays(b) || (b.first_seen || "").localeCompare(a.first_seen || ""), price:(a,b) => (a.price ?? 1e15) - (b.price ?? 1e15)};
@@ -988,7 +1011,7 @@ function filtered(R){
 function drawList(R){
   if (mapObj) { mapObj.remove(); mapObj = null; }
   const f = F(R.key), items = filtered(R), list = $("#list");
-  const active = f.q || f.city || f.tiers.length || f.status || f.newOnly || (+f.minAlt && R.items.some(hasAlt));
+  const active = f.q || f.city || f.tiers.length || f.status || f.newOnly || (+f.maxSk && R.items.some(x => okDist(x.to_skopje))) || (+f.maxOh && R.items.some(x => okDist(x.to_ohrid))) || (+f.minAlt && R.items.some(hasAlt));
   $("#fclear").hidden = !active;
   $("#count").textContent = items.length === R.items.length ? `${nf0.format(items.length)} deals` : `${nf0.format(items.length)} of ${nf0.format(R.items.length)} deals match`;
   if (!items.length) {
@@ -1013,6 +1036,7 @@ function drawTable(R, items, list){
     ...(PRIV ? [{id:"rate", h:"Your call", f:i => voteBtns(i, true), raw:true}] : []),
     {id:"status", h:"Status", v:i => needsInfo(i) ? 1 : 0, f:(v,i) => statusOf(i) !== "ready" ? niBadge(i) : `<span class="pill good">Ready</span>`, sort:true},
     ...(items.some(hasAlt) ? [{id:"alt", h:"Altitude", v:i => hasAlt(i) ? i.elevation : null, f:(v,i) => altChip(i) || "—", sort:true, num:true}] : []),
+    ...(items.some(hasDist) ? [["sk", "Skopje", "to_skopje"], ["oh", "Ohrid", "to_ohrid"]].map(([id, h, key]) => ({id, h, v:i => distSortVal(i[key]), f:(v,i) => okDist(i[key]) ? esc((i.distance_approx ? "~" : "") + distShort(i[key]) + (!isNum(i[key].min) && !isNum(i[key].km) ? " air" : "")) : "—", sort:true, num:true})) : []),
     {id:"age", h:"Posted", v:i => ageDays(i), f:(v,i) => esc(ageText(i).replace("Posted ", "")), sort:true, num:true, hideM:true},
   ];
   let rows = items;
@@ -1107,7 +1131,9 @@ function openDeal(id, r, push){
   const c = cfg(i._r); const R = DATA.researchers.find(x => x.key === i._r);
   openId = id; if (!$("#drawer").classList.contains("on")) lastFocus = document.activeElement;
   if (push) { setHash({deal:id, in:i._r}, true); pushed = true; } else pushed = false;
-  const m = i.metrics || {}; const used = new Set();
+  const m = Object.assign({}, i.metrics || {}); const used = new Set();
+  if (hasDist(i)) for (const k of Object.keys(m)) if (/^to (skopje|ohrid)/i.test(k)) delete m[k];
+  if (hasAlt(i)) for (const k of Object.keys(m)) if (/^(altitude|elevation)/i.test(k)) delete m[k];
   const groups = c.groups.map(([title, labels]) => { const rows = labels.map(l => Object.keys(m).find(k => k === l || k.toLowerCase().startsWith(l.toLowerCase()))).filter(k => k && !used.has(k) && (used.add(k), true));
     return [title, rows]; }).filter(g => g[1].length);
   const rest = Object.keys(m).filter(k => !used.has(k)); if (rest.length) groups.push([groups.length ? "Other numbers" : "Numbers", rest]);
@@ -1145,7 +1171,7 @@ function openDeal(id, r, push){
     </dl>${!i.has_details && i._r !== "auctions" ? `<p class="also" style="margin:8px 0 0">The full ad page hasn't been read yet — some details (exact location, utilities) may fill in after the next run.</p>` : ""}</div>
     ${groups.map(([t, ks]) => `<div class="dsec" style="padding-top:12px"><div class="mgroup"><h4>${esc(t)}</h4>${ks.map(row).join("")}</div></div>`).join("").replace('<div class="dsec" style="padding-top:12px">', '<div class="dsec"><h3>The numbers</h3>')}
     <div class="dsec"><h3>Utilities</h3><div class="mgroup">${UTIL.map(([k,l]) => { const s = u[k] || "unknown"; return `<div class="urow ${esc(s)}"><span class="ui" aria-hidden="true">${UTIL_MARK[s] || "?"}</span><div><b>${esc(l)}</b><div class="ut">${esc(UTIL_TXT[s] || s)}</div></div></div>`; }).join("")}</div></div>
-    ${gmapSection(i) || (hasAlt(i) ? `<div class="dsec"><h3>Location</h3>${altLine(i)}</div>` : "")}
+    ${gmapSection(i) || (hasAlt(i) || hasDist(i) ? `<div class="dsec"><h3>Location</h3>${locLines(i)}</div>` : "")}
     <div class="dsec"><h3>Before you buy</h3><ul class="check">${c.checklist.map(([t,h], n) => `<li><label><input type="checkbox" data-ck="${n}" ${ck[n] ? "checked" : ""}><span>${esc(t)}<span class="ch">${esc(h)}</span></span></label></li>`).join("")}</ul>
       <p class="also" style="margin:8px 0 0">Ticks are saved in this browser. All numbers are estimates from the ad text — verify before paying any deposit.</p></div>
     ${also.length ? `<div class="dsec"><p class="also">Also flagged by: <b>${esc(also.join(", "))}</b></p></div>` : ""}
@@ -1190,7 +1216,7 @@ function gmapSection(i){
       <div class="gseg" role="group" aria-label="Map type">
         <button type="button" data-gt="m" aria-pressed="${t !== "k"}">Map</button>
         <button type="button" data-gt="k" aria-pressed="${t === "k"}">Satellite</button></div></div>
-    ${altLine(i)}
+    ${locLines(i)}
     <iframe class="gmap" id="gmap" src="${esc(gmapEmbed(i, t))}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
       title="Google Map of ${esc(gExact(i) ? "the property" : "the area")}" allowfullscreen></iframe>
     <p class="ghint">${gExact(i) ? "Exact pin from the ad." : `Approximate area: the ad has no exact pin (searched “${esc(q.replace(/, North Macedonia$/, ""))}”). Ask the seller for the address.`}</p>
@@ -1472,7 +1498,7 @@ function pcard(e){ const i = e.item; const st = stageOf(e.stage), n = stageIdx(e
   return `<article class="pcard" data-open="${esc(e.id)}" data-r="${esc(e.researcher)}">
     <div class="pt"><span aria-hidden="true">${esc(ratingOf(i).emoji)}</span> <a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></div>
     <div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span></div>
-    <div class="pm">${esc([eur(i.price), where(i), cfg(e.researcher).short || e.researcher].filter(x => x && x !== "—").join(" · "))}${hasAlt(i) ? " " + altChip(i) : ""}</div>
+    <div class="pm">${esc([eur(i.price), where(i), cfg(e.researcher).short || e.researcher].filter(x => x && x !== "—").join(" · "))}${hasAlt(i) ? " " + altChip(i) : ""}${hasDist(i) ? " " + distChip(i) : ""}</div>
     ${e.due || e.removed ? `<div class="badges">${dueChip(e)}${e.removed ? `<span class="pill gone" title="The ad is no longer listed">Ad removed</span>` : ""}</div>` : ""}
     ${e.next_step && e.next_step !== "—" ? `<div class="ns">${esc(e.next_step)}</div>` : ""}
     <div class="pctl"><button type="button" data-pmove="-1" data-id="${esc(e.id)}" data-r="${esc(e.researcher)}" aria-label="Move back to ${esc(n > 0 ? STAGES[n - 1].label : "")}" ${n === 0 ? "disabled" : ""}>←</button>
