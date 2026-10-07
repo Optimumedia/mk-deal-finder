@@ -153,6 +153,9 @@ mountain_min_elevation = 700
 [geo]
 enabled = true                 # altitude from Open-Meteo (free, no key), cached in deals.db
 max_lookups_per_run = 400      # place searches per run (each place is looked up once, ever)
+# Driving distance / time to Skopje and Ohrid (public OpenStreetMap router).
+routes_per_request = 90
+max_route_requests_per_run = 10
 
 # ----------------------------------------------------------------------------
 #  Researcher 3 — Fix & flip (whole country)

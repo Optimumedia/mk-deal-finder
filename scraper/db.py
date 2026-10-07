@@ -84,7 +84,10 @@ CREATE TABLE IF NOT EXISTS notified (
 JSON_COLS = ("utilities", "fields", "extra")
 # Columns added after the first release — created on older databases at startup.
 MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT",
-              "elevation": "REAL", "elevation_src": "TEXT"}     # altitude (m) and where it came from
+              "elevation": "REAL", "elevation_src": "TEXT",    # altitude (m) and where it came from
+              "approx_lat": "REAL", "approx_lng": "REAL",       # village/area location when the ad has no pin
+              "skopje_km": "REAL", "skopje_min": "REAL",        # driving distance / time (OSRM)
+              "ohrid_km": "REAL", "ohrid_min": "REAL"}
 
 
 def now() -> str:

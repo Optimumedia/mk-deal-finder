@@ -305,3 +305,14 @@ class AltitudeTests(unittest.TestCase):
             g._get = lambda url, params: (_ for _ in ()).throw(AssertionError("should be cached"))
             self.assertEqual(g.place("Илинден")[2], 231)
             db.conn.close()
+
+
+class DistanceTests(unittest.TestCase):
+    def test_distance_formatting(self):
+        from scraper.researchers.common import _distance, fmt_drive
+        l = {"lat": 41.23814, "lng": 20.77414, "ohrid_km": 16.4, "ohrid_min": 15.2, "skopje_km": 158.1, "skopje_min": 169.4}
+        self.assertEqual(fmt_drive(_distance(l, "ohrid")), "16 km · 15 min by car")
+        self.assertEqual(fmt_drive(_distance(l, "skopje")), "158 km · 2 h 49 by car")
+        village_only = {"approx_lat": 41.99297, "approx_lng": 21.58084}          # no route yet: straight line
+        self.assertEqual(fmt_drive(_distance(village_only, "skopje")), "12 km (straight line)")
+        self.assertIsNone(_distance({}, "skopje"))

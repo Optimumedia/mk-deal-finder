@@ -1,10 +1,13 @@
-"""Altitude (metres above sea level) for land, houses and weekend houses.
+"""Altitude and distance to Skopje / Ohrid for land, houses and weekend houses.
 
 Free services from Open-Meteo, no API key (fine for this personal, low-volume use):
 - elevation API for exact GPS points (up to 100 per request);
 - place search (geocoding) for ads without GPS: the village / area named in
   the ad, then the neighbourhood, then the town; its altitude is marked
   approximate ("~").
+- driving distance and time to Skopje (Macedonia Square) and Ohrid (centre)
+  from the public OpenStreetMap routing service (OSRM), many places per
+  request, politely spaced.
 Every answer is cached in deals.db, so each place is looked up only once.
 """
 from __future__ import annotations
@@ -20,6 +23,8 @@ from .text import norm
 
 log = logging.getLogger(__name__)
 ELEVATION_URL = "https://api.open-meteo.com/v1/elevation"
+ROUTE_URL = "https://router.project-osrm.org/table/v1/driving/"
+CITIES = {"skopje": (41.9961, 21.4317), "ohrid": (41.1172, 20.8016)}     # Macedonia Square, Ohrid centre
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
 KINDS = ("land", "house", "weekend_house")
 
@@ -144,7 +149,9 @@ def enrich(db, cfg: dict) -> int:
     gps = [r for r in rows if r["lat"] and r["lng"]]
     for r, el in zip(gps, geo.points([(r["lat"], r["lng"]) for r in gps])):
         if el is not None:
-            db.conn.execute("UPDATE listings SET elevation=?, elevation_src='gps' WHERE id=?", (el, r["id"]))
+            # exact pin: its altitude, and recompute routes from the pin instead of the village
+            db.conn.execute("UPDATE listings SET elevation=?, elevation_src='gps', skopje_km=NULL, skopje_min=NULL, "
+                            "ohrid_km=NULL, ohrid_min=NULL WHERE id=?", (el, r["id"]))
             done += 1
     import json
     for r in (r for r in rows if not (r["lat"] and r["lng"])):
@@ -155,8 +162,8 @@ def enrich(db, cfg: dict) -> int:
         for name in place_candidates(listing):
             hit = geo.place(name)
             if hit:
-                db.conn.execute("UPDATE listings SET elevation=?, elevation_src=? WHERE id=?",
-                                (hit[2], "place:" + (hit[3] or name), r["id"]))
+                db.conn.execute("UPDATE listings SET elevation=?, elevation_src=?, approx_lat=?, approx_lng=? WHERE id=?",
+                                (hit[2], "place:" + (hit[3] or name), hit[0], hit[1], r["id"]))
                 done += 1
                 if done % 25 == 0:
                     db.conn.commit()        # don't hold the database lock for the whole step
@@ -165,4 +172,55 @@ def enrich(db, cfg: dict) -> int:
             db.conn.execute("UPDATE listings SET elevation_src='none' WHERE id=?", (r["id"],))
     db.conn.commit()
     log.info("altitude: %d listings filled (%d lookups)", done, geo.calls)
+    routes(db, cfg, geo)
     return done
+
+
+def routes(db, cfg: dict, geo: "Geo | None" = None) -> int:
+    """Driving km / minutes to Skopje and Ohrid, for listings with a location
+    (exact pin or village). Places are rounded to ~100 m and cached."""
+    c = cfg.get("geo", {})
+    geo = geo or Geo(db)
+    db.conn.execute("""CREATE TABLE IF NOT EXISTS route_cache (
+        key TEXT PRIMARY KEY, skopje_km REAL, skopje_min REAL, ohrid_km REAL, ohrid_min REAL)""")
+    rows = db.conn.execute(
+        f"""SELECT id, COALESCE(lat, approx_lat) AS la, COALESCE(lng, approx_lng) AS lo FROM listings
+            WHERE kind IN ({','.join('?' * len(KINDS))}) AND skopje_km IS NULL AND abroad = 0
+              AND COALESCE(lat, approx_lat) IS NOT NULL""", KINDS).fetchall()
+    by_key: dict[str, list] = {}
+    for r in rows:
+        by_key.setdefault(f"{r['la']:.3f},{r['lo']:.3f}", []).append(r["id"])
+    cached = {k: tuple(v) for k, *v in db.conn.execute("SELECT * FROM route_cache")}
+    todo = [k for k in by_key if k not in cached]
+    batch, requests_made = c.get("routes_per_request", 90), 0
+    for i in range(0, len(todo), batch):
+        if requests_made >= c.get("max_route_requests_per_run", 10):
+            break
+        keys = todo[i:i + batch]
+        pts = [CITIES["skopje"], CITIES["ohrid"]] + [tuple(map(float, k.split(","))) for k in keys]
+        url = ROUTE_URL + ";".join(f"{lo:.5f},{la:.5f}" for la, lo in pts)
+        time.sleep(1.5)                                     # public demo server: be gentle
+        requests_made += 1
+        try:
+            data = geo.s.get(url, params={"sources": ";".join(str(j) for j in range(2, len(pts))),
+                                          "destinations": "0;1", "annotations": "duration,distance"}, timeout=40).json()
+        except (requests.RequestException, ValueError) as e:
+            log.warning("routing failed: %s", e)
+            break
+        if data.get("code") != "Ok":
+            log.warning("routing: %s", data.get("message") or data.get("code"))
+            break
+        for k, dur, dist in zip(keys, data["durations"], data["distances"]):
+            val = tuple(round(x / div, 1) if x is not None else None
+                        for x, div in ((dist[0], 1000), (dur[0], 60), (dist[1], 1000), (dur[1], 60)))
+            db.conn.execute("INSERT OR REPLACE INTO route_cache VALUES (?,?,?,?,?)", (k, *val))
+            cached[k] = val
+    n = 0
+    for k, ids in by_key.items():
+        if k in cached:
+            db.conn.executemany("UPDATE listings SET skopje_km=?, skopje_min=?, ohrid_km=?, ohrid_min=? WHERE id=?",
+                                [(*cached[k], lid) for lid in ids])
+            n += len(ids)
+    db.conn.commit()
+    log.info("distances: %d listings filled (%d routing requests)", n, requests_made)
+    return n

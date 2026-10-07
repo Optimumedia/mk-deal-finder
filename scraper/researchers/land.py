@@ -7,7 +7,8 @@ from __future__ import annotations
 
 from ..market import Market, ppm2, total_price
 from ..text import KeywordSet, land_type, norm
-from .common import base, clamp, text_of, utilities_ok, utilities_status
+from .common import _distance as r_dist
+from .common import base, clamp, fmt_drive, text_of, utilities_ok, utilities_status
 
 NAME = "land"
 TITLE = "Land for a house / villa"
@@ -90,6 +91,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "Land type": {"building": "Building", "agricultural": "Agricultural"}.get(ltype, "Unknown"),
                 "Region": "Mountain" if (peaks or high) else l.get("city"),
                 "Altitude (m)": round(l["elevation"]) if l.get("elevation") is not None else None,
+                "To Skopje": fmt_drive(r_dist(l, "skopje")),
+                "To Ohrid": fmt_drive(r_dist(l, "ohrid")),
             },
             "sort_value": discount or 0,
         })

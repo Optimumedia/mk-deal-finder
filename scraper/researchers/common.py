@@ -57,6 +57,33 @@ def days_listed(listing: dict) -> int:
         return 0
 
 
+_CITY = {"skopje": (41.9961, 21.4317), "ohrid": (41.1172, 20.8016)}
+
+
+def _distance(listing: dict, city: str) -> dict | None:
+    """{'km': driving km, 'min': driving minutes, 'air_km': straight line} or None."""
+    la = listing.get("lat") or listing.get("approx_lat")
+    lo = listing.get("lng") or listing.get("approx_lng")
+    if not (la and lo):
+        return None
+    out = {"air_km": round(haversine_km(la, lo, *_CITY[city]))}
+    if listing.get(f"{city}_km") is not None:
+        out["km"] = round(listing[f"{city}_km"])
+        out["min"] = round(listing[f"{city}_min"]) if listing.get(f"{city}_min") is not None else None
+    return out
+
+
+def fmt_drive(d: dict | None) -> str | None:
+    """'38 km · 41 min by car' / '2 h 50 · 158 km' / '~25 km (straight line)'."""
+    if not d:
+        return None
+    if d.get("km") is not None and d.get("min") is not None:
+        m = d["min"]
+        t = f"{m} min" if m < 60 else f"{m // 60} h {m % 60:02d}"
+        return f"{d['km']} km · {t} by car"
+    return f"{d['air_km']} km (straight line)"
+
+
 def base(listing: dict) -> dict:
     """Fields every researcher result shares (what the dashboard shows)."""
     return {
@@ -70,6 +97,10 @@ def base(listing: dict) -> dict:
         "map_query": maps.query(listing),   # Google Maps search when there's no GPS
         # Altitude (m). Approximate when taken from the village / area, not the exact pin.
         "elevation": round(listing["elevation"]) if listing.get("elevation") is not None else None,
+        # Distance to Skopje / Ohrid: by car when routed, else straight line ("air").
+        "to_skopje": _distance(listing, "skopje"),
+        "to_ohrid": _distance(listing, "ohrid"),
+        "distance_approx": not (listing.get("lat") and listing.get("lng")),
         "elevation_approx": (listing.get("elevation_src") or "").startswith("place:"),
         "elevation_place": (listing.get("elevation_src") or "")[6:] or None
                            if (listing.get("elevation_src") or "").startswith("place:") else None,

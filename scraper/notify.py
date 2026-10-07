@@ -89,6 +89,11 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
     where = " / ".join(x for x in (item.get("city"), item.get("district")) if x)
     if item.get("elevation") is not None:
         where += f" · ⛰ {'~' if item.get('elevation_approx') else ''}{item['elevation']:,} m"
+    from .researchers.common import fmt_drive
+    drives = [f"{name} {fmt_drive(item.get(k))}" for name, k in (("Skopje", "to_skopje"), ("Ohrid", "to_ohrid"))
+              if item.get(k)]
+    if drives and item.get("kind") in ("land", "house", "weekend_house"):
+        where += "\n🚗 " + " · ".join(drives)
     lines = []
     if researcher_title:
         lines.append(f"{ICON.get(researcher, '🏠')} <i>{html.escape(researcher_title)}</i>")
