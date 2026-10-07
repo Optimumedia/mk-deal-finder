@@ -73,6 +73,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             "utilities": {"electricity": "unknown", "water": "unknown", "road": "unknown"} if l["kind"] == "land"
                          else {"electricity": "assumed", "water": "assumed", "road": "assumed"},
             "qualified": True,
+            "comps": samples if discount is not None else 0,
             "reasons": reasons,
             "auction_date": l["auction_date"],
             "metrics": {

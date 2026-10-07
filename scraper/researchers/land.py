@@ -78,6 +78,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             "score": round(score),
             "utilities": util,
             "qualified": qualified,
+            "comps": samples if level and level != "national" else 0,
             "reasons": reasons,
             "metrics": {
                 "Price": round(price),

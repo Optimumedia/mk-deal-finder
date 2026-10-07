@@ -1,6 +1,7 @@
 """Run:  python -m unittest discover tests"""
 import tempfile
 import unittest
+from unittest import mock
 from datetime import date
 from pathlib import Path
 
@@ -199,7 +200,7 @@ class KirsmTests(unittest.TestCase):
 class RatingTests(unittest.TestCase):
     def item(self, score, **kw):
         base = {"score": score, "qualified": True, "has_details": True, "reasons": [],
-                "metrics": {"Below market": "40%"}}
+                "metrics": {"Below market": "40%"}, "comps": 40}
         base.update(kw)
         return base
 
@@ -220,11 +221,38 @@ class RatingTests(unittest.TestCase):
         self.assertEqual(rate(self.item(95, metrics={}), "airbnb")["tier"], "once")
         self.assertEqual(rate(self.item(95, status="needs_info"), "auctions")["tier"], "great")
 
+    def test_top_tiers_need_enough_comparables(self):
+        from scraper.rating import rate
+        self.assertEqual(rate(self.item(95, comps=20), "land")["tier"], "exceptional")   # 💎 needs 30+
+        self.assertEqual(rate(self.item(95, comps=10), "land")["tier"], "great")         # 🔥 needs 15+
+        self.assertEqual(rate(self.item(95, comps=0), "airbnb")["tier"], "once")        # no market comparison involved
+
     def test_sorted_best_first(self):
         from scraper.rating import rate_all
         out = rate_all({"flip": [self.item(60, id="a"), self.item(95, id="b", has_details=False),
                                  self.item(91, id="c")]})["flip"]
         self.assertEqual([x["id"] for x in out], ["c", "b", "a"])
+
+
+class HttpRetryTests(unittest.TestCase):
+    def test_timeouts_are_not_a_block(self):
+        import requests
+        from scraper.http import Blocked, PoliteSession, Unavailable
+        s = PoliteSession(delay=0, jitter=0)
+        s._allowed = lambda url: True
+        s.s.get = lambda url, timeout: (_ for _ in ()).throw(requests.ReadTimeout("slow"))
+        with mock.patch("scraper.http.time.sleep"):
+            with self.assertRaises(Unavailable):
+                s.get("https://m.reklama5.mk/AdDetails?ad=1")
+        self.assertTrue(issubclass(Unavailable, requests.RequestException))   # callers skip and continue
+
+    def test_challenge_is_a_block(self):
+        from scraper.http import Blocked, PoliteSession
+        s = PoliteSession(delay=0, jitter=0)
+        s._allowed = lambda url: True
+        s.s.get = lambda url, timeout: mock.Mock(status_code=403, text="")
+        with self.assertRaises(Blocked):
+            s.get("https://m.reklama5.mk/Search?cat=159")
 
 
 if __name__ == "__main__":

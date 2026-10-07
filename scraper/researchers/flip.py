@@ -110,6 +110,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             "utilities": util,
             # Only trusted once the detail page confirmed size, condition and place.
             "qualified": bool(l.get("detail_at")),
+            "comps": samples,
             "reasons": reasons,
             "metrics": {
                 "Price": round(price),

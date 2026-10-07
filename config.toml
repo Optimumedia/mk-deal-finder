@@ -7,7 +7,7 @@
 # Seconds between requests (plus random jitter). Keep it polite.
 delay_seconds = 2.5
 jitter_seconds = 1.5
-timeout_seconds = 25
+timeout_seconds = 40
 # Normal (twice-daily) run: stop paging a query after this many pages in a
 # row contain no new listings, or after max_pages.
 stop_after_known_pages = 2

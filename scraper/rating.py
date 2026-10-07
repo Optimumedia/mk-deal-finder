@@ -37,11 +37,20 @@ def _evidence_ok(item: dict, researcher: str) -> bool:
     return True
 
 
+MIN_COMPS = {"once": 30, "exceptional": 15}     # comparable listings behind a top rating
+
+
 def rate(item: dict, researcher: str) -> dict:
     score = item.get("score", 0)
     tier = next(t for t in TIERS if score >= t[0])
     if tier[1] in ("once", "exceptional") and not _evidence_ok(item, researcher):
         tier = TIERS[2]
+    if researcher in NEEDS_MARKET:
+        comps = item.get("comps") or 0
+        if tier[1] == "once" and comps < MIN_COMPS["once"]:
+            tier = TIERS[1]                 # 💎 only against a well-populated local market
+        if tier[1] == "exceptional" and comps < MIN_COMPS["exceptional"]:
+            tier = TIERS[2]
     if not item.get("qualified", True):
         tier = max(tier, TIERS[3], key=lambda t: _ORDER.index(t[1]))   # near-misses: "good" at best
     return {"tier": tier[1], "emoji": tier[2], "label": tier[3], "rank": _ORDER.index(tier[1])}

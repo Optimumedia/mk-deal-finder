@@ -311,6 +311,9 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
             p = max(p, 2.5)
         elif l["kind"] == "weekend_house":
             p = max(p, 0.5)
+        if l["kind"] in ("house", "weekend_house") and not l.get("area_m2") and l.get("price_eur") \
+                and l["price_eur"] <= cfg.get("budget", {}).get("business", 10**9):
+            p = max(p, 1.0)             # size unknown until the page is read; within budget, so worth it
     if l["deal"] == "sale" and (urgent_kw.any(title) or (l.get("site_old_price") or 0) > (l.get("price_eur") or 0)):
         p = max(p, 2)
     return p
@@ -453,16 +456,16 @@ def main(argv=None) -> int:
             scrape_nedviznosti(db, http, cfg, stats, first_run)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
-            try:
-                geo.enrich(db, cfg)                 # altitude for land / houses (free Open-Meteo)
-            except Exception:                       # never let altitude stop a run
-                log.exception("altitude lookup failed")
         except Blocked as e:
             status, message = "blocked", str(e)
             log.error("STOPPED — the site is refusing automated requests: %s", e)
         except Exception as e:     # still analyse + publish what we have
             status, message = "error", f"{type(e).__name__}: {e}"[:300]
             log.exception("run failed — publishing what was collected")
+        try:
+            geo.enrich(db, cfg)                     # altitude + distances (free services, own servers)
+        except Exception:                           # never let it stop a run
+            log.exception("altitude / distance lookup failed")
         db.prune(sc["prune_after_days"])
 
     results, market, by_id = analyse(db, cfg)

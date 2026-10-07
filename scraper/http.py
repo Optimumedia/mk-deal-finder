@@ -26,6 +26,10 @@ class Blocked(Exception):
     """The site served a bot challenge or refused us; stop scraping it this run."""
 
 
+class Unavailable(requests.RequestException):
+    """One page kept timing out or erroring — skip it and carry on (not a block)."""
+
+
 class PoliteSession:
     def __init__(self, delay: float = 2.5, jitter: float = 1.5, timeout: float = 25):
         self.delay, self.jitter, self.timeout = delay, jitter, timeout
@@ -70,8 +74,10 @@ class PoliteSession:
                 time.sleep(5 * (attempt + 1))
                 continue
             head = r.text[:4000]
-            if r.status_code in (403, 503) or any(m in head for m in _CHALLENGE_MARKERS[:4]):
+            challenge = any(m in head for m in _CHALLENGE_MARKERS[:4])
+            if r.status_code == 403 or challenge:
                 raise Blocked(f"{r.status_code} bot challenge at {url}")
+            # A plain 503 is the site being overloaded, not a wall: retry like any 5xx.
             if r.status_code == 404:          # e.g. past the last search page
                 return ""
             if r.status_code == 429:
@@ -83,4 +89,4 @@ class PoliteSession:
             r.raise_for_status()
             r.encoding = r.encoding or "utf-8"
             return r.text
-        raise Blocked(f"gave up after retries: {url}")
+        raise Unavailable(f"gave up after retries: {url}")
