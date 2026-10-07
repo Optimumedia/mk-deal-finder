@@ -50,7 +50,7 @@ def utilities_ok(status: dict, strict: bool) -> bool:
 
 
 def days_listed(listing: dict) -> int:
-    start = listing.get("posted") or listing.get("first_seen", "")[:10]
+    start = max(filter(None, (listing.get("renewed"), listing.get("posted"), listing.get("first_seen", "")[:10])), default="")
     try:
         return (date.today() - date.fromisoformat(start[:10])).days
     except ValueError:

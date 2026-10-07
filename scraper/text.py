@@ -96,7 +96,7 @@ _SALE = KeywordSet([
 ])
 _WANTED = KeywordSet([
     "kupuvam", "kupuva", "baram", "se bara", "potrebno mi e", "potreben", "blej", "kerkoj",
-    "barame", "kupuvame",
+    "barame", "kupuvame", "zamenuvam", "se zamenuva", "razmenuvam", "razmena", "menuvam za",
 ])
 
 
@@ -104,7 +104,7 @@ _WANTED = KeywordSet([
 # description. ("pogoden za airbnb" alone means *suitable* for it — not counted.)
 _SHORT_TERM_DESC = KeywordSet([
     "nokevanj", "nocevanj", "po nok", "na nok", "za nok", "dneven prestoj", "na den", "kratok prestoj",
-    "turisticki apartman", "turisticko smestuvanje", "rodenden", "proslav", "zabav",
+    "turisticki apartman", "turisticko smestuvanje", "rodenden", "proslav", "zabava za",
 ])
 
 

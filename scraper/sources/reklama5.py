@@ -129,7 +129,8 @@ def parse_list(html: str, cat: int, mkd_per_eur: float = 61.5, today: date | Non
             "rooms": parse_rooms(specs),
             "city": city or None,
             "district": district or None,
-            "posted": _posted(loc_raw, today),
+            "posted": _posted(loc_raw, today),      # the card shows the last renewal date
+            "renewed": _posted(loc_raw, today),
             "image": img_src,
             "promoted": "topAdResults" in (card.get("class") or []),
         })

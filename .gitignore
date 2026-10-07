@@ -10,3 +10,7 @@ data/local-run.log
 data/feedback.db
 data/bot.log*
 data/private.json
+data/deals.db
+data/deals.db-wal
+data/deals.db-shm
+data/backups/

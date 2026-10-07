@@ -375,3 +375,33 @@ class AnalystReviewRegressionTests(unittest.TestCase):
     def test_opening_offer_never_above_92_percent(self):
         from scraper.researchers.motivated import _opening_offer
         self.assertLessEqual(_opening_offer(59000, 0.16, 25, 3000, 0.5), 59000 * 0.92)
+
+
+class DataQualityReviewTests(unittest.TestCase):
+    """Independent data-quality review, 2026-10-07."""
+
+    def test_price_rules(self):
+        from scraper.run import price_and_deal
+        self.assertEqual(price_and_deal(20000, "apartment", 60, "Се издава стан"), (325, "mkd_converted", "rent"))
+        self.assertEqual(price_and_deal(25, "apartment", 40, "Се издава стан во Охрид"), (25, None, "short_term"))
+        self.assertEqual(price_and_deal(1300, "apartment", 80, "Станови во градба"), (1300, "per_m2", "sale"))
+        self.assertEqual(price_and_deal(10, "land", 6200, "Plac")[1], "per_m2")
+        self.assertEqual(price_and_deal(10, "land", None, "Plac")[1], "placeholder")
+
+    def test_exchange_is_not_a_sale(self):
+        self.assertEqual(classify_deal("Se zamenuva SEAT LEON za niva", "", 5000, "land"), "wanted")
+
+    def test_zabavni_destinacii_is_not_a_party_venue(self):
+        self.assertEqual(classify_deal("Се издава стан", "близу до забавни дестинации", 400, "apartment"), "rent")
+
+    def test_area_cap_and_sold_and_gps_from_text(self):
+        from scraper.run import detail_update
+        l = {"kind": "apartment", "title": "Стан 39м2", "price_eur": 50000, "area_m2": 89500}
+        d = {"title": "Стан 39м2", "description": "ПРОДАДЕН! GPS koordinati 41.98765, 21.43210",
+             "fields": {}, "area_m2": 89500, "price_eur": 50000}
+        u = detail_update(l, d)
+        self.assertEqual((u["area_m2"], u["sold"], round(u["lat"], 3)), (39, 1, 41.988))
+
+    def test_renewed_counts_as_active(self):
+        from scraper.researchers.common import days_listed
+        self.assertEqual(days_listed({"posted": "2025-06-09", "renewed": date.today().isoformat()}), 0)

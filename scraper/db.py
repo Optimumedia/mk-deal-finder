@@ -87,7 +87,10 @@ MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT
               "elevation": "REAL", "elevation_src": "TEXT",    # altitude (m) and where it came from
               "approx_lat": "REAL", "approx_lng": "REAL",       # village/area location when the ad has no pin
               "skopje_km": "REAL", "skopje_min": "REAL",        # driving distance / time (OSRM)
-              "ohrid_km": "REAL", "ohrid_min": "REAL"}
+              "ohrid_km": "REAL", "ohrid_min": "REAL",
+              "renewed": "TEXT",                                # last renewal date shown on the card
+              "gone_at": "TEXT",                                # the ad page returned 404
+              "sold": "INTEGER"}                                # ad text says sold / rented
 
 
 def now() -> str:
@@ -101,7 +104,8 @@ def days_ago(n: float) -> str:
 class DB:
     def __init__(self, path: str | Path):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(path)
+        self.conn = sqlite3.connect(path, timeout=60)
+        self.conn.execute("PRAGMA journal_mode=WAL")      # readers (bot, dashboard) never block the writer
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
         if "mode" not in {r[1] for r in self.conn.execute("PRAGMA table_info(runs)")}:
@@ -111,9 +115,13 @@ class DB:
             if col not in have:
                 self.conn.execute(f"ALTER TABLE listings ADD COLUMN {col} {typ}")
 
-    def close(self):
+    def close(self, vacuum: bool = False):
         self.conn.commit()
-        self.conn.execute("VACUUM")
+        if vacuum:
+            try:
+                self.conn.execute("VACUUM")
+            except sqlite3.OperationalError as e:         # a reader is busy — try next time
+                pass
         self.conn.close()
 
     # ------------------------------------------------------------ listings
@@ -138,12 +146,13 @@ class DB:
             self.conn.execute(
                 """INSERT INTO listings (id, source, source_id, url, cat, kind, deal, title, price_eur, price_note,
                        site_old_price, first_price, area_m2, rooms, city, district, image, promoted, posted,
-                       abroad, first_seen, last_seen)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                       abroad, renewed, first_seen, last_seen)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                 (lid, card["source"], card["source_id"], card["url"], card["cat"], card["kind"], card["deal"],
                  card["title"], card["price_eur"], card.get("price_note"), card.get("old_price_eur"),
                  card.get("old_price_eur") or card["price_eur"], card["area_m2"], card["rooms"], card["city"],
                  card["district"], card["image"], int(card["promoted"]), card["posted"], int(card.get("abroad", 0)),
+                 card.get("renewed"),
                  ts, ts),
             )
             self._history(lid, ts, card["price_eur"])
@@ -160,14 +169,14 @@ class DB:
                    area_m2=CASE WHEN ? THEN area_m2 ELSE ? END,
                    price_note=CASE WHEN ? THEN price_note ELSE ? END,
                    deal=CASE WHEN ? THEN deal ELSE ? END,
-                   posted=COALESCE(?, posted)
+                   renewed=COALESCE(?, renewed)
                WHERE id=?""",
             # Until a detail page is read, re-apply today's card parsing so parser
             # fixes reach listings stored earlier (plot vs house size, placeholders).
             (ts, card["title"] if not detailed else None, card["image"], int(card["promoted"]),
              card.get("old_price_eur"), changed or old["price_eur"] is None, card["price_eur"],
              detailed, card["area_m2"], detailed, card.get("price_note"), detailed, card["deal"],
-             card.get("posted"), lid),
+             card.get("renewed"), lid),
         )
         if changed:
             self._history(lid, ts, card["price_eur"])
@@ -225,7 +234,8 @@ class DB:
         """Hours since the last successful full sweep (None = never)."""
         r = self.conn.execute("SELECT MAX(finished_at) FROM runs WHERE status = 'ok' AND mode = 'full'").fetchone()
         if not r or not r[0]:
-            r = self.conn.execute("SELECT MAX(finished_at) FROM runs WHERE status = 'ok' AND pages > 250").fetchone()
+            # only runs from before 'mode' existed; later quick runs also exceed 250 pages
+            r = self.conn.execute("SELECT MAX(finished_at) FROM runs WHERE status = 'ok' AND mode IS NULL AND pages > 250").fetchone()
         if not r or not r[0]:
             return None
         return (datetime.now(timezone.utc) - datetime.fromisoformat(r[0])).total_seconds() / 3600

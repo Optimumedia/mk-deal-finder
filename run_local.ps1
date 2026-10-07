@@ -36,7 +36,13 @@ if ($code -ne 0 -and $code -ne 2) {
     Alert "the scraper crashed (exit code $code) and published nothing. See data\local-run.log on the PC."
 }
 
-git add data/deals.db docs/data.json 2>&1 | Log
+# The database stays on this PC (17 MB, twice a day would bloat the public repo); weekly backup instead.
+if ((Get-Date).DayOfWeek -eq 'Sunday') {
+    New-Item -ItemType Directory -Force "dataackups" | Out-Null
+    Copy-Item "data\deals.db" ("dataackups\deals-{0}.db" -f (Get-Date -Format 'yyyy-MM-dd')) -Force
+    Get-ChildItem "dataackups\deals-*.db" | Sort-Object Name -Descending | Select-Object -Skip 4 | Remove-Item -Force
+}
+git add docs/data.json 2>&1 | Log
 git diff --cached --quiet
 if ($LASTEXITCODE -ne 0) {
     git commit -m "data: $(Get-Date -Format 'yyyy-MM-dd HH:mm') local run" 2>&1 | Log

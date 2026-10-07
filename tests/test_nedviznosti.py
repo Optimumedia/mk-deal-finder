@@ -49,7 +49,7 @@ class ListingTests(unittest.TestCase):
     def test_has_every_reklama5_key(self):
         card_keys = set(reklama5.parse_list(fixture("list_apartments.html"), 159)[0])
         detail_keys = set(reklama5.parse_detail(fixture("detail_apartment.html")))
-        self.assertLessEqual(card_keys | detail_keys, set(self.d) | {"cat"})
+        self.assertLessEqual((card_keys | detail_keys) - {"renewed"}, set(self.d) | {"cat"})   # renewed: Reklama5 only
         self.assertIn("deal", self.d)
 
     def test_card_values(self):

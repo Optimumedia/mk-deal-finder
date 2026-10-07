@@ -49,6 +49,8 @@ def price_and_deal(raw, kind: str, area, title: str, desc: str = "") -> tuple[fl
     text = f"{title} {desc}"
     if raw is None:
         return None, None, classify_deal(title, desc, None, kind)
+    if kind == "land" and area and area >= 1000 and 3 <= raw <= 15:
+        return raw, "per_m2", classify_deal(title, desc, None, kind)     # "10 €" for 6,200 m² = €10/m²
     if raw < 15 or _PLACEHOLDER.match(f"{raw:.0f}"):
         return None, "placeholder", classify_deal(title, desc, None, kind)
     if kind == "land":
@@ -58,10 +60,15 @@ def price_and_deal(raw, kind: str, area, title: str, desc: str = "") -> tuple[fl
 
     deal = classify_deal(title, desc, raw, kind)
     said_rent = classify_deal(title, desc, None, kind) == "rent"
+    if said_rent and 3000 <= raw <= 200000 and 80 <= raw / 61.5 <= 3000:
+        # "20.000 €" rent is 20,000 denars typed into the euro field.
+        return round(raw / 61.5), "mkd_converted", "rent"
+    if kind == "apartment" and raw < 60 and (said_rent or deal == "rent"):
+        return raw, None, "short_term"                  # €25 "rent" in Ohrid is per night
     if deal == "sale" and raw < 6000:
         # Nobody sells a flat for €1,400 total: it's €/m², or meaningless.
         return (raw, "per_m2", deal) if (area and raw >= 150) else (None, "placeholder", deal)
-    if deal == "rent" and not said_rent and area and raw / area > 18:
+    if deal == "rent" and not said_rent and area and raw / area > 12:
         # €1,200 for a 60 m² flat is a sale price per m², not a monthly rent.
         return raw, "per_m2", "sale"
     return raw, None, deal
@@ -86,6 +93,11 @@ def detail_update(listing: dict, d: dict) -> dict:
                   norm(desc))
     if m and area and 0.35 * area <= float(m.group(1)) < 0.95 * area:
         area = float(m.group(1))
+    cap = {"apartment": 400, "house": 1500, "weekend_house": 800}.get(listing["kind"])
+    if cap and area and area > cap:
+        from .text import parse_area
+        alt = parse_area(title) or parse_area(desc)
+        area = alt if alt and alt <= cap else None
     # Houses: "се продава куќа од 168м2" in the text beats a stored number that is
     # really the plot (600 m²). Only when the stored area is over twice as big.
     if listing["kind"] in ("house", "weekend_house") and area:
@@ -120,7 +132,14 @@ def detail_update(listing: dict, d: dict) -> dict:
     if d.get("district"):
         upd["district"] = d["district"]
     if d.get("posted"):
-        upd["posted"] = d["posted"]
+        upd["posted"] = d["posted"]             # original posting date (the card shows the last renewal)
+    raw_desc = d.get("description") or ""
+    if not d.get("lat"):
+        g = re.search(r"\b(4[0-2]\.\d{3,})[,\s]+(2[0-3]\.\d{3,})\b", raw_desc)      # before redact() eats it
+        if g:
+            upd["lat"], upd["lng"] = float(g.group(1)), float(g.group(2))
+    upd["sold"] = int(bool(re.search(r"\b(продаден[оа]?|издаден[оа]?|prodaden[oa]?|izdaden[oa]?|sold|rented)\b",
+                                     raw_desc[:200] + " " + str(fields.get("Статус", "")), re.I)))
     return upd
 
 
@@ -152,8 +171,8 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
             try:
                 html = http.get(reklama5.search_url(cat, city, page))
             except requests.RequestException as e:
-                log.warning("%s page %d failed, skipping the rest of this query: %s", name, page, e)
-                break
+                log.warning("%s page %d failed, skipping it: %s", name, page, e)
+                continue
             stats["pages"] += 1
             cards = reklama5.parse_list(html, cat, mkd)
             # Past the last page the site repeats earlier results — stop there.
@@ -339,6 +358,7 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
             log.warning("detail %s failed: %s", l["url"], e)
             continue
         if not html:          # ad was removed
+            db.conn.execute("UPDATE listings SET gone_at=? WHERE id=?", (now(), l["id"]))
             continue
         parse = DETAIL_PARSERS.get(l["source"])
         if parse is None:
@@ -358,10 +378,14 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     m = cfg["market"]
     rows = db.market_rows(m["window_days"])
     places.fix_districts(rows)
+    for r in rows:
+        if places.centar_unconfirmed(r):
+            r["district"] = None            # seller left the form default — compare city-wide instead
     market = Market(clean.dedupe(rows), m["min_samples_district"], m["min_samples_city"], m["min_samples_national"])
     max_age = cfg["scraper"]["max_listing_age_days"]
     listings = [l for l in db.active(cfg["scraper"]["stale_after_days"])
-                if l["deal"] != "wanted" and (l["deal"] == "auction" or days_listed(l) <= max_age)]
+                if l["deal"] != "wanted" and not l.get("sold") and not l.get("gone_at")
+                and (l["deal"] == "auction" or days_listed(l) <= max_age)]
     clean.add_real_age(listings, cfg["scraper"]["reklama5_ids_per_day"])
     clean.drop_shared_pins(listings)
     moved = places.fix_districts(listings)
@@ -492,7 +516,7 @@ def main(argv=None) -> int:
             + ("The site is refusing automated requests; the scraper stopped instead of forcing its way in. "
                "It will try again at the next scheduled time." if status == "blocked"
                else "Data collected before the error was still published. Details: data\\local-run.log"))
-    db.close()
+    db.close(vacuum=datetime.now(timezone.utc).weekday() == 6 and full)     # Sunday full sweep only
     log.info("done: %s", status)
     return 0 if status == "ok" else 2
 

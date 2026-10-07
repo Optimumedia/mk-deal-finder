@@ -188,7 +188,7 @@ enabled = true
 min_price_drop = 0.05
 max_believable_drop = 0.5   # bigger "cuts" are typos or a switch to €/m²
 min_price_eur = 5000
-stale_listing_days = 60   # judged by the ad number's real age, so renewals don't hide it
+stale_listing_days = 180  # by the ad number's real age (most ads are 60+ days; 180 is a real signal)
 urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent"]
 # ("поволно" / "договорлива" were dropped: standard agency wording, no signal.)
 

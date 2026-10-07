@@ -46,8 +46,8 @@ def _same(a: dict, b: dict) -> bool:
         return True
     # Big sale prices rarely collide by chance; rents and round numbers do,
     # so those also need similar titles.
-    if a["deal"] == "sale" and (total_price(a) or 0) >= 30000:
-        return True
+    if a["deal"] == "sale" and (total_price(a) or 0) >= 30000 and a.get("district") and b.get("district"):
+        return True                     # same district, same price and size: one property
     wa, wb = _words(a.get("title")), _words(b.get("title"))
     return bool(wa and wb) and len(wa & wb) / len(wa | wb) >= 0.5
 

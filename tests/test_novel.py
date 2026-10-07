@@ -20,7 +20,7 @@ class NovelListTests(unittest.TestCase):
     def test_count_and_keys(self):
         self.assertEqual(len(self.cards), 12)
         r5 = reklama5.parse_list(fixture("list_apartments.html"), 159)
-        self.assertEqual(set(self.cards[0]), set(r5[0]) | {"deal"})
+        self.assertEqual(set(self.cards[0]), (set(r5[0]) - {"renewed"}) | {"deal"})   # renewed: Reklama5 only
 
     def test_first_card(self):
         c = self.cards[0]

@@ -45,7 +45,7 @@ Windows Task Scheduler on your PC (06:15 and 18:15) → run_local.ps1
        4. run the 4 researchers → score 0–100 each
        5. write docs/data.json   → dashboard on GitHub Pages
        6. send new top deals to Telegram (optional)
-       7. commit + push data/deals.db and docs/data.json → GitHub Pages updates
+       7. commit + push docs/data.json → GitHub Pages updates (deals.db stays on the PC, weekly backup in dataackups)
 ```
 
 **Utilities rule.** Each deal shows ⚡ power, 💧 water and 🛣 road badges:
