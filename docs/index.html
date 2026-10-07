@@ -224,6 +224,48 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .rejrow .rt b{display:block;overflow-wrap:anywhere;font-size:14px}
 .rejrow .rt span{font-size:13px;color:var(--ink-3);overflow-wrap:anywhere}
 @media (max-width:640px){.rescore .rl{display:none}.privpill{display:none}}
+/* ---------- pipeline ---------- */
+.board{position:relative;display:flex;gap:var(--s3);overflow-x:auto;padding-bottom:var(--s3);align-items:flex-start;scroll-snap-type:x proximity}
+.pcol{flex:0 0 272px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-l);display:flex;flex-direction:column;max-height:calc(100vh - 220px);scroll-snap-align:start}
+.pcol.collapsed{flex:0 0 64px}
+.pcol h3{font:700 14px/1.3 var(--font);display:flex;align-items:center;justify-content:space-between;gap:6px;padding:12px 12px 8px}
+.pcol h3 .n{font-size:12px;background:var(--surface);border-radius:999px;padding:0 8px;line-height:20px;color:var(--ink-2)}
+.pcol .pl{display:flex;flex-direction:column;gap:var(--s2);padding:0 8px 8px;overflow-y:auto}
+.pcol .empty-col{font-size:13px;color:var(--ink-3);padding:8px 12px 14px}
+.colbtn{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;width:100%;font-weight:700;font-size:13px;color:var(--ink-2)}
+.colbtn .v{writing-mode:vertical-rl;transform:rotate(180deg)}
+.colbtn:focus-visible{outline:3px solid var(--accent);outline-offset:-3px;border-radius:var(--r-l)}
+.pcard{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;box-shadow:var(--shadow-1);min-width:0}
+.pcard:hover{border-color:var(--line-2);box-shadow:var(--shadow-2)}
+.pcard .pt{font-weight:600;font-size:14px;line-height:1.3;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pcard .pt a{color:var(--ink);text-decoration:none}
+.pcard .keynum .big{font-size:18px}
+.pcard .keynum .unit{font-size:12.5px}
+.pcard .pm{font-size:12.5px;color:var(--ink-3);overflow-wrap:anywhere}
+.pcard .ns{font-size:13px;color:var(--ink);display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere}
+.pcard .ns::before{content:"→";color:var(--accent-text);font-weight:700}
+.pctl{display:flex;gap:4px;align-items:center;margin-top:2px}
+.pctl select{flex:1;min-width:0;height:32px;border:1px solid var(--line-2);border-radius:8px;background:var(--bg);font:inherit;font-size:13px;padding:0 6px;color:inherit}
+.pctl button{width:32px;height:32px;flex:none;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);cursor:pointer;color:var(--ink-2);font-weight:700}
+.pctl button:disabled{opacity:.35;cursor:default}
+.pctl button:not(:disabled):hover{background:var(--surface-2);color:var(--ink)}
+.due{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--surface-3);color:var(--ink-2)}
+.due.over{background:var(--bad-soft);color:var(--bad)}
+.due.today{background:var(--warn-soft);color:var(--warn)}
+.pill.gone{background:var(--surface-3);color:var(--ink-2);text-decoration:line-through}
+.pgroup{margin-bottom:var(--s6)}
+.pgroup>h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:var(--s2)}
+.pgroup>h3 .n{font:600 12px var(--font);background:var(--surface-3);border-radius:999px;padding:0 8px;line-height:20px;color:var(--ink-2)}
+.pgroup .pl{display:flex;flex-direction:column;gap:var(--s2)}
+.duelist{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:var(--s2)}
+.pipe{background:var(--accent-soft);border:1px solid transparent;border-radius:var(--r-m);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.pipe label.lbl{font-size:13px;font-weight:600;color:var(--ink-2);display:flex;flex-direction:column;gap:4px}
+.pipe input,.pipe select,.pipe textarea{width:100%;border:1px solid var(--line-2);background:var(--surface);border-radius:10px;padding:8px 10px;font:inherit;font-size:14px;color:inherit;min-width:0}
+.pipe textarea{min-height:72px;resize:vertical}
+.pipe input:focus,.pipe select:focus,.pipe textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--surface)}
+.pipe .g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--s3)}
+.pipe .check{background:var(--surface)}
+@media (max-width:640px){.pipe .g2{grid-template-columns:1fr}}
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;line-height:18px;white-space:nowrap}
 .pill.new{background:var(--accent);color:var(--accent-ink)}
 .pill.good{background:var(--good-soft);color:var(--good)}
@@ -757,6 +799,9 @@ function boot(){
   ITEMS = new Map();
   DATA.researchers = (DATA.researchers || []).filter(r => r && r.key);
   DATA.rejected = Array.isArray(DATA.rejected) ? DATA.rejected.filter(x => x && x.id) : [];
+  DATA.pipeline = PRIV && Array.isArray(DATA.pipeline) ? DATA.pipeline.filter(e => e && e.id && STAGES.some(s => s.key === e.stage)) : [];
+  for (const e of DATA.pipeline) { e.researcher = e.researcher || e.item?._r || ""; e.item = Object.assign({}, e.item || {}, {id:e.id, _r:e.researcher, _pipe:e}); }
+  if (PRIV) { const inPipe = new Set(DATA.pipeline.map(e => e.researcher + "|" + e.id)); for (const R of DATA.researchers) R.items = (R.items || []).filter(i => i && !inPipe.has(R.key + "|" + i.id)); }
   if (PRIV) { const rej = new Set(DATA.rejected.map(x => x.researcher + "|" + x.id)); for (const R of DATA.researchers) R.items = (R.items || []).filter(i => i && i.my_vote !== "down" && !rej.has(R.key + "|" + i.id)); }
   DATA.runs ||= []; DATA.market ||= [];
   for (const R of DATA.researchers) { R.items = (R.items || []).filter(Boolean); for (const i of R.items) { i._r = R.key; if (!ITEMS.has(i.id)) ITEMS.set(i.id, i); } }
@@ -789,7 +834,7 @@ function paintHealth(){ const h = runHealth();
 /* ================= tabs ================= */
 function tabList(){
   const rs = DATA.researchers.map(R => ({key:R.key, label:cfg(R.key).short || R.title.split(/ — | \/ /)[0], n:R.items.filter(i => i.is_new).length, total:R.items.length}));
-  return [{key:"today", label:"Today"}, ...rs, {key:"shortlist", label:"★ Shortlist", n:Object.keys(shortlist).length, plain:true}, {sep:true}, {key:"market", label:"Market prices"}, {key:"runs", label:"Run log"}];
+  return [{key:"today", label:"Today"}, ...(PRIV ? [{key:"pipeline", label:"My pipeline", n:pipeActive().length}] : []), ...rs, {key:"shortlist", label:"★ Shortlist", n:Object.keys(shortlist).length, plain:true}, {sep:true}, {key:"market", label:"Market prices"}, {key:"runs", label:"Run log"}];
 }
 function buildTabs(){
   $("#tabs").innerHTML = tabList().map(t => t.sep ? `<span class="tabsep" aria-hidden="true"></span>` :
@@ -824,6 +869,7 @@ function render(){
   const k = state.tab;
   if (k === "today") return renderToday();
   if (k === "shortlist") return renderShortlist();
+  if (k === "pipeline" && PRIV) return renderPipeline();
   if (k === "market") return renderMarket();
   if (k === "runs") return renderRuns();
   const R = DATA.researchers.find(r => r.key === k); if (R) return renderResearcher(R);
@@ -842,7 +888,8 @@ function renderToday(){
   const h = runHealth(); const saved = Object.keys(shortlist).length;
   const hour = new Date().getHours(); const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const last = DATA.runs[0];
-  let html = `<div class="pagehead"><div><div class="eyebrow">${esc(new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}))}</div>
+  let html = PRIV ? dueSection() : "";
+  html += `<div class="pagehead"><div><div class="eyebrow">${esc(new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}))}</div>
     <h2>${hello} — here's today's shortlist of opportunities</h2>
     <p>Macedonian property ads and official bailiff sales are checked twice a day. Each “researcher” rates every deal — 💎 Once-in-a-lifetime, 🔥 Exceptional, ⭐ Great, 👍 Good, 👀 Worth a look — and lists the reasons why. Tap any deal for the full story and a before-you-buy checklist.</p></div></div>`;
   if (h.cls === "bad") html += `<div class="note bad" style="margin-bottom:16px"><span class="ic">${I.info}</span><div><b>The last update didn't finish (${esc(last.status)}).</b> You're seeing results from ${esc(relTime(DATA.generated_at))}. ${last.message ? `<br><span style="font-size:13px">${esc(String(last.message).slice(0, 160))}</span>` : ""}</div></div>`;
@@ -877,6 +924,7 @@ function renderToday(){
     html += `</section>`;
   }
   $("#main").innerHTML = html;
+  if (PRIV) bindPipeControls($("#main"));
   const bm = $("#bestMore"); if (bm) bm.onclick = () => { renderToday.all = !renderToday.all; renderToday(); };
 }
 
@@ -1019,13 +1067,15 @@ document.addEventListener("click", e => {
   const s = e.target.closest("[data-star]"); if (s) { e.preventDefault(); e.stopPropagation(); toggleStar(s.dataset.star, s.dataset.r); return; }
   const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); selectTab(g.dataset.go, true); return; }
   if (e.target.closest("a:not([data-open-link])")) return;
+  if (e.target.closest(".pctl")) return;
+  const pb = e.target.closest("[data-colx]"); if (pb) { pipeExpand[pb.dataset.colx] = !pipeExpand[pb.dataset.colx]; renderPipeline(); return; }
   const o = e.target.closest("[data-open]"); if (o && !e.target.closest(".drawer")) { e.preventDefault(); openDeal(o.dataset.open, o.dataset.r, true); }
 });
 document.addEventListener("error", e => { const t = e.target; if (t.tagName === "IMG" && t.parentElement) { const ph = t.parentElement.querySelector(".ph"); if (ph) ph.hidden = false; t.remove(); } }, true);
 
 /* ================= DRAWER ================= */
 let openId = null, lastFocus = null, pushed = false;
-function findItem(id, r){ const R = DATA.researchers.find(x => x.key === r); return R?.items.find(x => x.id === id) || ITEMS.get(id) || (shortlist[id] ? Object.assign({}, shortlist[id].item, {_r:shortlist[id].r, _gone:true}) : null); }
+function findItem(id, r){ const R = DATA.researchers.find(x => x.key === r); return R?.items.find(x => x.id === id) || pipeFind(id, r)?.item || ITEMS.get(id) || pipeFind(id)?.item || (shortlist[id] ? Object.assign({}, shortlist[id].item, {_r:shortlist[id].r, _gone:true}) : null); }
 function fmtMetric(label, v){
   if (v == null || v === "") return "—";
   if (!isNum(v)) return String(v);
@@ -1057,6 +1107,7 @@ function openDeal(id, r, push){
   const u = i.utilities || {};
   $("#dCrumb").textContent = (R ? (cfg(R.key).short || R.title) : "Deal") + " · " + (where(i) || "");
   $("#dBody").innerHTML = `
+    ${PRIV && i._pipe ? pipeSection(i._pipe).replace('<div class="dsec">', '<div class="dsec" style="padding-bottom:var(--s5)">') : ""}
     <div class="dhero">${media(i)}${i.is_new ? `<span class="pill new" style="position:absolute;left:12px;bottom:12px">New today</span>` : ""}</div>
     <div class="dsec">
       <div class="dmeta">${ratingBadge(i)}${isNum(i.score) ? `<span class="pill muted">Score ${i.score} / 100</span>` : ""}${i._gone ? `<span class="pill warn">Not in latest results</span>` : ""}${niBadge(i)}${myBadge(i)}</div>
@@ -1217,7 +1268,8 @@ function drawChart(rows, lab){
   el.innerHTML = svg;
   $("#legend").innerHTML = `<span><i class="sw"></i>20+ listings</span><span><i class="sw weak"></i>fewer than 20 listings (less reliable)</span>${nat ? `<span><i class="sw ref"></i>National median ${esc(f(nat.median_ppm2))} €</span>` : ""}`;
 }
-let chartRT; window.addEventListener("resize", () => { if (state.tab !== "market" || !$("#chart")) return; clearTimeout(chartRT); chartRT = setTimeout(() => drawChart(DATA.market.filter(r => r && r.city && isNum(r.median_ppm2)), s => { const [k,d] = s.split("|"); return `${KIND_PL[k] || k} — ${(DEAL_TXT[d] || d).toLowerCase()}`; }), 150); });
+let chartRT; let pipeWide = innerWidth >= 900; window.addEventListener("resize", () => { const w = innerWidth >= 900; if (w !== pipeWide) { pipeWide = w; if (state.tab === "pipeline" && PRIV) renderPipeline(); } });
+window.addEventListener("resize", () => { if (state.tab !== "market" || !$("#chart")) return; clearTimeout(chartRT); chartRT = setTimeout(() => drawChart(DATA.market.filter(r => r && r.city && isNum(r.median_ppm2)), s => { const [k,d] = s.split("|"); return `${KIND_PL[k] || k} — ${(DEAL_TXT[d] || d).toLowerCase()}`; }), 150); });
 function drawMTable(rows){
   const q = mkState.q.trim().toLowerCase();
   let r = rows.filter(x => (!q || x.city.toLowerCase().includes(q)) && (!mkState.kind || x.kind === mkState.kind) && (!mkState.deal || x.deal === mkState.deal));
@@ -1291,6 +1343,7 @@ function onVoteBtn(btn){
   sendVote(it, it.my_vote === vote ? "clear" : vote);
 }
 async function sendVote(it, vote){
+  if ((vote === "up" || vote === "ok") && !it._pipe) return moveToPipeline(it, vote);
   const prev = it.my_vote ?? null; it.my_vote = vote === "clear" ? null : vote; repaint();
   try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote}); toast(vote === "clear" ? "Vote cleared. " + SAVED_MSG : SAVED_MSG); }
   catch (e) { it.my_vote = prev; repaint(); toast(e.message, {err:true}); } }
@@ -1330,7 +1383,7 @@ function privPanel(i){
   const tri = (k, l) => `<div class="frow"><span>${esc(l)}</span><div class="tri" role="radiogroup" aria-label="${esc(l)}">${[["yes","Yes"],["no","No"],["","Unknown"]].map(([v,t]) => `<label><input type="radio" name="f_${k}" value="${v}" ${(f[k] || "") === v ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></div>`;
   const sum = factsSummary(i.facts);
   return `<div class="dsec"><h3>Your call</h3><div class="priv">
-    ${voteBtns(i, false)}
+    ${i._pipe ? `<div class="acts"><button type="button" class="vbtn" id="pipeRemove">✖ Remove from pipeline</button></div><p class="also" style="margin:0">Removing puts the deal back in the normal lists after the next re-score.</p>` : voteBtns(i, false)}
     ${i.my_note ? `<div class="fsum">Your note: “${esc(i.my_note)}”</div>` : ""}
     <div class="rej" id="rejPanel" hidden>
       <label class="lbl" for="rejReason">Why isn't it a fit?</label>
@@ -1352,6 +1405,7 @@ function privPanel(i){
     <div class="actions"><button type="button" class="btn primary" id="fSave">Save facts</button><span class="savednote" id="fMsg" aria-live="polite"></span></div>
   </div></details></div>`; }
 function bindPriv(i){
+  if (i._pipe) bindPipe(i._pipe);
   const go = $("#rejGo"); if (!go) return;
   $("#rejCancel").onclick = () => { $("#rejPanel").hidden = true; };
   go.onclick = () => { const reason = $("#rejReason").value; if (!reason) { $("#rejMsg").textContent = "Pick a reason first."; $("#rejReason").focus(); return; }
@@ -1370,6 +1424,127 @@ function bindPriv(i){
       const st = $("#dBody").scrollTop; openDeal(i.id, i._r, false); const ff = $("#factsForm"); if (ff) ff.open = true; $("#dBody").scrollTop = st; const m = $("#fMsg"); if (m) m.textContent = SAVED_MSG; toast(SAVED_MSG); }
     catch (e) { btn.disabled = false; $("#fMsg").textContent = ""; toast(e.message, {err:true}); } };
 }
+/* ---------- My pipeline ---------- */
+const STAGES = [
+  {key:"interested", emoji:"👍", label:"Interested"}, {key:"contacted", emoji:"📞", label:"Contacted"}, {key:"viewing", emoji:"🏠", label:"Viewing"},
+  {key:"checks", emoji:"🔍", label:"Checks"}, {key:"offer", emoji:"💶", label:"Offer made"}, {key:"negotiating", emoji:"🤝", label:"Negotiating"},
+  {key:"won", emoji:"✅", label:"Bought / Rented"}, {key:"dropped", emoji:"✖", label:"Dropped"}];
+const NEXT_DEF = {interested:"Call the seller / agency", contacted:"Book a viewing", viewing:"Visit: condition, documents, utilities on site",
+  checks:"Check the property sheet (имотен лист), debts and charges on it (товари), zoning / building permit", offer:"Wait for the answer — follow up in 2 days",
+  negotiating:"Agree price, deposit and notary date", won:"Done 🎉", dropped:"—"};
+const NEXT_AUC = {interested:"Read the official notice", contacted:"Ask the bailiff for a viewing", checks:"Check debts and charges (товари) and whether it's occupied",
+  offer:"Pay the deposit before the sale", negotiating:"Attend the sale"};
+const defNext = (stage, r) => (r === "auctions" && NEXT_AUC[stage]) || NEXT_DEF[stage] || "";
+const stageOf = k => STAGES.find(s => s.key === k) || STAGES[0];
+const stageIdx = k => Math.max(0, STAGES.findIndex(s => s.key === k));
+const pipeExpand = {};
+function pipeActive(){ return (DATA?.pipeline || []).filter(e => e.stage !== "won" && e.stage !== "dropped"); }
+function pipeFind(id, r){ return (DATA?.pipeline || []).find(e => e.id === id && (!r || e.researcher === r)); }
+function todayISO(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function dueChip(e){ if (!e.due) return ""; const d = String(e.due).slice(0, 10), t = todayISO();
+  const nice = (() => { const x = new Date(d + "T12:00:00"); return isNaN(x) ? d : x.toLocaleDateString("en-GB", {day:"numeric", month:"short"}); })();
+  if (d < t) return `<span class="due over" title="Due ${esc(d)}">⏰ Overdue · ${esc(nice)}</span>`;
+  if (d === t) return `<span class="due today">⏰ Due today</span>`;
+  return `<span class="due">📅 ${esc(nice)}</span>`; }
+function stageSuggestions(e){ const r = e.researcher, c = cfg(r);
+  if (r === "auctions") return ({interested:["Read the official notice (starting price, deposit, date, payment deadline)"], contacted:["Ask the bailiff for a viewing","Ask who lives there and whether it's occupied"],
+    viewing:["Visit the property, or at least the building and street"], checks:["Check debts and charges (товари) on the property sheet (имотен лист)","Check whether it's occupied","Have the money ready — plan cash or a pre-approved loan"],
+    offer:["Pay the deposit before the sale"], negotiating:["Attend the sale with ID and the deposit receipt"], won:["Pay the balance by the deadline","Register the property at the cadastre"], dropped:[]})[e.stage] || [];
+  return ({interested:["Call the seller / agency","Confirm the price is still valid","Ask the open questions (❓) if there are any"],
+    contacted:["Book a viewing","Ask for a photo of the property sheet (имотен лист)"],
+    viewing:["Check the condition on site","See the documents","Check utilities on site (power, water, road, heating)"],
+    checks:(c.checklist || []).map(x => x[0]), offer:["Send the offer in writing","Follow up in 2 days"],
+    negotiating:["Agree price, deposit and notary date","Book the notary"], won:["Register at the cadastre","Move utilities into your name"], dropped:[]})[e.stage] || []; }
+function pcard(e){ const i = e.item; const st = stageOf(e.stage), n = stageIdx(e.stage); const k = cfg(e.researcher).key(i);
+  return `<article class="pcard" data-open="${esc(e.id)}" data-r="${esc(e.researcher)}">
+    <div class="pt"><span aria-hidden="true">${esc(ratingOf(i).emoji)}</span> <a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></div>
+    <div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span></div>
+    <div class="pm">${esc([eur(i.price), where(i), cfg(e.researcher).short || e.researcher].filter(x => x && x !== "—").join(" · "))}</div>
+    ${e.due || e.removed ? `<div class="badges">${dueChip(e)}${e.removed ? `<span class="pill gone" title="The ad is no longer listed">Ad removed</span>` : ""}</div>` : ""}
+    ${e.next_step && e.next_step !== "—" ? `<div class="ns">${esc(e.next_step)}</div>` : ""}
+    <div class="pctl"><button type="button" data-pmove="-1" data-id="${esc(e.id)}" data-r="${esc(e.researcher)}" aria-label="Move back to ${esc(n > 0 ? STAGES[n - 1].label : "")}" ${n === 0 ? "disabled" : ""}>←</button>
+      <label class="sr" for="ps-${esc(e.researcher)}-${esc(e.id)}">Stage</label>
+      <select id="ps-${esc(e.researcher)}-${esc(e.id)}" data-pstage data-id="${esc(e.id)}" data-r="${esc(e.researcher)}">${STAGES.map(s => `<option value="${s.key}" ${s.key === e.stage ? "selected" : ""}>${s.emoji} ${esc(s.label)}</option>`).join("")}</select>
+      <button type="button" data-pmove="1" data-id="${esc(e.id)}" data-r="${esc(e.researcher)}" aria-label="Move forward to ${esc(n < STAGES.length - 1 ? STAGES[n + 1].label : "")}" ${n === STAGES.length - 1 ? "disabled" : ""}>→</button></div>
+  </article>`; }
+const pipeSort = (a,b) => ((a.due || "9999") > (b.due || "9999") ? 1 : (a.due || "9999") < (b.due || "9999") ? -1 : 0) || String(b.updated_at || "").localeCompare(String(a.updated_at || ""));
+function renderPipeline(){
+  const P = DATA.pipeline || []; const act = pipeActive().length;
+  let html = `<div class="pagehead"><div><div class="eyebrow">Next steps</div><h2>My pipeline</h2>
+    <p>Deals you marked 👍 Interested or ✅ Fits. Move each one along as you call, visit and check it — tap a card for notes, due dates and the to-do list for that stage.</p></div></div>`;
+  if (!P.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Your pipeline is empty</h3><p>Tap 👍 Interested on any deal and it moves here, ready for the next step.</p></div>`; return; }
+  const by = k => P.filter(e => e.stage === k).sort(pipeSort);
+  if (innerWidth >= 900) {
+    html += `<p class="resultline">${act} active · scroll sideways inside the board to see every stage</p><div class="board" role="region" aria-label="Pipeline board" tabindex="0">${STAGES.map(s => { const xs = by(s.key);
+      const coll = (s.key === "won" || s.key === "dropped") && !pipeExpand[s.key];
+      if (coll) return `<section class="pcol collapsed" aria-label="${esc(s.label)}"><button type="button" class="colbtn" data-colx="${s.key}" aria-expanded="false" title="Show ${esc(s.label)}"><span aria-hidden="true">${s.emoji}</span><span class="v">${esc(s.label)}</span><span class="n">${xs.length}</span></button></section>`;
+      return `<section class="pcol" aria-labelledby="pc-${s.key}"><h3 id="pc-${s.key}"><span>${s.emoji} ${esc(s.label)}</span><span class="n">${xs.length}</span>${s.key === "won" || s.key === "dropped" ? `<button type="button" class="link" data-colx="${s.key}" aria-expanded="true" style="font-size:12px">Hide</button>` : ""}</h3>
+        <div class="pl">${xs.length ? xs.map(pcard).join("") : `<div class="empty-col">Nothing here</div>`}</div></section>`; }).join("")}</div>`;
+  } else {
+    html += STAGES.map(s => { const xs = by(s.key); if (!xs.length) return "";
+      return `<section class="pgroup" aria-labelledby="pg-${s.key}"><h3 id="pg-${s.key}">${s.emoji} ${esc(s.label)} <span class="n">${xs.length}</span></h3><div class="pl">${xs.map(pcard).join("")}</div></section>`; }).join("");
+  }
+  $("#main").innerHTML = html; bindPipeControls($("#main"));
+}
+function bindPipeControls(root){
+  $$("[data-pstage]", root).forEach(sel => sel.onchange = () => { const e = pipeFind(sel.dataset.id, sel.dataset.r); if (e) setStage(e, sel.value, sel.id); });
+  $$("[data-pmove]", root).forEach(b => b.onclick = ev => { ev.stopPropagation(); const e = pipeFind(b.dataset.id, b.dataset.r); if (!e) return;
+    const n = stageIdx(e.stage) + (+b.dataset.pmove); if (n >= 0 && n < STAGES.length) setStage(e, STAGES[n].key, `[data-pmove="${b.dataset.pmove}"][data-id="${CSS.escape(e.id)}"]`); });
+}
+function refreshPipeViews(focusSel){
+  buildTabs(); $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+  const y = window.scrollY; const bx = $(".board")?.scrollLeft; if (state.tab === "pipeline" || state.tab === "today") render(); window.scrollTo({top:y}); const bd = $(".board"); if (bd && bx != null) bd.scrollLeft = bx;
+  if (focusSel) { const el = focusSel.startsWith("[") ? $(focusSel) : document.getElementById(focusSel); if (el && !el.disabled) el.focus({preventScroll:true}); }
+}
+async function pipeSave(e, ch, quiet){
+  const before = {}; for (const k in ch) before[k] = e[k];
+  Object.assign(e, ch); e.updated_at = new Date().toISOString();
+  try { await api("POST", "/api/pipeline", Object.assign({id:e.id, researcher:e.researcher}, ch)); if (!quiet) toast(SAVED_MSG); return true; }
+  catch (err) { Object.assign(e, before); toast(err.message, {err:true}); return false; } }
+async function setStage(e, stage, focusSel){
+  if (stage === e.stage) return; const old = e.stage; const ch = {stage};
+  if (!e.next_step || e.next_step === defNext(old, e.researcher)) ch.next_step = defNext(stage, e.researcher);
+  const p = pipeSave(e, ch, true); refreshPipeViews(focusSel); if (openId === e.id) reopenDrawer();
+  if (await p) toast(`Moved to ${stageOf(stage).emoji} ${stageOf(stage).label}${ch.next_step && ch.next_step !== "—" ? " → next: " + ch.next_step : ""}`); else { refreshPipeViews(); if (openId === e.id) reopenDrawer(); } }
+function reopenDrawer(){ const st = $("#dBody").scrollTop; const e = openId && (pipeFind(openId, parseHash().in) || pipeFind(openId)); const i = e ? e.item : findItem(openId, parseHash().in); if (i) { openDeal(openId, i._r, false); $("#dBody").scrollTop = st; } }
+function pipeSection(e){ const sug = stageSuggestions(e); const ck = checks[e.id + "|" + e.stage] || [];
+  return `<div class="dsec"><div class="pipe" role="region" aria-labelledby="pipeH"><h3 id="pipeH" style="margin:0">${stageOf(e.stage).emoji} In my pipeline — ${esc(stageOf(e.stage).label)}</h3>
+    ${e.removed ? `<div class="note warn" style="padding:8px 12px"><span class="ic">${I.info}</span><div>This ad is no longer listed — the seller may have sold or withdrawn it. Call before spending more time.</div></div>` : ""}
+    <div class="g2"><label class="lbl">Stage<select id="pStage">${STAGES.map(s => `<option value="${s.key}" ${s.key === e.stage ? "selected" : ""}>${s.emoji} ${esc(s.label)}</option>`).join("")}</select></label>
+      <label class="lbl">Due date<input type="date" id="pDue" value="${esc(e.due ? String(e.due).slice(0, 10) : "")}"></label></div>
+    <label class="lbl">Next step<input type="text" id="pNext" value="${esc(e.next_step || defNext(e.stage, e.researcher))}" placeholder="${esc(defNext(e.stage, e.researcher))}"></label>
+    <label class="lbl">Notes<textarea id="pNotes" placeholder="Calls, prices mentioned, contacts… (saved when you click away)">${esc(e.notes || "")}</textarea></label>
+    <span class="savednote" id="pMsg" aria-live="polite"></span>
+    ${sug.length ? `<div><div class="lbl" style="font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px">Suggested for this stage</div><ul class="check">${sug.map((t, n) => `<li><label><input type="checkbox" data-pck="${n}" ${ck[n] ? "checked" : ""}><span>${esc(t)}</span></label></li>`).join("")}</ul></div>` : ""}
+  </div></div>`; }
+function bindPipe(e){
+  const msg = t => { const m = $("#pMsg"); if (m) m.textContent = t; };
+  $("#pStage").onchange = ev => setStage(e, ev.target.value, "pStage");
+  $("#pDue").onchange = async ev => { const v = ev.target.value || null; if (v === (e.due ? String(e.due).slice(0, 10) : null)) return; if (await pipeSave(e, {due:v}, true)) { msg(SAVED_MSG); refreshPipeViews(); } };
+  const txt = (el, key) => el.addEventListener("blur", async () => { const v = el.value.trim(); if (v === (e[key] || "") || (key === "next_step" && !e[key] && v === defNext(e.stage, e.researcher))) return;
+    if (await pipeSave(e, {[key]: v}, true)) { msg(SAVED_MSG); refreshPipeViews(); } });
+  txt($("#pNext"), "next_step"); txt($("#pNotes"), "notes");
+  $$("[data-pck]", $("#dBody")).forEach(cb => cb.onchange = () => { const k = e.id + "|" + e.stage; const a = checks[k] || []; a[+cb.dataset.pck] = cb.checked; checks[k] = a; store.set("mkdeal.checks", checks); });
+  const rm = $("#pipeRemove"); if (rm) rm.onclick = async () => {
+    try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"clear"}); DATA.pipeline = DATA.pipeline.filter(x => x !== e); closeDeal(true); refreshPipeViews(); toast("Removed from your pipeline — it'll be back in the lists after you re-score."); }
+    catch (err) { toast(err.message, {err:true}); } };
+}
+async function moveToPipeline(it, vote){
+  const removed = []; for (const R of DATA.researchers) { if (R.key !== it._r) continue; const n = R.items.findIndex(x => x.id === it.id); if (n >= 0) removed.push([R, n, R.items.splice(n, 1)[0]]); }
+  const now = new Date().toISOString(); const e = {id:it.id, researcher:it._r, stage:"interested", next_step:defNext("interested", it._r), due:null, notes:"", created_at:now, updated_at:now, removed:false};
+  e.item = Object.assign({}, strip(it), {my_vote:vote, id:it.id, _r:it._r, _pipe:e});
+  DATA.pipeline.unshift(e); ITEMS.delete(it.id); for (const R of DATA.researchers) for (const x of R.items) if (!ITEMS.has(x.id)) ITEMS.set(x.id, x);
+  const wasOpen = openId === it.id; if (wasOpen) closeDeal(true);
+  refreshPipeViews(); if (state.tab !== "today" && state.tab !== "pipeline") { const y = window.scrollY; render(); window.scrollTo({top:y}); }
+  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote});
+    toast(`Moved to My pipeline → next: ${e.next_step}`, {action:"Open", onAction: () => { selectTab("pipeline", true); openDeal(e.id, e.researcher, true); }}); }
+  catch (err) { for (const [R, n, x] of removed.reverse()) R.items.splice(Math.min(n, R.items.length), 0, x); DATA.pipeline = DATA.pipeline.filter(x => x !== e); if (!ITEMS.has(it.id)) ITEMS.set(it.id, it);
+    refreshPipeViews(); if (state.tab !== "today" && state.tab !== "pipeline") render(); toast(err.message, {err:true}); } }
+function dueSection(){
+  const t = todayISO(); const due = pipeActive().filter(e => e.due && String(e.due).slice(0, 10) <= t).sort(pipeSort);
+  if (!due.length) return "";
+  return `<section style="margin-bottom:var(--s8)" aria-labelledby="sec-due"><div class="sechead"><div><h3 id="sec-due">⏰ Next steps due</h3><div class="sub">From your pipeline — overdue first</div></div><button class="link" data-go="pipeline">Open pipeline →</button></div>
+    <div class="duelist">${due.map(pcard).join("")}</div></section>`; }
 async function startRescore(){
   const b = $("#rescoreBtn"); if (b.getAttribute("aria-busy") === "true") return;
   try { await api("POST", "/api/rescore", {}); toast("Re-scoring started — this takes about a minute."); watchRescore(); }
