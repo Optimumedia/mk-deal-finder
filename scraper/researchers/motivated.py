@@ -19,8 +19,8 @@ def _opening_offer(price, drop, ref, area, discount) -> int:
     the typical price nearby (a lowball that insults gets no counter-offer)."""
     offer = price * (0.92 if drop >= 0.15 else 0.85)
     if ref and area and discount is not None:
-        offer = max(offer, min(price, ref * area * 0.9))
-    return int(round(offer, -2))
+        offer = max(offer, ref * area * 0.9)
+    return int(round(min(offer, price * 0.92), -2))
 
 
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:

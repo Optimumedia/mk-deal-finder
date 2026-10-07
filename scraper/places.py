@@ -67,6 +67,41 @@ def other_town(listing: dict) -> bool:
     return listing.get("city") == SKOPJE and _OTHER_PLACES.any(norm(listing.get("title")))
 
 
+# Town centres (lat, lng) for the GPS sanity check.
+CITY_CENTRES = {
+    "Скопје": (41.9961, 21.4317), "Битола": (41.0297, 21.3292), "Куманово": (42.1322, 21.7144), "Прилеп": (41.3464, 21.5542),
+    "Тетово": (42.0106, 20.9714), "Велес": (41.7156, 21.7756), "Штип": (41.7362, 22.1958), "Охрид": (41.1172, 20.8016),
+    "Гостивар": (41.7964, 20.9083), "Струмица": (41.4375, 22.6431), "Кавадарци": (41.4331, 22.0119), "Кочани": (41.9164, 22.4125),
+    "Кичево": (41.5128, 20.9631), "Струга": (41.1778, 20.6783), "Радовиш": (41.6383, 22.4647), "Гевгелија": (41.1392, 22.5025),
+    "Дебар": (41.5250, 20.5272), "Крива Паланка": (42.2019, 22.3319), "Свети Николе": (41.8653, 21.9428), "Неготино": (41.4836, 22.0906),
+    "Делчево": (41.9661, 22.7747), "Виница": (41.8828, 22.5092), "Ресен": (41.0894, 21.0122), "Пробиштип": (42.0031, 22.1783),
+    "Берово": (41.7072, 22.8567), "Кратово": (42.0789, 22.1811), "Крушево": (41.3697, 21.2483), "Македонски Брод": (41.5136, 21.2153),
+    "Валандово": (41.3172, 22.5614), "Демир Хисар": (41.2211, 21.2031),
+}
+
+
+def _km(a, b, c, d) -> float:
+    import math
+    p1, p2 = math.radians(a), math.radians(c)
+    x = math.sin(p1) * math.sin(p2) + math.cos(p1) * math.cos(p2) * math.cos(math.radians(d - b))
+    return 6371 * math.acos(max(-1.0, min(1.0, x)))
+
+
+def refile_by_gps(listing: dict, max_km: float = 40) -> bool:
+    """If the ad's pin is far from the filed town, re-file it under the nearest
+    town (within 25 km) or mark the town unknown. Returns True when changed."""
+    lat, lng, city = listing.get("lat"), listing.get("lng"), listing.get("city")
+    if not (lat and lng) or city not in CITY_CENTRES:
+        return False
+    if _km(lat, lng, *CITY_CENTRES[city]) <= max_km:
+        return False
+    nearest = min(CITY_CENTRES, key=lambda c: _km(lat, lng, *CITY_CENTRES[c]))
+    listing["city_form"] = city
+    listing["city"] = nearest if _km(lat, lng, *CITY_CENTRES[nearest]) <= 25 else None
+    listing["district"] = None
+    return True
+
+
 def fix_districts(listings: list[dict]) -> int:
     """Override seller-picked districts the title contradicts; returns how many changed."""
     changed = 0

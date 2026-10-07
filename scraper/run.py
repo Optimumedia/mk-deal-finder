@@ -110,7 +110,8 @@ def detail_update(listing: dict, d: dict) -> dict:
         "deal": deal,
         "utilities": detect_utilities(text),
         "furnished": _bool_int(detect_furnished(fields.get("Опрема", "") + " " + desc)),
-        "renovation": int(needs_renovation(text) or "реновир" in fields.get("Состојба", "").lower()),
+        # Site field: "Реновиран(а)" = renovated; "За реновирање" = needs renovation.
+        "renovation": int(needs_renovation(text) or "за реновир" in fields.get("Состојба", "").lower()),
         "land_type": land_type(fields.get("Тип на земјиште"), text) if listing["kind"] == "land" else None,
         "abroad": int(is_abroad(text)),
     }
@@ -364,6 +365,16 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     clean.add_real_age(listings, cfg["scraper"]["reklama5_ids_per_day"])
     clean.drop_shared_pins(listings)
     moved = places.fix_districts(listings)
+    # Ads filed under the wrong town: the title names another town, or the pin is far away.
+    refiled = 0
+    for l in listings:
+        if places.refile_by_gps(l):
+            refiled += 1
+        elif places.other_town(l):
+            l["city_form"], l["city"], l["district"] = l.get("city"), None, None
+            refiled += 1
+    if refiled:
+        log.info("clean-up: %d ads re-filed (pin or title says another town)", refiled)
     before = len(listings)
     listings = clean.dedupe(listings)
     facts, confirmed = feedback.load_overrides()

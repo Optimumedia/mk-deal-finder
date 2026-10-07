@@ -65,8 +65,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
 
         villa_size = 1.0 if 400 <= area <= 3000 else 0.6
         score = 100 * clamp(
-            0.40 * clamp((discount or 0) / 0.5)
-            + 0.25 * (len(confirmed) / 3)
+            0.30 * clamp((discount or 0) / 0.5)
+            + 0.35 * (len(confirmed) / 3)
             + (c["building_land_bonus"] / 100) * (ltype == "building")
             + 0.10 * villa_size
             + 0.10 * (1 if (peaks or high) else 0.6)

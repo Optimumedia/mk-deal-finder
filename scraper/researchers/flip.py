@@ -79,11 +79,15 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         heavy = bool(l.get("renovation")) or (year is not None and year < 1980)
         reno = area * (c["renovation_heavy_per_m2"] if heavy else c["renovation_light_per_m2"])
         market_value = ref * area
-        resale = market_value * (1 - c["resale_discount"])
-        costs = price * c["transaction_costs"] + reno
-        profit = resale - price - costs
-        roi = profit / (price + costs)
-        total_cash = price + costs
+        resale = market_value * (1 - c["resale_discount"] * (1.5 if l["kind"] != "apartment" else 1))
+        buy_costs = price * c["buy_costs"]
+        holding = c["holding_months"] * c["holding_cost_per_month"]
+        sell_costs = resale * c["sell_costs"]
+        gain = resale - price - buy_costs - reno - holding - sell_costs
+        tax = max(0.0, gain) * c["capital_gains_tax"]
+        profit = gain - tax
+        total_cash = price + buy_costs + reno + holding
+        roi = profit / total_cash
         if total_cash > cfg.get("budget", {}).get("business", c.get("max_total_investment", 10**9)):
             continue                    # over the business budget once renovation and fees are added
         if roi < c["min_roi"]:
@@ -119,7 +123,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "Below market": f"{discount:.0%}",
                 "Est. market value": round(market_value),
                 "Renovation est.": round(reno),
-                "Taxes & fees est.": round(price * c["transaction_costs"]),
+                "Buying costs est.": round(buy_costs),
+                "Selling costs + tax est.": round(sell_costs + tax),
                 "Est. profit": round(profit),
                 "Total cash needed": round(total_cash),
                 "ROI": f"{roi:.0%}",

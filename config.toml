@@ -116,7 +116,7 @@ cleaning_per_stay = 12
 avg_stay_nights = 3.0      # sources range 2.5–5 nights
 tourist_tax_per_guest_night = 0.65   # ~40 MKD; usually passed on to guests, counted to stay conservative
 guests_per_stay = 2
-income_tax = 0.10          # personal rental income tax on the profit (company tax differs)
+rental_tax_of_gross = 0.075   # 10% PIT on gross rent minus the 25% statutory deduction
 # ⚠ Legal (unverified, material): renting a flat you don't own short-term likely
 # needs a registered company, categorisation of the unit and the landlord's
 # written consent; tourist tax and guest registration apply. Check before signing.
@@ -137,7 +137,7 @@ enabled = true
 # Plots in these cities always qualify (any part of the municipality).
 cities = ["Скопје", "Охрид"]
 # Plots anywhere else qualify if the ad mentions one of these mountain areas.
-mountain_keywords = ["маврово", "mavrovo", "попова шапка", "popova sapka", "шар планина", "sar planina", "крушево", "krusevo", "пелистер", "pelister", "брајчино", "brajcino", "галичица", "galicica", "вевчани", "vevcani", "берово", "berovo", "пехчево", "pehcevo", "малешево", "malesevo", "кожуф", "kozuf", "осогово", "osogovo", "пониква", "ponikva", "кратово", "kratovo", "никиште", "nikiste", "јабланица", "jablanica", "водно", "vodno", "матка", "matka", "китка", "kitka", "даутица", "dautica", "лазаропоље", "lazaropole", "галичник", "galicnik", "бистра", "bistra", "дојран", "dojran", "нижепоље", "nizepole", "трново", "trnovo", "магарево", "magarevo", "љубаниште", "ljubaniste", "велгошти", "velgosti", "планина", "planina", "планинск", "planinsk"]
+mountain_keywords = ["маврово", "mavrovo", "попова шапка", "popova sapka", "шар планина", "sar planina", "крушево", "krusevo", "пелистер", "pelister", "брајчино", "brajcino", "галичица", "galicica", "вевчани", "vevcani", "берово", "berovo", "пехчево", "pehcevo", "малешево", "malesevo", "кожуф", "kozuf", "осогово", "osogovo", "пониква", "ponikva", "кратово", "kratovo", "никиште", "nikiste", "јабланица", "jablanica", "водно", "vodno", "матка", "matka", "китка", "kitka", "даутица", "dautica", "лазаропоље", "lazaropole", "галичник", "galicnik", "бистра", "bistra", "нижепоље", "nizepole", "трново", "trnovo", "магарево", "magarevo", "љубаниште", "ljubaniste", "велгошти", "velgosti", "планина", "planina", "планинск", "planinsk"]
 min_area_m2 = 250
 max_area_m2 = 20000
 max_price_eur = 170000   # = [budget].personal_home
@@ -168,10 +168,15 @@ min_area_m2 = 25
 max_price_eur = 400000   # hard ceiling; the real limit is [budget].business on the total
 # (price + renovation + taxes) — see max_total_investment
 max_total_investment = 80000
-renovation_light_per_m2 = 70     # paint, floors, fixtures
-renovation_heavy_per_m2 = 260    # when the ad says "for renovation" / old build
-transaction_costs = 0.05         # property tax (2–4%) + notary + agency
-resale_discount = 0.04           # you'll sell slightly under median
+# Analyst review 2026-10-07 (practitioner estimates + public tax rules):
+renovation_light_per_m2 = 120    # paint, floors, fixtures
+renovation_heavy_per_m2 = 400    # "за реновирање" / built before 1980: installations, bath, kitchen
+buy_costs = 0.055                # transfer tax 2–4% (Skopje 3%) + notary/lawyer/cadastre + agency
+sell_costs = 0.03                # agency on the sale
+capital_gains_tax = 0.09         # 10% PIT on 90% of the gain (held < 5 years)
+resale_discount = 0.10           # asking → actual sale haircut (flats; village houses more)
+holding_months = 9               # utilities, property tax and tied-up cash while you renovate and sell
+holding_cost_per_month = 60
 min_roi = 0.10
 
 # ----------------------------------------------------------------------------
@@ -196,6 +201,7 @@ max_pages = 30                 # stops earlier, at the first page of past sales
 kinds = ["apartment", "house", "land"]
 min_price_eur = 1000
 max_premium = 0.30             # hide sales starting >30% above the city median
+suspicious_appraisal_gap = 0.35  # appraisal this far under asking → ⚠ likely a problem asset
 # Sales of a share only ("1/6 идеален дел") look absurdly cheap but make you a
 # co-owner with strangers. Hidden unless you switch this on.
 include_partial_shares = false

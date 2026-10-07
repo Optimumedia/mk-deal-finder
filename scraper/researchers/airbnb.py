@@ -115,9 +115,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         costs = (gross * c["platform_fee"] + utilities + cleaning * stays
                  + c["supplies_monthly"] + furnishing / c["furnishing_months"])
         costs += c.get("tourist_tax_per_guest_night", 0) * c.get("guests_per_stay", 2) * nights
+        costs += gross * c.get("rental_tax_of_gross", 0)
         profit = gross - costs - rent
-        if profit > 0:
-            profit *= 1 - c.get("income_tax", 0)
         if profit < c["min_monthly_profit"]:
             continue
         margin = profit / gross if gross else 0
@@ -141,14 +140,14 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
 
         # Scaled to realistic Skopje numbers (2026 market data): ~€300/month after
         # tax is excellent; fast payback on the set-up cash matters as much.
-        payback_score = clamp(1 - ((payback or 24) - 2) / 10)          # ≤2 months → 1, 12+ → 0
-        score = 100 * clamp(0.40 * clamp(profit / 300) + 0.25 * payback_score + 0.20 * clamp(factor)
-                            + 0.15 * clamp(margin / 0.35))
+        # Payback on 2× rent says little; rank on profit, location and margin.
+        score = 100 * clamp(0.55 * clamp(profit / 300) + 0.25 * clamp(factor) + 0.20 * clamp(margin / 0.35))
         r = base(l)
         r.update({
             "score": round(score),
             "utilities": util,
             "qualified": True,
+            "comps": adr_samples,            # real per-night ads behind the nightly rate
             "reasons": reasons,
             "metrics": {
                 "Rent / month": round(rent),

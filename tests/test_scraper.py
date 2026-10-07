@@ -225,7 +225,8 @@ class RatingTests(unittest.TestCase):
         from scraper.rating import rate
         self.assertEqual(rate(self.item(95, comps=20), "land")["tier"], "exceptional")   # 💎 needs 30+
         self.assertEqual(rate(self.item(95, comps=10), "land")["tier"], "great")         # 🔥 needs 15+
-        self.assertEqual(rate(self.item(95, comps=0), "airbnb")["tier"], "once")        # no market comparison involved
+        self.assertEqual(rate(self.item(95, comps=0), "airbnb")["tier"], "great")       # nightly rate is an estimate only
+        self.assertEqual(rate(self.item(95, comps=0), "motivated")["tier"], "once")      # no market comparison involved
 
     def test_sorted_best_first(self):
         from scraper.rating import rate_all
@@ -344,3 +345,33 @@ class DistanceTests(unittest.TestCase):
         village_only = {"approx_lat": 41.99297, "approx_lng": 21.58084}          # no route yet: straight line
         self.assertEqual(fmt_drive(_distance(village_only, "skopje")), "12 km (straight line)")
         self.assertIsNone(_distance({}, "skopje"))
+
+
+class AnalystReviewRegressionTests(unittest.TestCase):
+    """Independent analyst review, 2026-10-07."""
+
+    def test_renovated_is_not_needs_renovation(self):
+        from scraper.run import detail_update
+        l = {"kind": "apartment", "title": "Stan", "price_eur": 60000, "area_m2": 50}
+        d = {"title": "Stan", "description": "", "fields": {"Состојба": "Реновиран"}, "area_m2": 50, "price_eur": 60000}
+        self.assertEqual(detail_update(l, d)["renovation"], 0)
+        d["fields"]["Состојба"] = "За реновирање"
+        self.assertEqual(detail_update(l, d)["renovation"], 1)
+
+    def test_land_type_trusts_the_site_field(self):
+        self.assertEqual(land_type("Нива", "плац со можност за градба и дозвола"), "agricultural")
+        self.assertEqual(land_type("Останато", "нива, можност за градба"), "agricultural")
+        self.assertEqual(land_type("Останато", "градежно земјиште со градежна дозвола"), "building")
+        self.assertEqual(land_type("Градежно", "нива"), "building")
+
+    def test_refile_by_gps(self):
+        from scraper.places import refile_by_gps
+        radovis = {"city": "Скопје", "district": "Аеродром", "lat": 41.62, "lng": 22.35}
+        self.assertTrue(refile_by_gps(radovis))
+        self.assertEqual((radovis["city"], radovis["district"], radovis["city_form"]), ("Радовиш", None, "Скопје"))
+        ok = {"city": "Скопје", "district": "Карпош", "lat": 41.99, "lng": 21.43}
+        self.assertFalse(refile_by_gps(ok))
+
+    def test_opening_offer_never_above_92_percent(self):
+        from scraper.researchers.motivated import _opening_offer
+        self.assertLessEqual(_opening_offer(59000, 0.16, 25, 3000, 0.5), 59000 * 0.92)

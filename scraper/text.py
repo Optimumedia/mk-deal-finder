@@ -302,15 +302,27 @@ def needs_renovation(text: str) -> bool:
     return _RENOVATION.any(norm(text))
 
 
-_BUILDING_LAND = KeywordSet(["gradezno", "gradezen", "gradez", "urbanist", "za gradba", "gradba na kuka", "dozvola", "per ndertim", "truall"])
+# Strong words only: "можност за градба" (could be built on) is a hope, not a zoning.
+_BUILDING_LAND = KeywordSet(["gradezno", "gradezen", "gradezna dozvola", "gradezna markica", "urbanisticki plan",
+                             "vo dup", "vo plan", "truall", "toke ndertimi"])
 _AGRI_LAND = KeywordSet(["zemjodelsk", "niva", "nivi", "lozje", "ovostarnik", "livada", "suma", "pasiste", "bujq"])
 
 
 def land_type(field_value: str | None, text: str) -> str:
-    """'building', 'agricultural' or 'unknown'."""
-    for src in (norm(field_value), norm(text)):
-        if _BUILDING_LAND.any(src):
-            return "building"
-        if _AGRI_LAND.any(src):
-            return "agricultural"
+    """'building', 'agricultural' or 'unknown'.
+
+    The site's own field wins ("Градежно" / "Нива"); the ad text is consulted
+    only when the field is empty or "Останато", and a text that mentions a
+    field (нива/лозје) without an explicit zoning word is agricultural.
+    """
+    f = norm(field_value)
+    if _BUILDING_LAND.any(f):
+        return "building"
+    if _AGRI_LAND.any(f):
+        return "agricultural"
+    t = norm(text)
+    if _BUILDING_LAND.any(t) and not _AGRI_LAND.any(t):
+        return "building"
+    if _AGRI_LAND.any(t):
+        return "agricultural"
     return "unknown"

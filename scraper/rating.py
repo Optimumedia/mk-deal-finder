@@ -45,7 +45,7 @@ def rate(item: dict, researcher: str) -> dict:
     tier = next(t for t in TIERS if score >= t[0])
     if tier[1] in ("once", "exceptional") and not _evidence_ok(item, researcher):
         tier = TIERS[2]
-    if researcher in NEEDS_MARKET:
+    if researcher in NEEDS_MARKET or researcher == "airbnb":
         comps = item.get("comps") or 0
         if tier[1] == "once" and comps < MIN_COMPS["once"]:
             tier = TIERS[1]                 # 💎 only against a well-populated local market

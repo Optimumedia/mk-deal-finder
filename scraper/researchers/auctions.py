@@ -45,6 +45,12 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             continue
 
         reasons = []
+        # Starting price: 1st sale = court appraisal; 2nd = appraisal − 1/3; 3rd lower still.
+        appraisal = price * {2: 1.5, 3: 2.0}.get(rnd or 1, 1.0)
+        app_gap = (1 - (appraisal / area) / ref) if (ref and area and level != "national") else None
+        if app_gap is not None and app_gap >= c.get("suspicious_appraisal_gap", 0.35):
+            reasons.append(f"⚠ court appraisal ~{appraisal:,.0f} € is {app_gap:.0%} under local asking — usually a "
+                           f"problem asset (basement, shared land, encumbrance): read the notice")
         if discount is not None:
             if discount > 0:
                 reasons.append(f"starts {discount:.0%} below the {l.get('city')} {rf.describe(l['kind'])} "
@@ -58,7 +64,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             reasons.append("utilities unknown — check the notice and the cadastre")
         if extra.get("share"):
             reasons.append(f"⚠ only a {extra['share']} ownership share is sold — co-ownership")
-        reasons.append("read the official notice (link) and check encumbrances (товари) and occupancy before bidding")
+        reasons.append("deposit 10% the day before; pay within 15 days or lose it; buyer pays transfer tax; "
+                       "check товари, third-party land and occupancy in the notice")
 
         if discount is not None and discount < c["max_premium"] * -1:
             continue    # starts far above market — not a deal at this round
@@ -85,6 +92,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "Sale date": sale.strftime("%d.%m.%Y"),
                 "Days until sale": days_left,
                 "Round": ROUND_TXT.get(rnd, "unknown"),
+                "Court appraisal est.": round(appraisal),
+                "Deposit (10%)": round(appraisal * 0.1),
                 "Case no.": extra.get("case"),
                 "Bailiff": extra.get("bailiff"),
             },
