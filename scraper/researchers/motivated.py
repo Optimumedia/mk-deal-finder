@@ -31,7 +31,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if l["deal"] != "sale" or l.get("abroad"):
             continue
         price = total_price(l)
-        if not price or price < c["min_price_eur"]:
+        b = cfg.get("budget", {})
+        limit = b.get("personal_home") if l["kind"] == "land" else b.get("business")
+        if not price or price < c["min_price_eur"] or (limit and price > limit):
             continue
         util = utilities_status(l, urban_assumed=l["kind"] != "land")
         if not utilities_ok(util, strict=False):

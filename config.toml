@@ -73,6 +73,14 @@ mkd_per_eur = 61.5
 #  Researcher 1 — Airbnb / Booking rental arbitrage in Skopje
 #  Rent a flat long-term, list it short-term, keep the difference.
 # ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+#  Your budget (owner, 2026-10-07)
+# ----------------------------------------------------------------------------
+[budget]
+personal_home = 170000   # land for your own house / villa (purchase price)
+business = 80000         # flips (price + renovation + fees), auctions, motivated sellers,
+                         # Airbnb set-up cash — anything bought to make money
+
 [airbnb]
 enabled = true
 city = "Скопје"
@@ -84,7 +92,10 @@ center_lng = 21.4317
 # Average nightly rate (EUR) for a well-presented flat AT THE CENTER,
 # by room count as listed (соби). ⚠ These are starting estimates — calibrate them by
 # checking 10–15 comparable Airbnb/Booking listings for your dates.
-adr_by_rooms = { "1" = 40, "2" = 50, "3" = 65, "4" = 80 }
+# Calibrated 2026-10-07 from published market data (AirROI Sep 2026: ADR $53,
+# Airbtics Mar 2026: $44, bnbcalc Sep 2026: ~€49; revenue ratio by bedrooms
+# 1 : 1.27 : 1.6 : 1.86). Rooms as listed: 1 = studio, 2 = 1-bedroom, …
+adr_by_rooms = { "1" = 38, "2" = 46, "3" = 58, "4" = 72 }
 # These estimates are blended with real Skopje flats advertised per night
 # (стан за ноќевање): weight of the estimate = this many ads' worth.
 adr_prior_weight = 5
@@ -92,15 +103,23 @@ adr_min_samples = 5            # fewer real ads than this → use the estimate a
 # Ignore per-night ads outside this range (typos, monthly prices).
 observed_adr_range = [15, 250]
 # Occupancy at the center; both ADR and occupancy decay with distance.
-occupancy_center = 0.62
+# Median Skopje listing books 33–55% of nights (AirDNA 49%, Airbtics 55%,
+# AirROI 33%); the centre does better, so 50% there.
+occupancy_center = 0.50
 # Multiplier applied per km from the center (0.93 = −7% per km), floored.
-decay_per_km = 0.93
-decay_floor = 0.45
-platform_fee = 0.15        # Airbnb/Booking host fee + payment costs
+decay_per_km = 0.95        # −5% per km from Macedonia Square (published premiums: centre +15%)
+decay_floor = 0.60         # → ~30% occupancy at worst, the bottom of the market range
+platform_fee = 0.155       # Airbnb host-only fee / Booking 15–18%
 utilities_monthly = 40     # internet, TV, fixed fees
 utilities_per_m2 = 1.5     # electricity, heating, water scale with size
 cleaning_per_stay = 12
-avg_stay_nights = 2.6
+avg_stay_nights = 3.0      # sources range 2.5–5 nights
+tourist_tax_per_guest_night = 0.65   # ~40 MKD; usually passed on to guests, counted to stay conservative
+guests_per_stay = 2
+income_tax = 0.10          # personal rental income tax on the profit (company tax differs)
+# ⚠ Legal (unverified, material): renting a flat you don't own short-term likely
+# needs a registered company, categorisation of the unit and the landlord's
+# written consent; tourist tax and guest registration apply. Check before signing.
 supplies_monthly = 35      # linen, toiletries, coffee
 furnishing_cost = 3500     # one-off if the flat is unfurnished
 furnishing_months = 24     # amortise the furnishing over this many months
@@ -121,7 +140,7 @@ cities = ["Скопје", "Охрид"]
 mountain_keywords = ["маврово", "mavrovo", "попова шапка", "popova sapka", "шар планина", "sar planina", "крушево", "krusevo", "пелистер", "pelister", "брајчино", "brajcino", "галичица", "galicica", "вевчани", "vevcani", "берово", "berovo", "пехчево", "pehcevo", "малешево", "malesevo", "кожуф", "kozuf", "осогово", "osogovo", "пониква", "ponikva", "кратово", "kratovo", "никиште", "nikiste", "јабланица", "jablanica", "водно", "vodno", "матка", "matka", "китка", "kitka", "даутица", "dautica", "лазаропоље", "lazaropole", "галичник", "galicnik", "бистра", "bistra", "дојран", "dojran", "нижепоље", "nizepole", "трново", "trnovo", "магарево", "magarevo", "љубаниште", "ljubaniste", "велгошти", "velgosti", "планина", "planina", "планинск", "planinsk"]
 min_area_m2 = 250
 max_area_m2 = 20000
-max_price_eur = 250000
+max_price_eur = 170000   # = [budget].personal_home
 # Building land ("градежно") is strongly preferred; agricultural land usually
 # can't legally get a house permit without re-zoning.
 require_building_land = false
@@ -137,7 +156,9 @@ enabled = true
 min_discount = 0.15          # at least 15% below the local median €/m²
 suspicious_discount = 0.65   # deeper than this is probably a data error
 min_area_m2 = 25
-max_price_eur = 400000
+max_price_eur = 400000   # hard ceiling; the real limit is [budget].business on the total
+# (price + renovation + taxes) — see max_total_investment
+max_total_investment = 80000
 renovation_light_per_m2 = 70     # paint, floors, fixtures
 renovation_heavy_per_m2 = 260    # when the ad says "for renovation" / old build
 transaction_costs = 0.05         # property tax (2–4%) + notary + agency

@@ -378,6 +378,44 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     return needs_info.annotate(results, by_id, cfg), market, by_id
 
 
+PRIVATE_JSON = ROOT / "data" / "private.json"
+
+
+def write_outputs(db: DB, cfg: dict, results: dict, market: Market, by_id: dict, public: bool = True) -> dict:
+    """Write docs/data.json (public, published) and data/private.json (yours: votes,
+    seller facts and personalised scores; git-ignored, served only on your PC).
+    Returns the private results (what alerts are based on)."""
+    votes = feedback.load_votes()
+    if public:
+        pub = needs_info.public(rating.rate_all(feedback.apply(results, votes, personalize=False)))
+        export.write(ROOT / "docs" / "data.json", pub, market, db, cfg, RESEARCHERS)
+    private = rating.rate_all(feedback.apply(results, votes, rejections=feedback.load_rejections(), listings=by_id))
+    private = feedback.annotate_mine(private)
+    export.write(PRIVATE_JSON, private, market, db, cfg, RESEARCHERS, extra={"rejected": feedback.rejected_list()})
+    return private
+
+
+def rescore(cfg: dict | None = None) -> None:
+    """Re-score from the database without scraping and refresh data/private.json
+    (the "↻ Re-score now" button on your private dashboard)."""
+    import shutil
+    import sqlite3
+    import tempfile
+    cfg = cfg or tomllib.loads((ROOT / "config.toml").read_text(encoding="utf-8"))
+    # Work on a snapshot: a scheduled run may be writing the live database.
+    with tempfile.TemporaryDirectory() as tmp:
+        snap = Path(tmp) / "snapshot.db"
+        src = sqlite3.connect((ROOT / "data" / "deals.db").as_uri() + "?mode=ro", uri=True, timeout=120)
+        dst = sqlite3.connect(snap)
+        src.backup(dst)
+        dst.close()
+        src.close()
+        db = DB(snap)
+        results, market, by_id = analyse(db, cfg)
+        write_outputs(db, cfg, results, market, by_id, public=False)
+        db.conn.close()
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--full", action="store_true", help="read every page (default: automatic, once a day)")
@@ -424,11 +462,8 @@ def main(argv=None) -> int:
     db.finish_run(run_id, status=status, mode="full" if full else "quick", pages=stats["pages"], details=details,
                   new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
-    votes = feedback.load_votes()
-    public = needs_info.public(rating.rate_all(feedback.apply(results, votes, personalize=False)))
-    export.write(ROOT / "docs" / "data.json", public, market, db, cfg, RESEARCHERS)
-    private = feedback.apply(results, votes, rejections=feedback.load_rejections(), listings=by_id)
-    notify.send(rating.rate_all(private), db, cfg, RESEARCHERS)
+    private = write_outputs(db, cfg, results, market, by_id)
+    notify.send(private, db, cfg, RESEARCHERS)
     if status != "ok":
         notify.send_status(
             f"⚠️ MK Deal Finder run #{run_id} {status.upper()} after {stats['pages']} pages.\n{message}\n\n"

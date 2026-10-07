@@ -78,8 +78,9 @@ def vote_buttons(researcher: str, listing_id: str, chosen: str | None = None, ne
     return {"inline_keyboard": [[btn("up", "👍 Interested"), btn("dn", "👎 Not for me")]]}
 
 
-REPLY_HINT = ("✍️ Reply to this message with what the seller told you, e.g.\n"
-              "<code>water yes, power yes, road no, area 450, price 32000, building yes</code>")
+PRIVATE_DASHBOARD = "http://localhost:8800"
+REPLY_HINT = ("✍️ After the call, record the answers on your dashboard (✅ Fits / ❌ Not a fit / "
+              "'What the seller told you').")
 
 
 def format_deal(item: dict, researcher_title: str = "", researcher: str = "") -> str:
@@ -112,15 +113,19 @@ def format_deal(item: dict, researcher_title: str = "", researcher: str = "") ->
     if gmaps:
         exact = item.get("lat") and item.get("lng")
         lines.append(f"📍 <a href=\"{html.escape(gmaps)}\">Google Maps</a>" + ("" if exact else " (area — no exact pin in the ad)"))
+    deal_link = f"{os.environ.get('DASHBOARD_URL', '').rstrip('/')}/#deal={item['id']}" if os.environ.get("DASHBOARD_URL") else None
+    if deal_link:
+        lines.append(f"⭐ <a href=\"{html.escape(deal_link)}\">Open on the dashboard</a> · rate it on your PC: "
+                     f"{PRIVATE_DASHBOARD}/#deal={html.escape(item['id'])}")
     if item.get("owner_note"):
         lines.append(f"📝 Your note: {html.escape(item['owner_note'])}")
     return "\n".join(lines)
 
 
 def _post(chat, item, researcher, title, fb_conn) -> bool:
+    # Rating happens on the platform (owner's choice) — the message links to the deal there.
     res = api("sendMessage", chat_id=chat, text=format_deal(item, title, researcher)[:4000], parse_mode="HTML",
-              disable_web_page_preview="true",
-              reply_markup=vote_buttons(researcher, item["id"], needs_info=item.get("status") == "needs_info"))
+              disable_web_page_preview="true")
     if res and fb_conn is not None:
         from . import feedback
         feedback.remember_message(fb_conn, res["message_id"], item["id"], researcher)

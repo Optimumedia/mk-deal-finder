@@ -29,7 +29,10 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if days_left < 0:
             continue
         price, area = total_price(l), l.get("area_m2")
-        if not price or price < c["min_price_eur"]:
+        b = cfg.get("budget", {})
+        # Land could be your own home; flats and houses at auction are business buys.
+        limit = b.get("personal_home") if l["kind"] == "land" else b.get("business")
+        if not price or price < c["min_price_eur"] or (limit and price > limit):
             continue
         unit = ppm2({**l, "deal": "sale"})          # sanity bounds of a normal sale
         rf = market.reference(l["kind"], "sale", l.get("city"), None, area)

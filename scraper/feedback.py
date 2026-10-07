@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS messages (
 """
 
 
-def connect(path: Path = DB_PATH) -> sqlite3.Connection:
+def connect(path: Path | None = None) -> sqlite3.Connection:
+    path = path or DB_PATH          # looked up at call time (tests and tools can redirect it)
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path, timeout=30)
     conn.row_factory = sqlite3.Row
@@ -125,9 +126,67 @@ def add_rejection_note(conn, listing_id: str, note: str) -> bool:
 
 
 def undo(conn, listing_id: str, researcher: str) -> None:
+    """Forget your vote, rejection and confirmation for a deal."""
     conn.execute("DELETE FROM rejections WHERE listing_id=? AND researcher=?", (listing_id, researcher))
     conn.execute("DELETE FROM votes WHERE listing_id=? AND researcher=?", (listing_id, researcher))
+    conn.execute("DELETE FROM confirmations WHERE listing_id=?", (listing_id,))
     conn.commit()
+
+
+def annotate_mine(results: dict, path: Path | None = None) -> dict:
+    """Add my_vote / my_reason / my_note / facts to each result (private dashboard only)."""
+    path = path or DB_PATH
+    if not path.exists():
+        return results
+    with closing(connect(path)) as conn:
+        votes = {(r["listing_id"], r["researcher"]): r["vote"] for r in conn.execute("SELECT * FROM votes")}
+        confirmed = {r[0] for r in conn.execute("SELECT listing_id FROM confirmations")}
+        rejected = {(r["listing_id"], r["researcher"]): dict(r) for r in conn.execute("SELECT * FROM rejections")}
+        facts: dict[str, dict] = {}
+        for r in conn.execute("SELECT listing_id, field, value FROM overrides"):
+            facts.setdefault(r[0], {})[r[1]] = r[2]
+    out = {}
+    for researcher, items in results.items():
+        rows = []
+        for x in items:
+            v = votes.get((x["id"], researcher))
+            mine = {"my_vote": "ok" if x["id"] in confirmed else "up" if v and v > 0 else "down" if v and v < 0 else None}
+            rj = rejected.get((x["id"], researcher))
+            if rj:
+                mine["my_reason"], mine["my_note"] = rj["reason"], rj["note"]
+            if x["id"] in facts:
+                f = dict(facts[x["id"]])
+                for k in ("area_m2", "price_eur"):
+                    if k in f:
+                        try:
+                            f[k] = float(f[k])
+                        except ValueError:
+                            f.pop(k)
+                mine["facts"] = f
+            rows.append({**x, **mine})
+        out[researcher] = rows
+    return out
+
+
+def rejected_list(path: Path | None = None) -> list[dict]:
+    """Deals you rejected (they disappear from results), for the Undo list."""
+    from .reasons import BY_CODE
+    path = path or DB_PATH
+    if not path.exists():
+        return []
+    with closing(connect(path)) as conn:
+        rows = [dict(r) for r in conn.execute("SELECT * FROM rejections ORDER BY rejected_at DESC")]
+        # 👎 without a reason (older Telegram votes) count as rejections too
+        bare = [dict(r) for r in conn.execute(
+            "SELECT v.listing_id, v.researcher, v.title, v.voted_at AS rejected_at FROM votes v WHERE v.vote < 0 AND NOT "
+            "EXISTS (SELECT 1 FROM rejections r WHERE r.listing_id = v.listing_id AND r.researcher = v.researcher)")]
+    out = []
+    for r in rows + bare:
+        code = r.get("reason")
+        out.append({"id": r["listing_id"], "researcher": r["researcher"], "title": r.get("title"),
+                    "reason": code, "reason_label": BY_CODE[code].label if code in BY_CODE else "no reason given",
+                    "note": r.get("note"), "rejected_at": r.get("rejected_at")})
+    return out
 
 
 def load_rejections(path: Path | None = None) -> list[dict]:

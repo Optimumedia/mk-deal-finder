@@ -83,6 +83,9 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         costs = price * c["transaction_costs"] + reno
         profit = resale - price - costs
         roi = profit / (price + costs)
+        total_cash = price + costs
+        if total_cash > cfg.get("budget", {}).get("business", c.get("max_total_investment", 10**9)):
+            continue                    # over the business budget once renovation and fees are added
         if roi < c["min_roi"]:
             continue
 
@@ -117,6 +120,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 "Renovation est.": round(reno),
                 "Taxes & fees est.": round(price * c["transaction_costs"]),
                 "Est. profit": round(profit),
+                "Total cash needed": round(total_cash),
                 "ROI": f"{roi:.0%}",
                 "Gross rental yield": f"{yield_gross:.1%}" if yield_gross else None,
                 "Year built": year,

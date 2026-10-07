@@ -9,3 +9,4 @@ data/local-run.log
 .telegram
 data/feedback.db
 data/bot.log*
+data/private.json

@@ -255,9 +255,13 @@ def main() -> int:
                                                    encoding="utf-8")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", handlers=[handler])
     notify.load_settings()
+    # Private dashboard with rating (http://localhost:8800) — runs whether or not Telegram is set up.
+    from . import web
+    web.serve(int(os.environ.get("DASHBOARD_PORT", "8800")))
     if not notify.configured():
-        log.error("Telegram is not configured — run setup_telegram.ps1 first")
-        return 1
+        log.error("Telegram is not configured — run setup_telegram.ps1; serving the private dashboard only")
+        while True:
+            time.sleep(3600)
     my_chat = str(os.environ["TELEGRAM_CHAT_ID"])
     conn = feedback.connect()
     offset = int(feedback.get_meta(conn, "telegram_offset", 0))

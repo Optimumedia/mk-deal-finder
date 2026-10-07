@@ -21,7 +21,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         if l["kind"] != "land" or l["deal"] != "sale" or l.get("abroad"):
             continue
         price, area = total_price(l), l.get("area_m2")
-        if not price or not area or not (c["min_area_m2"] <= area <= c["max_area_m2"]) or price > c["max_price_eur"]:
+        budget = cfg.get("budget", {}).get("personal_home", c["max_price_eur"])
+        if not price or not area or not (c["min_area_m2"] <= area <= c["max_area_m2"]) or price > budget:
             continue
         text = text_of(l)
         n = norm(text)

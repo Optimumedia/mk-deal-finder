@@ -114,11 +114,16 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         cleaning = c["cleaning_per_stay"] * (1.5 if int(rooms_key) >= 3 else 1)
         costs = (gross * c["platform_fee"] + utilities + cleaning * stays
                  + c["supplies_monthly"] + furnishing / c["furnishing_months"])
+        costs += c.get("tourist_tax_per_guest_night", 0) * c.get("guests_per_stay", 2) * nights
         profit = gross - costs - rent
+        if profit > 0:
+            profit *= 1 - c.get("income_tax", 0)
         if profit < c["min_monthly_profit"]:
             continue
         margin = profit / gross if gross else 0
         upfront = rent * 2 + furnishing          # deposit + first month + furniture
+        if upfront > cfg.get("budget", {}).get("business", 10**9):
+            continue
         payback = upfront / profit if profit > 0 else None
 
         # How cheap is this rent for its spot?
@@ -134,7 +139,11 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         elif furnished is False:
             reasons.append("unfurnished — budget for furniture")
 
-        score = 100 * clamp(0.55 * clamp(profit / 800) + 0.25 * clamp(factor) + 0.2 * clamp(margin / 0.5))
+        # Scaled to realistic Skopje numbers (2026 market data): ~€300/month after
+        # tax is excellent; fast payback on the set-up cash matters as much.
+        payback_score = clamp(1 - ((payback or 24) - 2) / 10)          # ≤2 months → 1, 12+ → 0
+        score = 100 * clamp(0.40 * clamp(profit / 300) + 0.25 * payback_score + 0.20 * clamp(factor)
+                            + 0.15 * clamp(margin / 0.35))
         r = base(l)
         r.update({
             "score": round(score),

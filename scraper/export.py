@@ -7,7 +7,7 @@ from pathlib import Path
 from .db import now
 
 
-def write(path: Path, results: dict, market, db, cfg: dict, researchers) -> None:
+def write(path: Path, results: dict, market, db, cfg: dict, researchers, extra: dict | None = None) -> None:
     cap = cfg["export"]["max_items_per_researcher"]
     payload = {
         "generated_at": now(),
@@ -26,6 +26,7 @@ def write(path: Path, results: dict, market, db, cfg: dict, researchers) -> None
             for r in researchers if r.NAME in results
         ],
         "market": market.summary(),
+        **(extra or {}),
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
