@@ -405,3 +405,18 @@ class DataQualityReviewTests(unittest.TestCase):
     def test_renewed_counts_as_active(self):
         from scraper.researchers.common import days_listed
         self.assertEqual(days_listed({"posted": "2025-06-09", "renewed": date.today().isoformat()}), 0)
+
+
+class UtilityHedgeTests(unittest.TestCase):
+    """DQ audit: 19% of 'confirmed' land utilities were hedged phrases."""
+
+    def test_hedged_mentions_are_not_confirmed(self):
+        self.assertIsNone(detect_utilities("се очекува асфалтен пристап до плацот")["road"])
+        self.assertIsNone(detect_utilities("услови за приклучок на струја и вода")["electricity"])
+        self.assertIsNone(detect_utilities("vo blizina e postoecka trafostanica")["electricity"])
+
+    def test_each_mention_judged_on_its_own(self):
+        u = detect_utilities("vo blizina e postoecka trafostanica, voda ima vo placot")
+        self.assertEqual((u["electricity"], u["water"]), (None, True))
+        u = detect_utilities("струја има, вода во близина")
+        self.assertEqual((u["electricity"], u["water"]), (True, None))

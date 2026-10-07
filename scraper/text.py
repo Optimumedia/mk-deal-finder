@@ -233,8 +233,12 @@ _ALL_INFRA = KeywordSet([
     "infrastruktur", "komunalno opremen", "komunalno ureden", "komunalii", "site prikluc", "urbaniziran",
 ])
 # "can be connected", "planned", "nearby", "200 m away" — not the same as having it.
-_MAYBE_BEFORE = r"(?:moznost za|moze da se|se ocekuv[a-z]*|planiran[a-z]*|ke ima|ke se|vo izgradba)(?: [a-z0-9]+){0,3} "
-_MAYBE_AFTER = r"(?: [a-z0-9]+){0,3} (?:vo neposredna blizina|vo blizina|nablizu|blizu|na \d+ ?m|do granica)"
+# Hedges: a utility mentioned this way is a hope or a neighbour's, not a connection.
+_HEDGE = re.compile(
+    r"moznost za|moze da se|se ocekuv[a-z]*|planiran[a-z]*|predviden[a-z]*|ke ima|ke se|ke bide|vo izgradba|uslovi za|"
+    r"prikluc[a-z]*|vo neposredna blizina|vo blizina|nablizu|blizu|na \d+ ?m|do granica|postoeck[a-z]*|trafostanic[a-z]*|"
+    r"dalekuvod|vodovodna mreza vo|na granica")
+_HEDGE_WINDOW = 5      # words on either side of the utility word
 # Place names that contain a utility word but say nothing about utilities.
 _PLACE_NOISE = re.compile(r" (kisela voda|bela voda|studena voda|topla voda|crna voda|patiska|crven pat) ")
 _NEGATORS = r"(?:nema|nemame|bez|pa|nedostasuva)"
@@ -264,18 +268,29 @@ def detect_utilities(text: str) -> dict:
     all_infra = _ALL_INFRA.any(n)
     out = {}
     for key, rx in _UTILITY_RE.items():
-        body = rx.pattern[len("(?<![a-z0-9])"):]
-        conditional = re.search(_MAYBE_BEFORE + body, n) or re.search(body + _MAYBE_AFTER, n)
         # A negator before a run of utility words: "nema struja i voda".
         neg = re.search(r"(?<![a-z0-9])" + _NEGATORS + _LIST_GLUE + " " + rx.pattern[len("(?<![a-z0-9])"):], n)
         if neg:
             out[key] = False
-        elif conditional and len(rx.findall(n)) <= 1:
-            out[key] = None         # only mentioned as possible / nearby — ask the seller
-        elif rx.search(n) or all_infra:
+            continue
+        # Judge every mention on its own: confirmed only if at least one mention
+        # has no hedge ("се очекува", "можност за", "во близина", "услови за") within
+        # a few words of it. "струја има, вода во близина" → power yes, water unknown.
+        confirmed = False
+        for m in rx.finditer(n):
+            wb = n[:m.start()].split()[-_HEDGE_WINDOW:]
+            wa = n[m.end():].split()[:_HEDGE_WINDOW]
+            if "." in wb:                                     # don't look past a sentence / clause break
+                wb = wb[len(wb) - wb[::-1].index("."):]
+            if "." in wa:
+                wa = wa[:wa.index(".")]
+            if not (_HEDGE.search(" ".join(wb)) or _HEDGE.search(" ".join(wa))):
+                confirmed = True
+                break
+        if confirmed or (all_infra and not rx.search(n)):
             out[key] = True
         else:
-            out[key] = None
+            out[key] = None                                   # hedged or not mentioned — ask the seller
     return out
 
 

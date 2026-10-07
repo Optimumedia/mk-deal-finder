@@ -177,6 +177,7 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .ask p{margin:var(--s3) 0 0;font-size:13px;color:var(--ink-2)}
 .ask .btn{height:40px}
 .mini .q{font-size:12.5px;color:var(--ni);display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere}
+.mini .q svg{margin-top:2px}
 .toggle.wide{white-space:normal}
 /* ---------- private mode ---------- */
 .privpill{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);white-space:nowrap}
@@ -230,6 +231,56 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .rejrow .rt b{display:block;overflow-wrap:anywhere;font-size:14px}
 .rejrow .rt span{font-size:13px;color:var(--ink-3);overflow-wrap:anywhere}
 @media (max-width:640px){.rescore .rl{display:none}.privpill{display:none}}
+/* ---------- review pass ---------- */
+.ic16{width:14px;height:14px;flex:none;vertical-align:-2px}
+.key2{font-size:14px;font-weight:600;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.key2.pos{color:var(--good)}
+.unc{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:500;white-space:nowrap;background:var(--surface-3);color:var(--ink-2)}
+.unc.thin{background:var(--warn-soft);color:var(--warn)}
+.uchip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;white-space:nowrap;border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.uchip .m{font-family:var(--font-d);letter-spacing:.08em;font-size:12px}
+.uchip.good{background:var(--good-soft);color:var(--good);border-color:transparent}
+.uchip.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.uchip.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px}
+.tophead{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s2) var(--s4);margin-bottom:var(--s4)}
+.tophead h2{font-size:24px;font-weight:800}
+.tophead .meta{font-size:13px;color:var(--ink-3)}
+.runnote{font-size:13px;color:var(--ink-2);margin:0 0 var(--s4);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.runnote details{display:inline}
+.runnote summary{display:inline;cursor:pointer;color:var(--accent-text);font-weight:600}
+.runnote details[open] summary::after{content:": "}
+.runnote details>span{overflow-wrap:anywhere;color:var(--ink-3)}
+.kstrip{margin:var(--s6) 0 0;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.kstrip>summary{list-style:none;cursor:pointer;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:13px;color:var(--ink-2)}
+.kstrip>summary::-webkit-details-marker{display:none}
+.kstrip>summary b{color:var(--ink);font-variant-numeric:tabular-nums}
+.kstrip>summary .tg{margin-left:auto;color:var(--accent-text);font-weight:600}
+.kstrip[open]>summary .tg .o,.kstrip:not([open])>summary .tg .c{display:none}
+.kstrip .kin{padding:0 14px 14px}
+.kstrip .kpis{margin-top:var(--s2)}
+.kstrip .kpi{box-shadow:none;background:var(--surface-2)}
+.kstrip .rtile{background:var(--surface-2);box-shadow:none}
+.tabwrap{position:relative;max-width:var(--maxw);margin:0 auto}
+.tabwrap .tabs{max-width:none;margin:0}
+.tabwrap::after{content:"";position:absolute;right:0;top:0;bottom:0;width:56px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--bg) 70%);opacity:1;transition:opacity .15s}
+.tabwrap.at-end::after{opacity:0}
+.tabmore{position:absolute;right:8px;top:6px;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);display:none;place-items:center;cursor:pointer;z-index:1}
+.tabwrap:not(.at-end) .tabmore{display:grid}
+.pill.pend{background:var(--surface-3);color:var(--ink-3);font-weight:500}
+.skel{display:flex;flex-direction:column;gap:var(--s4);animation:sk 1.2s ease-in-out infinite}
+.skel .b{background:var(--surface-3);border-radius:var(--r-m)}
+@keyframes sk{0%,100%{opacity:1}50%{opacity:.45}}
+.btn.share{gap:6px}
+.mini .acts{margin-top:2px}
+@media (max-width:1400px){.hide-l{display:none}th,td{padding:8px 8px}}
+@media (max-width:640px){
+  .vbtn,.vbtn.sm{height:44px;padding:0 12px;font-size:13.5px}
+  .star.star,.mini .star.star{width:44px;height:44px}
+  .tstar{width:44px;height:44px}
+  .tophead h2{font-size:20px}
+  .btn.primary{flex:1 1 100%}
+}
 /* ---------- pipeline ---------- */
 .board{position:relative;display:flex;gap:var(--s3);overflow-x:auto;padding-bottom:var(--s3);align-items:flex-start;scroll-snap-type:x proximity}
 .pcol{flex:0 0 272px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-l);display:flex;flex-direction:column;max-height:calc(100vh - 220px);scroll-snap-align:start}
@@ -490,9 +541,9 @@ td .utils{flex-wrap:nowrap;gap:4px}
     <button class="rescore" id="rescoreBtn" type="button" hidden><span aria-hidden="true">↻</span><span class="rl">Re-score now</span><span class="sr"> Re-score now</span></button>
     <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Toggle light / dark"></button>
   </div>
-  <nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
+  <div class="tabwrap" id="tabwrap"><nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav><button type="button" class="tabmore" id="tabmore" aria-label="Scroll to more sections">›</button></div>
 </header>
-<main id="main" tabindex="-1"></main>
+<main id="main" tabindex="-1"><div class="skel" aria-hidden="true"><div class="b" style="height:28px;width:40%"></div><div class="b" style="height:14px;width:60%"></div><div class="minis" style="margin-top:8px"><div class="b" style="height:140px"></div><div class="b" style="height:140px"></div><div class="b" style="height:140px"></div></div><div class="b" style="height:48px"></div></div></main>
 <div class="foot" id="foot"></div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -501,7 +552,7 @@ td .utils{flex-wrap:nowrap;gap:4px}
   <div class="dhead">
     <button class="iconbtn" id="dClose" type="button" aria-label="Close details"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     <span class="t" id="dCrumb"></span>
-    <button class="iconbtn" id="dShare" type="button" aria-label="Copy link to this deal" title="Copy link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button>
+    <button class="iconbtn" id="dShare" type="button" aria-label="Share: copy a summary of this deal" title="Share (copy summary)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></button>
   </div>
   <div class="dbody" id="dBody"></div>
 </aside>
@@ -552,6 +603,12 @@ const I = { // inline icons
   info:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>',
   home:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>',
   gavel:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6"/><path d="m11 7 6 6"/><path d="m12.5 5.5-4 4 6 6 4-4"/><path d="m10 12-6.5 6.5a1.4 1.4 0 0 0 2 2L12 14"/><path d="M13 21h8"/></svg>',
+  mount:'<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="m3 19 6-10 4 6 2-3 6 7z"/></svg>',
+  car:'<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 16 6.5 9h11L19 16"/><path d="M3 16h18v3H3z"/><circle cx="7" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>',
+  clock:'<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  q:'<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7"/><path d="M12 17h.01"/></svg>',
+  pin:'<svg class="ic16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s6-5.5 6-11a6 6 0 0 0-12 0c0 5.5 6 11 6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>',
+  share:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6"/></svg>',
   plot:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 18 8 8l4 6 3-4 6 8z"/><circle cx="17" cy="6" r="2"/></svg>',
 };
 
@@ -559,6 +616,16 @@ const I = { // inline icons
 const M = (i, label) => { const m = i.metrics || {}; if (label in m) return m[label];
   const k = Object.keys(m).find(x => x.toLowerCase().startsWith(label.toLowerCase())); return k ? m[k] : null; };
 const mo = v => isNum(v) ? nf1.format(v) + " months" : null;
+const ppm = v => isNum(v) ? (v >= 10 ? nf0 : nf1).format(v) + " €/m²" : null;
+function eurK(v){ if (!isNum(v)) return "—"; const a = Math.abs(v); if (a < 1000) return (v < 0 ? "−" : "+") + nf0.format(a) + " €";
+  const step = a >= 100000 ? 10000 : a >= 10000 ? 5000 : 1000; const r = Math.round(a / step) * step;
+  return "≈ " + (v < 0 ? "−" : "+") + (r >= 1000 ? (r / 1000).toLocaleString("en-GB", {maximumFractionDigits:0}) + "k" : nf0.format(r)) + " €"; }
+function compsOf(i){ if (isNum(i.comps)) return i.comps; const m = i.metrics || {};
+  for (const k of ["Compared against", "Comps"]) { const v = m[k]; if (typeof v === "string") { const n = parseInt(v, 10); if (isFinite(n)) return n; } if (isNum(v)) return v; }
+  for (const r of i.reasons || []) { const mm = /\((?:[^()]*?,\s*)?(\d[\d,]*)\s+(?:listings|comps|plots)\)/i.exec(r) || /(\d[\d,]*)\s+(?:comps|listings)\b/i.exec(r); if (mm) return parseInt(mm[1].replace(/,/g, ""), 10); }
+  return null; }
+function underTxt(i, pct){ if (pct == null) return null; const n = compsOf(i); return `${pct}% under local asking${isNum(n) ? ` (${nf0.format(n)} listings)` : ""}`; }
+const isPlotKind = i => i && (i.kind === "land" || i.kind === "house" || i.kind === "weekend_house");
 
 const RCFG = {
   airbnb: {
@@ -567,7 +634,7 @@ const RCFG = {
     keyLabel:"Profit / month", sortLabel:"Highest profit / month",
     key(i){ const p = M(i,"Est. profit / month"); const rv = pctNum(M(i,"Rent vs market"));
       return {big: isNum(p) ? (p > 0 ? "+" : "") + eur(p) : "—", pos: p > 0, unit:"/ month est. profit",
-        subs:[["Rent", eur(M(i,"Rent / month"))], ["Pays back in", mo(M(i,"Payback (months)"))], rv != null && rv < 0 ? ["Rent", Math.abs(rv) + "% under market"] : null]}; },
+        subs:[["Rent", eur(M(i,"Rent / month")) + " / mo"], ["Pays back in", mo(M(i,"Payback (months)"))], rv != null && rv < 0 ? ["Rent", Math.abs(rv) + "% under local asking"] : null]}; },
     cols:[
       {h:"Profit / mo", v:i=>M(i,"Est. profit / month"), f:v=>isNum(v)?`<span class="pos">${eur(v)}</span>`:"—"},
       {h:"Rent / mo", v:i=>M(i,"Rent / month"), f:eur},
@@ -590,15 +657,15 @@ const RCFG = {
   land: {
     short:"Land",
     plain:"Plots for a house or villa in Skopje, Ohrid and mountain areas. Look at the price per m² against nearby plots, and whether power, water and road access are confirmed in the ad.",
-    keyLabel:"€ / m²", sortLabel:"Most below market",
+    keyLabel:"€ / m²", sortLabel:"Most under asking",
     key(i){ const u = M(i,"€/m²") ?? i.ppm2; const b = pctNum(M(i,"Below market"));
-      return {big: isNum(u) ? fmtN(u) + " €/m²" : "—", unit: b != null && b > 0 ? `· ${b}% below area` : "", pos:false,
-        subs:[["Price", eur(i.price)], ["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null], ["Area median", isNum(M(i,"Area median €/m²")) ? fmtN(M(i,"Area median €/m²")) + " €/m²" : null]]}; },
+      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b != null && b > 0 ? underTxt(i, b) : null, line2pos: b != null && b > 0,
+        subs:[["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null], ["Local asking", ppm(M(i,"Area median €/m²"))]]}; },
     cols:[
-      {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?fmtN(v)+" €":"—"},
-      {h:"Below mkt", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`},
+      {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?ppm(v).replace("/m²",""):"—"},
+      {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`},
       {h:"Area", v:i=>i.area, f:v=>isNum(v)?nf0.format(v)+" m²":"—", hideM:true},
-      {h:"Utilities", v:i=>utilScore(i), f:(v,i)=>utilChips(i,true), num:false},
+      {h:"Utilities", v:i=>utilScore(i), f:(v,i)=>utilChip(i), num:false},
     ],
     groups:[["Price",["€/m²","Area median €/m²","Below market","Compared against","Price"]],
             ["The plot",["Area (m²)","Land type","Region"]]],
@@ -616,13 +683,12 @@ const RCFG = {
     plain:"Flats and houses priced well under the local average per m². We estimate renovation, taxes and fees, then the profit if you resell at the local price.",
     keyLabel:"Est. profit", sortLabel:"Highest est. profit",
     key(i){ const p = M(i,"Est. profit"); const roi = M(i,"ROI"); const b = pctNum(M(i,"Below market"));
-      return {big: isNum(p) ? (p > 0 ? "+" : "") + eur(p) : "—", pos: p > 0, unit: "est. profit" + (roi ? ` · ${roi} ROI` : ""),
-        subs:[["Price", eur(i.price)], b != null ? ["", b + "% below local price"] : null]}; },
+      return {big: eur(i.price), unit: isNum(i.ppm2) ? ppm(i.ppm2) : "", pos:false, line2: isNum(p) ? eurK(p) + " est. profit" + (roi ? ` · ${roi} ROI` : "") : null, line2pos: p > 0,
+        subs:[b != null ? ["", underTxt(i, b)] : null]}; },
     cols:[
       {h:"Est. profit", v:i=>M(i,"Est. profit"), f:v=>isNum(v)?`<span class="pos">${eur(v)}</span>`:"—"},
       {h:"ROI", v:i=>pctNum(M(i,"ROI")), f:v=>v==null?"—":v+"%"},
-      {h:"Below mkt", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":v+"%", hideM:true},
-      {h:"Price", v:i=>i.price, f:eur, hideM:true},
+      {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":v+"%", hideM:true},
     ],
     groups:[["The result",["Est. profit","ROI","Est. market value","Gross rental yield"]],
             ["Price vs market",["Price","€/m²","Local median €/m²","Below market"]],
@@ -642,11 +708,10 @@ const RCFG = {
     plain:"Sellers who have cut their price, use “urgent” wording, or have been on the market for weeks. These are the ads where an offer well under the asking price has a real chance.",
     keyLabel:"Price cut", sortLabel:"Biggest price cut",
     key(i){ const c = pctNum(M(i,"Price cut")); const hi = M(i,"Highest price seen"); const off = M(i,"Opening offer");
-      return {big: c ? "−" + c + "%" : eur(i.price), pos: !!c, unit: c ? "price cut" : "asking price",
-        subs:[["Now", eur(M(i,"Price now") ?? i.price)], isNum(hi) && hi !== i.price ? ["Was", eur(hi)] : null, ["Offer idea", isNum(off) ? eur(off) : null]]}; },
+      return {big: eur(M(i,"Price now") ?? i.price), pos:false, unit: isNum(i.ppm2) ? ppm(i.ppm2) : "", line2: c ? `−${c}% price cut` + (isNum(hi) && hi !== i.price ? ` (was ${eur(hi)})` : "") : null, line2pos: !!c,
+        subs:[["Offer idea", isNum(off) ? eur(off) : null]]}; },
     cols:[
       {h:"Price cut", v:i=>pctNum(M(i,"Price cut")), f:v=>v?`<span class="pos">−${v}%</span>`:"—"},
-      {h:"Price now", v:i=>M(i,"Price now") ?? i.price, f:eur},
       {h:"Offer idea", v:i=>M(i,"Opening offer"), f:eur, hideM:true},
       {h:"Days listed", v:i=>M(i,"Days listed") ?? i.days_listed, f:v=>isNum(v)?nf0.format(v):"—", hideM:true},
     ],
@@ -664,13 +729,12 @@ const RCFG = {
   auctions: {
     short:"Auctions", adLabel:"Open official notice",
     plain:"Official bailiff (enforcement) sales from the KIRSM register. The starting price is often far below market — but you bid on a fixed date, usually without a proper viewing, so read the official notice carefully first.",
-    keyLabel:"Below market", sortLabel:"Most below market",
+    keyLabel:"Under asking", sortLabel:"Most under asking",
     key(i){ const b = pctNum(M(i,"Below market")); const sd = M(i,"Sale date");
-      return {big: b != null ? b + "%" : eur(i.price), pos: b > 0, unit: b != null ? "below market" : "starting price",
-        subs:[["Starts at", eur(M(i,"Starting price") ?? i.price)], ["Sale", sd || i.auction_date || null], ["", M(i,"Round")]]}; },
+      return {big: eur(M(i,"Starting price") ?? i.price), pos:false, unit: "starting price" + (isNum(i.ppm2) ? ` · ${ppm(i.ppm2)}` : ""), line2: b != null ? underTxt(i, b) : null, line2pos: b > 0,
+        subs:[["Sale", sd || i.auction_date || null], ["", M(i,"Round")]]}; },
     cols:[
-      {h:"Below mkt", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`},
-      {h:"Starts at", v:i=>M(i,"Starting price") ?? i.price, f:eur},
+      {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`},
       {h:"Sale", v:i=>daysUntil(i), f:(v,i)=>v==null?"—":esc((M(i,"Sale date") || i.auction_date || "") + (v >= 0 ? ` (${v === 0 ? "today" : v === 1 ? "tomorrow" : "in " + v + " d"})` : " (passed)"))},
       {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?fmtN(v)+" €":"—", hideM:true},
     ],
@@ -699,7 +763,7 @@ const HINT = {
   "Est. occupancy":"Share of nights we assume get booked.",
   "Est. nightly rate":"Typical price per night for a comparable flat.",
   "Rent vs market":"This rent compared with similar long-term rentals in the district.",
-  "Below market":"How much cheaper per m² this is than similar listings nearby.",
+  "Below market":"How much cheaper per m² this is than similar listings asking nearby.",
   "Compared against":"How many listings the local average is based on — more is more reliable.",
   "ROI":"Profit ÷ all cash put in (price + renovation + fees).",
   "Est. market value":"What it would be worth at the local average €/m².",
@@ -740,8 +804,18 @@ function relTime(iso){ const t = Date.parse(iso); if (isNaN(t)) return "unknown"
   if (m < 2) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m / 60); if (h < 36) return h + " h ago"; return Math.round(h / 24) + " days ago"; }
 const where = i => [i.city, i.district && i.district !== i.city ? i.district : null].filter(Boolean).join(" · ");
 const placeLine = i => [where(i), KIND[i.kind] || i.kind, isNum(i.area) ? nf0.format(i.area) + " m²" : null, isNum(i.rooms) ? nf1.format(i.rooms) + " rooms" : null, i._r === "auctions" ? "bailiff sale" : i.agency ? "agency" : "private seller"].filter(Boolean).join(" · ");
-const cleanReasons = i => (i.reasons || []).filter(r => !/no GPS/i.test(r));
+const reasonTxt = r => String(r).replace(/(\d+)% below (?:the )?(?:\S+ )?(?:district|city|area|national) median/gi, "$1% under local asking").replace(/\bbelow (?:the )?(?:district|city|area) median\b/gi, "under local asking").replace(/\bbelow market\b/gi, "under local asking");
+const cleanReasons = i => { const k = cfg(i._r).key(i); return (i.reasons || []).filter(r => !/no GPS/i.test(r)).map(reasonTxt).filter(r => !(k.line2 && /^(starts )?\d+% under local asking/i.test(r))); };
 function utilScore(i){ const u = i.utilities || {}; return UTIL.reduce((s,[k]) => s + (u[k] === "yes" ? 2 : u[k] === "assumed" ? 1 : u[k] === "no" ? -2 : 0), 0); }
+function utilChip(i){ const u = i.utilities; if (!u) return "";
+  const st = UTIL.map(([k]) => u[k] || "unknown"); const cls = st.includes("no") ? "bad" : st.includes("unknown") ? "warn" : st.every(x => x === "yes") ? "good" : "";
+  const tip = UTIL.map(([k,l]) => `${l}: ${UTIL_TXT[u[k] || "unknown"]}`).join(" · ");
+  return `<span class="uchip ${cls}" title="${esc(tip)}"><span class="m" aria-hidden="true">${st.map(x => UTIL_MARK[x] || "?").join("")}</span>utilities<span class="sr">: ${esc(tip)}</span></span>`; }
+function uncChips(i){ const out = []; const n = compsOf(i);
+  if (isNum(n) && n < 20) out.push(`<span class="unc thin" title="The local asking price is based on only ${n} listings — treat the comparison with care">thin data (${n} listings)</span>`);
+  if (i.distance_approx || (!isNum(i.lat) && isPlotKind(i))) out.push(`<span class="unc" title="The ad has no exact pin — location is the town / village">${I.pin} approx.</span>`);
+  if (isPlotKind(i) && (!hasAlt(i) || !hasDist(i))) out.push(`<span class="unc" title="Altitude and driving distances are filled in after the next run">${I.clock} ${!hasAlt(i) && !hasDist(i) ? "altitude & distance" : !hasAlt(i) ? "altitude" : "distance"} pending</span>`);
+  return out.join(""); }
 function utilChips(i, compact){ const u = i.utilities; if (!u) return "";
   return `<div class="utils">${UTIL.map(([k,l]) => { const s = u[k] || "unknown";
     return `<span class="u ${esc(s)}" title="${esc(l + ": " + (UTIL_TXT[s] || s))}"><span class="sr">${esc(l)}: ${esc(UTIL_TXT[s] || s)}</span><span aria-hidden="true">${compact ? "" : esc(l) + " "}<span class="st">${compact ? esc(l[0]) : ""}${UTIL_MARK[s] || "?"}</span></span></span>`; }).join("")}</div>`; }
@@ -753,12 +827,12 @@ const needsInfo = i => statusOf(i) === "needs_info";
 function questionsOf(i){ if (Array.isArray(i.questions) && i.questions.length) return i.questions.filter(q => typeof q === "string" && q.trim());
   if (!needsInfo(i)) return []; const u = i.utilities || {}; const Q = {electricity:"Is there an electricity connection on the property?", water:"Is there a water connection (mains or well) on the property?", road:"Is there year-round road access by car?"};
   return UTIL.filter(([k]) => u[k] === "unknown" || u[k] === "no").map(([k]) => Q[k]); }
-const niBadge = (i, sm) => needsInfo(i) ? `<span class="ni" title="Some key facts are not confirmed in the ad — ask the seller">❓ Needs info</span>`
+const niBadge = (i, sm) => needsInfo(i) ? `<span class="ni" title="Some key facts are not confirmed in the ad — ask the seller">${I.q} Needs info</span>`
   : statusOf(i) === "pending" ? `<span class="pill" style="background:var(--chip,rgba(127,127,127,.14));color:var(--muted)" title="The platform is still reading this ad's details — check back after the next run">⏳ Checking details</span>` : "";
 const hasAlt = i => isNum(i && i.elevation);
 function altTip(i){ return i.elevation_approx ? `approximate — altitude of ${i.elevation_place || "the village / area"}, the ad has no exact pin` : "from the ad's GPS pin"; }
 function altChip(i){ if (!hasAlt(i)) return ""; const v = (i.elevation_approx ? "~" : "") + nf0.format(i.elevation) + " m";
-  return `<span class="alt" title="${esc("Altitude " + v + " — " + altTip(i))}"><span aria-hidden="true">⛰</span> ${esc(v)}<span class="sr"> above sea level, ${esc(altTip(i))}</span></span>`; }
+  return `<span class="alt" title="${esc("Altitude " + v + " — " + altTip(i))}">${I.mount} ${esc(v)}<span class="sr"> above sea level, ${esc(altTip(i))}</span></span>`; }
 const okDist = d => d && typeof d === "object" && (isNum(d.air_km) || isNum(d.km) || isNum(d.min));
 const hasDist = i => !!i && (okDist(i.to_skopje) || okDist(i.to_ohrid));
 const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, "0")}` : `${Math.round(m)} min`;
@@ -770,37 +844,38 @@ const distSortVal = d => !okDist(d) ? null : isNum(d.min) ? d.min : isNum(d.km) 
 function distChip(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
   const parts = [["Skopje", i.to_skopje], ["Ohrid", i.to_ohrid]].filter(([, d]) => okDist(d)).map(([n, d]) => `${n} ${ap}${distShort(d)}${!isNum(d.min) && !isNum(d.km) ? " (air)" : ""}`);
   const tip = parts.join(" · ") + (i.distance_approx ? " — measured from the village/area, the ad has no exact pin" : " — from the ad's map pin");
-  return `<span class="alt" title="${esc(tip)}"><span aria-hidden="true">🚗</span> ${esc(parts.join(" · "))}<span class="sr">${esc(i.distance_approx ? ", approximate" : "")}</span></span>`; }
+  return `<span class="alt" title="${esc(tip)}">${I.car} ${esc(parts.join(" · "))}<span class="sr">${esc(i.distance_approx ? ", approximate" : "")}</span></span>`; }
 function distLines(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
   return [["To Skopje (Macedonia Square)", i.to_skopje], ["To Ohrid (centre)", i.to_ohrid]].filter(([, d]) => okDist(d))
-    .map(([l, d]) => `<p class="distline"><span aria-hidden="true">🚗</span> ${esc(l)}: <b>${esc((distLong(d).startsWith("~") ? "" : ap) + distLong(d))}</b></p>`).join("")
+    .map(([l, d]) => `<p class="distline">${I.car} ${esc(l)}: <b>${esc((distLong(d).startsWith("~") ? "" : ap) + distLong(d))}</b></p>`).join("")
     + (i.distance_approx ? `<p class="distnote">Measured from the village/area — the ad has no exact pin.</p>` : ""); }
 const locLines = i => altLine(i) + distLines(i);
 function altLine(i){ if (!hasAlt(i)) return "";
-  return `<p class="altline"><span aria-hidden="true">⛰</span> <b>${i.elevation_approx ? "~" : ""}${esc(nf0.format(i.elevation))} m</b> above sea level · ${i.elevation_approx ? "altitude of " + esc(i.elevation_place || "the village / area") : "from the ad's map pin"}</p>`; }
+  return `<p class="altline">${I.mount} <b>${i.elevation_approx ? "~" : ""}${esc(nf0.format(i.elevation))} m</b> above sea level · ${i.elevation_approx ? "altitude of " + esc(i.elevation_place || "the village / area") : "from the ad's map pin"}</p>`; }
 function footLeft(i){ if (i._r === "auctions") { const cn = M(i, "Case no."); return cn ? "Case no. " + cn : (countdown(i) || ageText(i)); } return ageText(i); }
 const isSaved = id => !!shortlist[id];
-const starBtn = (i, cls = "star") => `<button type="button" class="${cls}" data-star="${esc(i.id)}" data-r="${esc(i._r)}" aria-pressed="${isSaved(i.id)}" aria-label="${isSaved(i.id) ? "Remove from" : "Save to"} shortlist">${I.star}</button>`;
+const starBtn = (i, cls = "star") => `<button type="button" class="${cls}" data-star="${esc(i.id)}" data-r="${esc(i._r)}" aria-pressed="${isSaved(i.id)}" aria-label="${isSaved(i.id) ? "Remove from" : "Save to"} saved deals">${I.star}</button>`;
 const media = i => { const src = imgOf(i); const auc = i._r === "auctions"; const ph = `<div class="ph"${src ? " hidden" : ""}><div>${auc ? I.gavel : i.kind === "land" ? I.plot : I.home}<span>${auc ? "Official bailiff sale" : "No photo"}</span></div></div>`;
   return (src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : "") + ph; };
 function keyHtml(i){ const k = cfg(i._r).key(i); const cd = i._r === "auctions" ? countdown(i) : null; const d = daysUntil(i);
-  return `<div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span>${cd ? `<span class="pill ${d != null && d >= 0 && d <= 7 ? "soon" : "muted"}">${esc(cd)}</span>` : ""}</div>`; }
+  return `<div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span>${cd ? `<span class="pill ${d != null && d >= 0 && d <= 7 ? "soon" : "muted"}">${esc(cd)}</span>` : ""}</div>${k.line2 ? `<div class="key2${k.line2pos ? " pos" : ""}">${esc(k.line2)}</div>` : ""}`; }
+const keyShort = i => { const k = cfg(i._r).key(i); return k.line2 || k.big; };
 function subsHtml(i){ const subs = (cfg(i._r).key(i).subs || []).filter(s => s && s[1]);
   return subs.length ? `<div class="subnums">${subs.map(([a,b]) => `<span>${a ? esc(a) + " " : ""}<b>${esc(b)}</b></span>`).join("")}</div>` : ""; }
 const dealHref = i => "#deal=" + encodeURIComponent(i.id) + "&in=" + encodeURIComponent(i._r);
 
 function card(i){
-  const why = cleanReasons(i).slice(0, 3);
+  const why = cleanReasons(i).slice(0, 1);
   const ad = safeUrl(i.url);
   return `<article class="card${tierCls(i)}" data-open="${esc(i.id)}" data-r="${esc(i._r)}">
-    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${niBadge(i)}${myBadge(i)}</div>${i.is_new ? `<span class="pill new">New</span>` : ""}</div>
+    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${niBadge(i)}${myBadge(i)}</div></div>
     ${starBtn(i)}
     <div class="cbody">
       ${keyHtml(i)}${subsHtml(i)}
       <h3 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h3>
-      <div class="loc">${esc(placeLine(i))}${hasAlt(i) ? " " + altChip(i) : ""}${hasDist(i) ? " " + distChip(i) : ""}</div>
+      <div class="loc">${esc(placeLine(i))}</div>
       ${why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
-      ${i._r === "land" || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChips(i) : ""}
+      <div class="chiprow">${i._r === "land" || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChip(i) : ""}${hasAlt(i) ? altChip(i) : ""}${hasDist(i) ? distChip(i) : ""}${uncChips(i)}</div>
       ${PRIV && !i._gone ? voteBtns(i, false) : ""}
       <div class="cfoot"><span>${esc(footLeft(i))}</span>${ad ? `<a class="adlink" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${i._r === "auctions" ? "Official notice" : "Open ad"} ↗</a>` : ""}</div>
     </div></article>`;
@@ -813,8 +888,9 @@ function mini(i){
       <div class="badges">${ratingBadge(i, true)}${niBadge(i)}${myBadge(i)}</div>
       ${keyHtml(i)}
       <h4 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h4>
-      <div class="loc">${esc([where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "))}${i.is_new ? ` · <span class="pill new">New</span>` : ""}</div>
-      ${mini.q && questionsOf(i)[0] ? `<div class="q"><span aria-hidden="true">❓</span><span>Ask: ${esc(questionsOf(i)[0])}</span></div>` : why ? `<ul class="why"><li>${esc(why)}</li></ul>` : ""}
+      <div class="loc">${esc([where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "))}</div>
+      ${mini.q && questionsOf(i)[0] ? `<div class="q">${I.q}<span>Ask: ${esc(questionsOf(i)[0])}</span></div>` : why ? `<ul class="why"><li>${esc(why)}</li></ul>` : ""}
+      ${PRIV && !i._gone && !i._pipe ? voteBtns(i, true) : ""}
     </div>${starBtn(i)}</article>`;
 }
 
@@ -863,12 +939,15 @@ function paintHealth(){ const h = runHealth();
 /* ================= tabs ================= */
 function tabList(){
   const rs = DATA.researchers.map(R => ({key:R.key, label:cfg(R.key).short || R.title.split(/ — | \/ /)[0], n:R.items.filter(i => i.is_new).length, total:R.items.length}));
-  return [{key:"today", label:"Today"}, ...(PRIV ? [{key:"pipeline", label:"My pipeline", n:pipeActive().length}] : []), ...rs, {key:"shortlist", label:"★ Shortlist", n:Object.keys(shortlist).length, plain:true}, {sep:true}, {key:"market", label:"Market prices"}, {key:"runs", label:"Run log"}];
+  return [{key:"today", label:"Today"}, ...(PRIV ? [{key:"pipeline", label:"My pipeline", n:pipeActive().length}] : []), ...rs, {key:"shortlist", label:"★ Saved", n:Object.keys(shortlist).length, plain:true}, {sep:true}, {key:"market", label:"Market prices"}, {key:"runs", label:"Run log"}];
 }
 function buildTabs(){
   $("#tabs").innerHTML = tabList().map(t => t.sep ? `<span class="tabsep" aria-hidden="true"></span>` :
-    `<button class="tab" role="tab" id="tab-${esc(t.key)}" data-k="${esc(t.key)}" aria-controls="main" aria-selected="${t.key === state.tab}" tabindex="${t.key === state.tab ? 0 : -1}">${esc(t.label)}${t.total != null ? `<span class="n ${t.n ? "hot" : ""}" title="${t.n} new of ${t.total}">${t.total}</span>` : t.n ? `<span class="n">${t.n}</span>` : ""}</button>`).join("");
+    `<button class="tab" role="tab" id="tab-${esc(t.key)}" data-k="${esc(t.key)}" aria-controls="main" aria-selected="${t.key === state.tab}" tabindex="${t.key === state.tab ? 0 : -1}">${esc(t.label)}${t.total != null ? `<span class="n ${t.n ? "hot" : ""}" title="${t.n} new of ${t.total}${PRIV ? ` · ${(DATA.pipeline || []).filter(e => e.researcher === t.key).length} in your pipeline` : ""}">${t.total}</span>` : t.n ? `<span class="n">${t.n}</span>` : ""}</button>`).join("");
 }
+(function(){ const w = $("#tabwrap"), t = $("#tabs"); const upd = () => w.classList.toggle("at-end", t.scrollWidth - t.clientWidth - t.scrollLeft < 8);
+  t.addEventListener("scroll", upd, {passive:true}); window.addEventListener("resize", upd); new MutationObserver(upd).observe(t, {childList:true}); upd();
+  $("#tabmore").onclick = () => t.scrollBy({left: t.clientWidth * .6, behavior:"smooth"}); })();
 $("#tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if (b) selectTab(b.dataset.k, true); });
 $("#tabs").addEventListener("keydown", e => { const tabs = $$(".tab"); const i = tabs.indexOf(document.activeElement); if (i < 0) return;
   let n = null; if (e.key === "ArrowRight") n = (i + 1) % tabs.length; else if (e.key === "ArrowLeft") n = (i - 1 + tabs.length) % tabs.length; else if (e.key === "Home") n = 0; else if (e.key === "End") n = tabs.length - 1;
@@ -915,32 +994,32 @@ function renderToday(){
   const stars = [...bestById.values()].filter(i => rankOf(i) <= 1).sort(bestSort);
   const nOnce = stars.filter(i => rankOf(i) === 0).length, nExc = stars.length - nOnce;
   const h = runHealth(); const saved = Object.keys(shortlist).length;
-  const hour = new Date().getHours(); const hello = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const last = DATA.runs[0];
-  let html = PRIV ? dueSection() : "";
-  html += `<div class="pagehead"><div><div class="eyebrow">${esc(new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}))}</div>
-    <h2>${hello} — here's today's shortlist of opportunities</h2>
-    <p>Macedonian property ads and official bailiff sales are checked twice a day. Each “researcher” rates every deal — 💎 Once-in-a-lifetime, 🔥 Exceptional, ⭐ Great, 👍 Good, 👀 Worth a look — and lists the reasons why. Tap any deal for the full story and a before-you-buy checklist.</p></div></div>`;
-  if (h.cls === "bad") html += `<div class="note bad" style="margin-bottom:16px"><span class="ic">${I.info}</span><div><b>The last update didn't finish (${esc(last.status)}).</b> You're seeing results from ${esc(relTime(DATA.generated_at))}. ${last.message ? `<br><span style="font-size:13px">${esc(String(last.message).slice(0, 160))}</span>` : ""}</div></div>`;
-  html += `<div class="kpis">
-    <div class="kpi"><div class="k">New in the last 24 h</div><div class="v">${nf0.format(newCount)}</div><div class="s">deals flagged across all researchers</div></div>
-    <div class="kpi${stars.length ? " hot" : ""}"><div class="k">💎 + 🔥 deals</div><div class="v">${nf0.format(stars.length)}</div><div class="s">${nOnce} once-in-a-lifetime · ${nExc} exceptional</div></div>
-    <div class="kpi"><div class="k">Your shortlist</div><div class="v">${saved}</div><div class="s">${saved ? `<button class="link" data-go="shortlist">Open shortlist →</button>` : "tap ★ on a deal to save it"}</div></div>
-    <div class="kpi"><div class="k">Last update</div><div class="v" style="font-size:22px;padding-top:4px">${esc(relTime(DATA.generated_at))}</div><div class="s"><span class="status" style="font-weight:500"><span class="dot ${h.cls}"></span>${esc(h.text)}</span> · <button class="link" data-go="runs" style="font-size:13px">run log</button></div></div>
-  </div>
-  <div class="rgrid">${DATA.researchers.map(R => { const t = topOf(R, 1)[0]; const k = t ? cfg(R.key).key(t) : null; const nNew = R.items.filter(i => i.is_new).length;
+  const rtiles = `<div class="rgrid">${DATA.researchers.map(R => { const t = topOf(R, 1)[0]; const k = t ? cfg(R.key).key(t) : null; const nNew = R.items.filter(i => i.is_new).length;
     return `<button class="rtile" data-go="${esc(R.key)}"><span class="t">${esc(cfg(R.key).short || R.title)}</span>
-      <span class="c">${nf0.format(R.items.length)} deals${nNew ? ` · <b style="color:var(--accent-text)">${nNew} new</b>` : ""}${R.items.some(needsInfo) ? ` · ${R.items.filter(needsInfo).length} ❓` : ""}</span>
-      <span class="best">${k ? `Best: ${esc(ratingOf(t).emoji)} <b>${esc(k.big)}</b> ${esc(cfg(R.key).keyLabel === "€ / m²" ? "" : (k.unit || "").replace(/^· /, ""))}` : "No deals yet"}</span></button>`; }).join("")}</div>`;
+      <span class="c">${nf0.format(R.items.length)} deals${nNew ? ` · <b style="color:var(--accent-text)">${nNew} new</b>` : ""}${R.items.some(needsInfo) ? ` · ${R.items.filter(needsInfo).length} need info` : ""}</span>
+      <span class="best">${k ? `Best: ${esc(ratingOf(t).emoji)} <b>${esc(keyShort(t))}</b>` : "No deals yet"}</span></button>`; }).join("")}</div>`;
+  const genT = new Date(DATA.generated_at); const hhmm = isNaN(genT) ? "—" : genT.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
+  let html = `<div class="tophead"><h2 id="todayH">Today's best deals</h2><span class="meta">${esc(new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}))} · updated ${esc(relTime(DATA.generated_at))} · <span class="status" style="font-weight:500"><span class="dot ${h.cls}"></span>${esc(h.text)}</span></span></div>`;
+  if (h.cls === "bad") html += `<p class="runnote">Last update partly failed · showing data from ${esc(hhmm)} · <details><summary>details</summary><span>${esc(last.status)}${last.message ? " — " + esc(String(last.message)) : ""}</span></details></p>`;
+  html += PRIV ? dueSection() : "";
   if (stars.length) {
     const LIM = 6; const showAll = renderToday.all;
-    html += `<section class="section" aria-labelledby="sec-best"><div class="sechead"><div><h3 id="sec-best">💎 🔥 Best deals right now</h3><div class="sub">The top-rated deals across every researcher</div></div>
+    html += `<section aria-labelledby="sec-best"><div class="sechead"><div><h3 id="sec-best">💎 🔥 Best deals right now</h3><div class="sub">The top-rated deals across every researcher</div></div>
       ${stars.length > LIM ? `<button class="link" id="bestMore">${showAll ? "Show fewer" : `Show all ${stars.length} →`}</button>` : ""}</div>
       <div class="minis">${(showAll ? stars : stars.slice(0, LIM)).map(mini).join("")}</div></section>`;
   }
+  const kOpen = store.get("mkdeal.kstrip", false);
+  html += `<details class="kstrip" id="kstrip" ${kOpen ? "open" : ""}><summary><span><b>${nf0.format(newCount)}</b> new in 24 h</span><span><b>${nf0.format(stars.length)}</b> top-rated</span><span><b>${saved}</b> saved</span>${PRIV ? `<span><b>${pipeActive().length}</b> in your pipeline</span>` : ""}<span><b>${nf0.format(DATA.listings_tracked || 0)}</b> listings tracked</span><span class="tg"><span class="o">Show overview ▾</span><span class="c">Hide overview ▴</span></span></summary>
+    <div class="kin"><div class="kpis">
+    <div class="kpi"><div class="k">New in the last 24 h</div><div class="v">${nf0.format(newCount)}</div><div class="s">deals flagged across all researchers</div></div>
+    <div class="kpi${stars.length ? " hot" : ""}"><div class="k">💎 + 🔥 deals</div><div class="v">${nf0.format(stars.length)}</div><div class="s">${nOnce} once-in-a-lifetime · ${nExc} exceptional</div></div>
+    <div class="kpi"><div class="k">Saved</div><div class="v">${saved}</div><div class="s">${saved ? `<button class="link" data-go="shortlist">Open saved →</button>` : "tap ★ on a deal to save it"}</div></div>
+    <div class="kpi"><div class="k">Last update</div><div class="v" style="font-size:22px;padding-top:4px">${esc(relTime(DATA.generated_at))}</div><div class="s"><span class="status" style="font-weight:500"><span class="dot ${h.cls}"></span>${esc(h.text)}</span> · <button class="link" data-go="runs" style="font-size:13px">run log</button></div></div>
+    </div>${rtiles}<p class="also" style="margin:12px 0 0">Macedonian property ads and official bailiff sales are checked twice a day. Each researcher rates every deal — 💎 Once-in-a-lifetime, 🔥 Exceptional, ⭐ Great, 👍 Good, 👀 Worth a look — and lists the reasons why.</p></div></details>`;
   const ni = [...bestById.values()].filter(needsInfo).sort((a,b) => ((b.score ?? 0) - (a.score ?? 0)) || (rankOf(a) - rankOf(b))).slice(0, 5);
   if (ni.length) { mini.q = true;
-    html += `<section class="section" aria-labelledby="sec-ni"><div class="sechead"><div><h3 id="sec-ni">❓ To check with sellers</h3><div class="sub">Promising deals with facts the ad doesn't confirm — one call or message can turn them into real leads</div></div></div>
+    html += `<section class="section" aria-labelledby="sec-ni"><div class="sechead"><div><h3 id="sec-ni">${I.q} To check with sellers</h3><div class="sub">Promising deals with facts the ad doesn't confirm — one call or message can turn them into real leads</div></div></div>
       <div class="minis">${ni.map(mini).join("")}</div></section>`; mini.q = false; }
   for (const R of DATA.researchers) {
     const shownIds = new Set(stars.slice(0, renderToday.all ? stars.length : 6).map(i => i.id));
@@ -948,12 +1027,13 @@ function renderToday(){
     html += `<section class="section" aria-labelledby="sec-${esc(R.key)}"><div class="sechead"><div><h3 id="sec-${esc(R.key)}">${shownIds.size ? "More" : "Top"} ${esc(c.short || R.title)} picks</h3><div class="sub">${esc(R.title)}</div></div>
       ${R.items.length ? `<button class="link" data-go="${esc(R.key)}">See all ${nf0.format(R.items.length)} →</button>` : ""}</div>`;
     if (R.items.length && R.items.every(needsInfo))
-      html += `<div class="note info" style="margin-bottom:12px"><span class="ic">${I.info}</span><div>None of these are fully confirmed yet${R.key === "land" ? " (power, water and road)" : ""} — they're all <b>❓ Needs info</b>. Open one for the questions to ask the seller.</div></div>`;
+      html += `<div class="note info" style="margin-bottom:12px"><span class="ic">${I.info}</span><div>None of these are fully confirmed yet${R.key === "land" ? " (power, water and road)" : ""} — they're all <b>Needs info</b>. Open one for the questions to ask the seller.</div></div>`;
     html += top.length ? `<div class="minis">${top.map(mini).join("")}</div>` : `<div class="empty"><p>${R.items.length ? "Its best deals are already shown above." : "No deals from this researcher yet — results appear after the next run."}</p></div>`;
     html += `</section>`;
   }
   $("#main").innerHTML = html;
   if (PRIV) bindPipeControls($("#main"));
+  const ks = $("#kstrip"); if (ks) ks.addEventListener("toggle", () => store.set("mkdeal.kstrip", ks.open));
   const bm = $("#bestMore"); if (bm) bm.onclick = () => { renderToday.all = !renderToday.all; renderToday(); };
 }
 
@@ -966,8 +1046,8 @@ function renderResearcher(R){
   $("#main").innerHTML = `
     <div class="pagehead"><div><div class="eyebrow">Researcher</div><h2>${esc(R.title)}</h2>
       <p>${esc(c.plain || R.description || "")}</p></div></div>
-    <div class="note info"><span class="ic">${I.info}</span><div><b>${nf0.format(R.items.length)} deals</b>${nNew ? `, ${nNew} new in the last 24 h` : ""}.
-      Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look (the number is the 0–100 score).${R.key === "land" ? ` Utilities: <b>✓</b> confirmed in the ad, <b>?</b> not mentioned, <b>✗</b> missing.` : ""}${nNI ? `<br><b>❓ ${nNI} need info</b> — they look like a fit but something isn't confirmed in the ad${R.key === "land" ? " (usually power, water or road)" : ""}. Open one to see the questions to ask the seller.` : ""}</div></div>
+    <div class="note info"><span class="ic">${I.info}</span><div><b>${nf0.format(R.items.length)} deals</b>${nNew ? `, ${nNew} new in the last 24 h` : ""}${PRIV && (DATA.pipeline || []).some(e => e.researcher === R.key) ? ` (${(DATA.pipeline || []).filter(e => e.researcher === R.key).length} more in your pipeline)` : ""}.
+      Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look (the number is the 0–100 score).${R.key === "land" ? ` Utilities: <b>✓</b> confirmed in the ad, <b>?</b> not mentioned, <b>✗</b> missing.` : ""}${nNI ? `<br><b>${I.q} ${nNI} need info</b> — they look like a fit but something isn't confirmed in the ad${R.key === "land" ? " (usually power, water or road)" : ""}. Open one to see the questions to ask the seller.` : ""}</div></div>
     <div class="controls" role="search">
       <label class="field"><span class="sr">Search deals</span>${I.search}<input class="input" type="search" id="fq" placeholder="Search title, area, street…" value="${esc(f.q)}"></label>
       <label class="sr" for="fcity">Location</label>
@@ -975,9 +1055,9 @@ function renderResearcher(R){
       <label class="sr" for="fsort">Sort by</label>
       <select class="select" id="fsort">${[["best","Best rating"],["value",c.sortLabel],...(R.key === "auctions" ? [["soon","Soonest sale"]] : []),["new","Newest first"],["price","Lowest price"]].map(([v,l]) => `<option value="${v}" ${f.sort === v ? "selected" : ""}>Sort: ${esc(l)}</option>`).join("")}</select>
       <label class="sr" for="fstatus">Status</label>
-      <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","❓ Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
-      ${R.items.some(hasAlt) ? `<label class="sr" for="falt">Minimum altitude</label><select class="select" id="falt">${[[0,"Any altitude"],[500,"⛰ 500 m+"],[800,"⛰ 800 m+"],[1000,"⛰ 1,000 m+"],[1200,"⛰ 1,200 m+"]].map(([v,l]) => `<option value="${v}" ${(+f.minAlt || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
-      ${[["maxSk","to_skopje","Skopje"],["maxOh","to_ohrid","Ohrid"]].filter(([, key]) => R.items.some(i => okDist(i[key]))).map(([fk, key, n]) => `<label class="sr" for="f${fk}">Max drive to ${n}</label><select class="select" id="f${fk}" data-fdist="${fk}">${[[0,`🚗 ${n}: any distance`],[30,`🚗 ${n} ≤ 30 min`],[60,`🚗 ${n} ≤ 1 h`],[120,`🚗 ${n} ≤ 2 h`]].map(([v,l]) => `<option value="${v}" ${(+f[fk] || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>`).join("")}
+      <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      ${R.items.some(hasAlt) ? `<label class="sr" for="falt">Minimum altitude</label><select class="select" id="falt">${[[0,"Any altitude"],[500,"Altitude 500 m+"],[800,"Altitude 800 m+"],[1000,"Altitude 1,000 m+"],[1200,"Altitude 1,200 m+"]].map(([v,l]) => `<option value="${v}" ${(+f.minAlt || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
+      ${[["maxSk","to_skopje","Skopje"],["maxOh","to_ohrid","Ohrid"]].filter(([, key]) => R.items.some(i => okDist(i[key]))).map(([fk, key, n]) => `<label class="sr" for="f${fk}">Max drive to ${n}</label><select class="select" id="f${fk}" data-fdist="${fk}">${[[0,`Drive to ${n}: any`],[30,`Drive to ${n} ≤ 30 min`],[60,`Drive to ${n} ≤ 1 h`],[120,`Drive to ${n} ≤ 2 h`]].map(([v,l]) => `<option value="${v}" ${(+f[fk] || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>`).join("")}
       <label class="toggle"><input type="checkbox" id="fnew" ${f.newOnly ? "checked" : ""}> New only</label>
       <div class="seg" role="group" aria-label="View as">${[["cards","Cards"],["table","Table"],["map","Map"]].map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${f.view === v}">${l}</button>`).join("")}</div>
     </div>
@@ -1013,9 +1093,10 @@ function drawList(R){
   const f = F(R.key), items = filtered(R), list = $("#list");
   const active = f.q || f.city || f.tiers.length || f.status || f.newOnly || (+f.maxSk && R.items.some(x => okDist(x.to_skopje))) || (+f.maxOh && R.items.some(x => okDist(x.to_ohrid))) || (+f.minAlt && R.items.some(hasAlt));
   $("#fclear").hidden = !active;
-  $("#count").textContent = items.length === R.items.length ? `${nf0.format(items.length)} deals` : `${nf0.format(items.length)} of ${nf0.format(R.items.length)} deals match`;
+  const nPipe = PRIV ? (DATA.pipeline || []).filter(e => e.researcher === R.key).length : 0;
+  $("#count").textContent = (items.length === R.items.length ? `${nf0.format(items.length)} deals` : `${nf0.format(items.length)} of ${nf0.format(R.items.length)} deals match`) + (nPipe ? ` (${nPipe} in your pipeline)` : "");
   if (!items.length) {
-    list.innerHTML = `<div class="empty"><h3>${R.items.length ? "Nothing matches these filters" : "No deals yet"}</h3><p>${R.items.length ? (f.status === "ready" ? "Nothing here is fully confirmed yet. Switch Status to “❓ Needs info” to see deals worth a call to the seller." : "Try selecting more ratings or clear the search.") : "Results appear after the next scheduled run."}</p>${active ? `<p style="margin-top:12px"><button class="btn" id="fclear2">Reset filters</button></p>` : ""}</div>`;
+    list.innerHTML = `<div class="empty"><h3>${R.items.length ? "Nothing matches these filters" : "No deals yet"}</h3><p>${R.items.length ? (f.status === "ready" ? "Nothing here is fully confirmed yet. Switch Status to “Needs info” to see deals worth a call to the seller." : "Try selecting more ratings or clear the search.") : "Results appear after the next scheduled run."}</p>${active ? `<p style="margin-top:12px"><button class="btn" id="fclear2">Reset filters</button></p>` : ""}</div>`;
     const b = $("#fclear2"); if (b) b.onclick = () => $("#fclear").click(); return;
   }
   if (f.view === "map") return drawMap(items, list);
@@ -1031,13 +1112,14 @@ function drawTable(R, items, list){
   const cols = [
     {id:"star", h:"<span class='sr'>Saved</span>", f:i => starBtn(i, "tstar"), raw:true},
     {id:"score", h:"Rating", v:i => -(rankOf(i) * 1000 - (i.score ?? 0)), f:(v,i) => ratingBadge(i, true), sort:true},
-    {id:"deal", h:"Deal", v:i => (i.title || "").toLowerCase(), f:(v,i) => `<div class="tdeal"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a><div class="loc">${esc(where(i) || "—")}${i.is_new ? ` · <span class="pill new" style="font-size:11px;padding:0 6px">New</span>` : ""}</div></div>`, sort:true, left:true},
-    ...c.cols.map((x, n) => ({id:"c" + n, h:x.h, v:x.v, f:(v,i) => x.f(v, i), sort:true, num:x.num !== false, hideM:x.hideM})),
+    {id:"deal", h:"Deal", v:i => (i.title || "").toLowerCase(), f:(v,i) => `<div class="tdeal"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a><div class="loc">${esc(where(i) || "—")}</div></div>`, sort:true, left:true},
+    ...(c.cols.some(x => /^Rent/.test(x.h)) ? [] : [{id:"price", h:"Price", v:i => i.price, f:v => eur(v), sort:true, num:true}]),
+    ...c.cols.map((x, n) => ({id:"c" + n, h:x.h, v:x.v, f:(v,i) => x.f(v, i), sort:true, num:x.num !== false, hideM:x.hideM, hideL:x.hideM})),
     ...(PRIV ? [{id:"rate", h:"Your call", f:i => voteBtns(i, true), raw:true}] : []),
     {id:"status", h:"Status", v:i => needsInfo(i) ? 1 : 0, f:(v,i) => statusOf(i) !== "ready" ? niBadge(i) : `<span class="pill good">Ready</span>`, sort:true},
-    ...(items.some(hasAlt) ? [{id:"alt", h:"Altitude", v:i => hasAlt(i) ? i.elevation : null, f:(v,i) => altChip(i) || "—", sort:true, num:true}] : []),
-    ...(items.some(hasDist) ? [["sk", "Skopje", "to_skopje"], ["oh", "Ohrid", "to_ohrid"]].map(([id, h, key]) => ({id, h, v:i => distSortVal(i[key]), f:(v,i) => okDist(i[key]) ? esc((i.distance_approx ? "~" : "") + distShort(i[key]) + (!isNum(i[key].min) && !isNum(i[key].km) ? " air" : "")) : "—", sort:true, num:true})) : []),
-    {id:"age", h:"Posted", v:i => ageDays(i), f:(v,i) => esc(ageText(i).replace("Posted ", "")), sort:true, num:true, hideM:true},
+    ...(items.some(hasAlt) ? [{id:"alt", h:"Altitude", v:i => hasAlt(i) ? i.elevation : null, f:(v,i) => altChip(i) || (isPlotKind(i) ? `<span class="pill pend">pending</span>` : "—"), sort:true, num:true}] : []),
+    ...(items.some(hasDist) ? [["sk", "Skopje", "to_skopje"], ["oh", "Ohrid", "to_ohrid"]].map(([id, h, key]) => ({id, h, v:i => distSortVal(i[key]), f:(v,i) => okDist(i[key]) ? esc((i.distance_approx ? "~" : "") + distShort(i[key]) + (!isNum(i[key].min) && !isNum(i[key].km) ? " air" : "")) : (isPlotKind(i) ? `<span class="pill pend">pending</span>` : "—"), sort:true, num:true, hideL: key === "to_ohrid"})) : []),
+    {id:"age", h:"Posted", v:i => ageDays(i), f:(v,i) => esc(ageText(i).replace("Posted ", "")), sort:true, num:true, hideM:true, hideL:true},
   ];
   let rows = items;
   if (f.tsort) { const col = cols.find(x => x.id === f.tsort); if (col) { const d = f.tdir;
@@ -1045,8 +1127,8 @@ function drawTable(R, items, list){
   const lim = Math.max(shown, 60);
   list.innerHTML = `<div class="tablewrap"><table><caption class="sr">${esc(R.title)} deals</caption><thead><tr>${cols.map(x => {
       const s = x.sort ? (f.tsort === x.id ? (f.tdir > 0 ? "ascending" : "descending") : "none") : null;
-      return `<th scope="col" class="${x.num ? "n" : ""} ${x.hideM ? "hide-m" : ""}" ${s ? `aria-sort="${s}"` : ""}>${x.sort ? `<button type="button" data-ts="${x.id}">${x.h}</button>` : x.h}</th>`; }).join("")}</tr></thead>
-    <tbody>${rows.slice(0, lim).map(i => `<tr class="row" data-open="${esc(i.id)}" data-r="${esc(i._r)}">${cols.map(x => `<td class="${x.num ? "n" : ""} ${x.hideM ? "hide-m" : ""}">${x.raw ? x.f(i) : x.f(x.v(i), i)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` +
+      return `<th scope="col" class="${x.num ? "n" : ""} ${x.hideM ? "hide-m" : ""} ${x.hideL ? "hide-l" : ""}" ${s ? `aria-sort="${s}"` : ""}>${x.sort ? `<button type="button" data-ts="${x.id}">${x.h}</button>` : x.h}</th>`; }).join("")}</tr></thead>
+    <tbody>${rows.slice(0, lim).map(i => `<tr class="row" data-open="${esc(i.id)}" data-r="${esc(i._r)}">${cols.map(x => `<td class="${x.num ? "n" : ""} ${x.hideM ? "hide-m" : ""} ${x.hideL ? "hide-l" : ""}">${x.raw ? x.f(i) : x.f(x.v(i), i)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>` +
     (rows.length > lim ? `<button class="more" id="more" type="button">Show more rows (${nf0.format(rows.length - lim)} left)</button>` : "");
   $$("th button[data-ts]", list).forEach(b => b.onclick = () => { const id = b.dataset.ts;
     if (f.tsort === id) f.tdir = -f.tdir; else { f.tsort = id; f.tdir = (id === "deal" || id === "age") ? 1 : -1; }
@@ -1068,8 +1150,8 @@ function drawMap(items, list){
   list.innerHTML = `<div id="map" role="region" aria-label="Map of deals"></div><p class="resultline" style="margin-top:8px">${pts.length} of ${items.length} deals have a map position. Pin colour = rating (purple 💎, orange 🔥, blue ⭐, green 👍, grey 👀).</p>`;
   loadLeaflet().then(() => { if (!$("#map")) return;
     mapObj = L.map("map"); tiles().addTo(mapObj);
-    pts.forEach(i => L.circleMarker([i.lat, i.lng], {radius:7 + (i.score || 0) / 20, color:gcol(i), weight:2, fillOpacity:.55}).addTo(mapObj)
-      .bindPopup(`<b>${esc(ratingOf(i).emoji + " " + ratingOf(i).label)} · ${i.score ?? ""}</b>${needsInfo(i) ? " · ❓ Needs info" : ""} — ${esc(cfg(i._r).key(i).big)}<br><a href="${dealHref(i)}">${esc(i.title || "Untitled")}</a>`));
+    pts.forEach(i => L.circleMarker([i.lat, i.lng], {radius:7 + (i.score || 0) / 20, color:"#fff", weight:2, fillColor:gcol(i), fillOpacity:.95}).addTo(mapObj)
+      .bindPopup(`<b>${esc(ratingOf(i).emoji + " " + ratingOf(i).label)} · ${i.score ?? ""}</b>${needsInfo(i) ? " · Needs info" : ""} — ${esc(keyShort(i))}<br><a href="${dealHref(i)}">${esc(i.title || "Untitled")}</a>`));
     mapObj.fitBounds(L.latLngBounds(pts.map(i => [i.lat, i.lng])).pad(0.15), {maxZoom:15});
   }).catch(() => { list.innerHTML = `<div class="empty"><p>The map library couldn't load. Check your connection.</p></div>`; });
 }
@@ -1077,7 +1159,7 @@ function drawMap(items, list){
 /* ================= SHORTLIST ================= */
 function renderShortlist(){
   const ids = Object.keys(shortlist).sort((a,b) => (shortlist[b].at || 0) - (shortlist[a].at || 0));
-  let html = `<div class="pagehead"><div><div class="eyebrow">Your picks</div><h2>Shortlist</h2><p>Deals you starred. Saved only in this browser on this device.</p></div></div>`;
+  let html = `<div class="pagehead"><div><div class="eyebrow">Your picks</div><h2>Saved</h2><p>Deals you starred. Saved only in this browser on this device.</p></div></div>`;
   if (!ids.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Nothing saved yet</h3><p>Tap the ★ on any deal to keep it here while you call sellers and arrange visits.</p></div>` + rejectedHtml(); return; }
   const items = ids.map(id => { const s = shortlist[id]; const live = DATA.researchers.find(r => r.key === s.r)?.items.find(x => x.id === id) || ITEMS.get(id);
     if (live) return live; const snap = Object.assign({}, s.item, {_r:s.r, _gone:true}); return snap; });
@@ -1090,9 +1172,9 @@ function toggleStar(id, r){
   if (shortlist[id]) delete shortlist[id];
   else { const i = DATA.researchers.find(x => x.key === r)?.items.find(x => x.id === id) || ITEMS.get(id) || shortlist[id]?.item; if (!i) return; shortlist[id] = {r, at:Date.now(), item:strip(i)}; }
   store.set("mkdeal.shortlist", shortlist);
-  $$(`[data-star="${CSS.escape(id)}"]`).forEach(b => { b.setAttribute("aria-pressed", !!shortlist[id]); b.setAttribute("aria-label", (shortlist[id] ? "Remove from" : "Save to") + " shortlist"); });
+  $$(`[data-star="${CSS.escape(id)}"]`).forEach(b => { b.setAttribute("aria-pressed", !!shortlist[id]); b.setAttribute("aria-label", (shortlist[id] ? "Remove from" : "Save to") + " saved deals"); });
   const ds = $("#dStar"); if (ds && ds.dataset.id === id) paintDStar(id);
-  const t = $("#tab-shortlist"); if (t) { const n = Object.keys(shortlist).length; t.innerHTML = `★ Shortlist${n ? `<span class="n">${n}</span>` : ""}`; }
+  const t = $("#tab-shortlist"); if (t) { const n = Object.keys(shortlist).length; t.innerHTML = `★ Saved${n ? `<span class="n">${n}</span>` : ""}`; }
   if (state.tab === "shortlist" && !shortlist[id]) renderShortlist();
 }
 
@@ -1138,15 +1220,15 @@ function openDeal(id, r, push){
     return [title, rows]; }).filter(g => g[1].length);
   const rest = Object.keys(m).filter(k => !used.has(k)); if (rest.length) groups.push([groups.length ? "Other numbers" : "Numbers", rest]);
   const row = k => { const hl = c.highlight.some(h => k.toLowerCase().startsWith(h.toLowerCase())); const hint = Object.entries(HINT).find(([h]) => k.toLowerCase().startsWith(h.toLowerCase()))?.[1];
-    return `<div class="mrow${hl ? " hl" : ""}"><span class="ml">${esc(k)}</span><span class="mv">${esc(fmtMetric(k, m[k]))}</span>${hint ? `<span class="mh">${esc(hint)}</span>` : ""}</div>`; };
+    const lbl = k === "Below market" ? "Under local asking" : k;
+    return `<div class="mrow${hl ? " hl" : ""}"><span class="ml">${esc(lbl)}</span><span class="mv">${esc(fmtMetric(k, m[k]))}</span>${hint ? `<span class="mh">${esc(hint)}</span>` : ""}</div>`; };
   const also = DATA.researchers.filter(x => x.key !== i._r && x.items.some(y => y.id === id)).map(x => cfg(x.key).short || x.title);
   const ad = safeUrl(i.url); const hasGeo = isNum(i.lat) && isNum(i.lng);
   const ck = checks[id] || []; const qs = questionsOf(i);
   const u = i.utilities || {};
   $("#dCrumb").textContent = (R ? (cfg(R.key).short || R.title) : "Deal") + " · " + (where(i) || "");
   $("#dBody").innerHTML = `
-    ${PRIV && i._pipe ? pipeSection(i._pipe).replace('<div class="dsec">', '<div class="dsec" style="padding-bottom:var(--s5)">') : ""}
-    <div class="dhero">${media(i)}${i.is_new ? `<span class="pill new" style="position:absolute;left:12px;bottom:12px">New today</span>` : ""}</div>
+    <div class="dhero">${media(i)}</div>
     <div class="dsec">
       <div class="dmeta">${ratingBadge(i)}${isNum(i.score) ? `<span class="pill muted">Score ${i.score} / 100</span>` : ""}${i._gone ? `<span class="pill warn">Not in latest results</span>` : ""}${niBadge(i)}${myBadge(i)}</div>
       <h2 class="dtitle" id="dTitle">${esc(i.title || "Untitled ad")}</h2>
@@ -1154,13 +1236,14 @@ function openDeal(id, r, push){
     </div>
     <div class="dsec"><div class="hero">${keyHtml(i)}${subsHtml(i)}
       <div class="actions" style="margin-top:8px">${ad ? `<a class="btn primary" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${esc(cfg(i._r).adLabel || "Open the ad")} ${I.ext}</a>` : ""}
-        <button type="button" class="btn" id="dStar" data-id="${esc(id)}" aria-pressed="false"></button></div></div></div>
-    ${qs.length ? `<div class="dsec"><div class="ask" role="region" aria-labelledby="askH"><h3 id="askH">❓ Ask the seller</h3>
+        <button type="button" class="btn" id="dStar" data-id="${esc(id)}" aria-pressed="false"></button><button type="button" class="btn share" id="dShareBtn">${I.share} Share</button></div></div></div>
+    ${PRIV && i._pipe ? pipeSection(i._pipe) : ""}
+    ${qs.length ? `<div class="dsec"><div class="ask" role="region" aria-labelledby="askH"><h3 id="askH">${I.q} Ask the ${i._r === "auctions" ? "bailiff" : "seller"}</h3>
       <ol>${qs.map(q => `<li>${esc(q)}</li>`).join("")}</ol>
       <button type="button" class="btn" id="copyQ">Copy questions</button> <span id="copyQs" class="also" aria-live="polite"></span>
       <p>${PRIV ? "Got answers? Fill in <b>What the seller told you</b> below, then re-score." : "Got answers? Reply to this deal's Telegram message, e.g. <i>“water yes, area 450, price 32000”</i> — it's re-scored on the next run."}</p></div></div>` : ""}
     ${PRIV && !i._gone ? privPanel(i) : ""}
-    ${(i.reasons || []).length ? `<div class="dsec"><h3>Why it's a deal</h3><ul class="reasons">${i.reasons.map(x => `<li>${I.check}<span>${esc(x)}</span></li>`).join("")}</ul></div>` : ""}
+    ${(i.reasons || []).length ? `<div class="dsec"><h3>Why it's a deal</h3><ul class="reasons">${i.reasons.map(x => `<li>${I.check}<span>${esc(reasonTxt(x))}</span></li>`).join("")}</ul></div>` : ""}
     <div class="dsec"><h3>Key facts</h3><dl class="facts">
       <div><dt>${i._r === "auctions" ? "Starting price" : "Asking price"}</dt><dd>${esc(eur(i.price))}</dd></div>
       <div><dt>Price per m²</dt><dd>${isNum(i.ppm2) ? esc(fmtN(i.ppm2)) + " €" : "—"}</dd></div>
@@ -1183,6 +1266,7 @@ function openDeal(id, r, push){
     if (!ok) { try { const ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy"); ta.remove(); } catch {} }
     $("#copyQs").textContent = ok ? "Copied — paste into Viber or SMS." : "Couldn't copy — select the list above."; };
   $("#dStar").onclick = () => toggleStar(id, i._r);
+  const sb = $("#dShareBtn"); if (sb) sb.onclick = shareDeal;
   if (PRIV) bindPriv(i);
   $$("[data-ck]", $("#dBody")).forEach(cb => cb.onchange = () => { const a = checks[id] || []; a[+cb.dataset.ck] = cb.checked; checks[id] = a; store.set("mkdeal.checks", checks); });
   const sc = $("#scrim"), dr = $("#drawer"); sc.hidden = false; dr.hidden = false;
@@ -1232,7 +1316,22 @@ function closeDeal(fromUser){
 }
 $("#dClose").onclick = () => closeDeal(true);
 $("#scrim").onclick = () => closeDeal(true);
-$("#dShare").onclick = async () => { const url = location.href; try { await navigator.clipboard.writeText(url); $("#dShare").title = "Link copied"; $("#dShare").setAttribute("aria-label", "Link copied"); } catch { prompt("Copy this link:", url); } };
+function shareText(i){ const r = ratingOf(i); const q = typeof gTarget === "function" ? gTarget(i) : null;
+  const lines = [`${r.emoji} ${r.label}${isNum(i.score) ? ` (${i.score}/100)` : ""} — ${i.title || "Untitled ad"}`,
+    [eur(i.price) !== "—" ? (i._r === "auctions" ? "Starting price " : "Price ") + eur(i.price) : null, isNum(i.area) ? nf0.format(i.area) + " m²" : null, isNum(i.ppm2) ? ppm(i.ppm2) : null].filter(Boolean).join(" · "),
+    [where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "), keyShort(i) !== eur(i.price) ? keyShort(i) : null,
+    hasAlt(i) ? `Altitude ${i.elevation_approx ? "~" : ""}${nf0.format(i.elevation)} m` : null,
+    hasDist(i) ? ["Skopje", "Ohrid"].map((n, k) => { const d = i[k ? "to_ohrid" : "to_skopje"]; return okDist(d) ? `${n}: ${(i.distance_approx ? "~" : "") + distLong(d)}` : null; }).filter(Boolean).join(" · ") : null,
+    safeUrl(i.url) ? (i._r === "auctions" ? "Official notice: " : "Ad: ") + i.url : null,
+    q ? "Map: https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q) : null].filter(Boolean);
+  return lines.join("\n"); }
+async function copyText(txt){ let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch {}
+  if (!ok) { try { const ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy"); ta.remove(); } catch {} }
+  return ok; }
+async function shareDeal(){ const i = openId && findItem(openId, parseHash().in); if (!i) return; const txt = shareText(i);
+  if (navigator.share && matchMedia("(pointer:coarse)").matches) { try { await navigator.share({title: i.title || "Deal", text: txt}); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  const ok = await copyText(txt); if (typeof toast === "function") toast(ok ? "Summary copied — paste it into Viber or WhatsApp." : "Couldn't copy — try again.", ok ? {} : {err:true}); }
+$("#dShare").onclick = shareDeal;
 document.addEventListener("keydown", e => {
   if (!openId) return;
   if (e.key === "Escape") { e.preventDefault(); closeDeal(true); return; }
@@ -1434,7 +1533,7 @@ function privPanel(i){
     </div>
     <span class="savednote" id="privSaved" aria-live="polite"></span>
   </div></div>
-  <div class="dsec"><details class="facts-form" id="factsForm" ${ni ? "open" : ""}><summary>What the seller told you</summary><div class="fb">
+  <div class="dsec"><details class="facts-form" id="factsForm" ${ni ? "open" : ""}><summary>${i._r === "auctions" ? "Notes from your calls" : "What the seller told you"}</summary><div class="fb">
     ${sum ? `<div class="fsum"><b>Saved:</b> ${sum}</div>` : ""}
     ${FACT_U.map(([k,l]) => tri(k, l)).join("")}
     <div class="fgrid"><label>Area (m²)<input type="number" inputmode="decimal" min="0" step="any" id="fArea" value="${isNum(f.area_m2) ? f.area_m2 : ""}" placeholder="${isNum(i.area) ? esc(nf0.format(i.area)) : ""}"></label>
@@ -1482,14 +1581,14 @@ function pipeFind(id, r){ return (DATA?.pipeline || []).find(e => e.id === id &&
 function todayISO(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
 function dueChip(e){ if (!e.due) return ""; const d = String(e.due).slice(0, 10), t = todayISO();
   const nice = (() => { const x = new Date(d + "T12:00:00"); return isNaN(x) ? d : x.toLocaleDateString("en-GB", {day:"numeric", month:"short"}); })();
-  if (d < t) return `<span class="due over" title="Due ${esc(d)}">⏰ Overdue · ${esc(nice)}</span>`;
-  if (d === t) return `<span class="due today">⏰ Due today</span>`;
+  if (d < t) return `<span class="due over" title="Due ${esc(d)}">${I.clock} Overdue · ${esc(nice)}</span>`;
+  if (d === t) return `<span class="due today">${I.clock} Due today</span>`;
   return `<span class="due">📅 ${esc(nice)}</span>`; }
 function stageSuggestions(e){ const r = e.researcher, c = cfg(r);
   if (r === "auctions") return ({interested:["Read the official notice (starting price, deposit, date, payment deadline)"], contacted:["Ask the bailiff for a viewing","Ask who lives there and whether it's occupied"],
     viewing:["Visit the property, or at least the building and street"], checks:["Check debts and charges (товари) on the property sheet (имотен лист)","Check whether it's occupied","Have the money ready — plan cash or a pre-approved loan"],
     offer:["Pay the deposit before the sale"], negotiating:["Attend the sale with ID and the deposit receipt"], won:["Pay the balance by the deadline","Register the property at the cadastre"], dropped:[]})[e.stage] || [];
-  return ({interested:["Call the seller / agency","Confirm the price is still valid","Ask the open questions (❓) if there are any"],
+  return ({interested:["Call the seller / agency","Confirm the price is still valid","Ask the open questions if there are any"],
     contacted:["Book a viewing","Ask for a photo of the property sheet (имотен лист)"],
     viewing:["Check the condition on site","See the documents","Check utilities on site (power, water, road, heating)"],
     checks:(c.checklist || []).map(x => x[0]), offer:["Send the offer in writing","Follow up in 2 days"],
@@ -1582,7 +1681,7 @@ async function moveToPipeline(it, vote){
 function dueSection(){
   const t = todayISO(); const due = pipeActive().filter(e => e.due && String(e.due).slice(0, 10) <= t).sort(pipeSort);
   if (!due.length) return "";
-  return `<section style="margin-bottom:var(--s8)" aria-labelledby="sec-due"><div class="sechead"><div><h3 id="sec-due">⏰ Next steps due</h3><div class="sub">From your pipeline — overdue first</div></div><button class="link" data-go="pipeline">Open pipeline →</button></div>
+  return `<section style="margin-bottom:var(--s8)" aria-labelledby="sec-due"><div class="sechead"><div><h3 id="sec-due">${I.clock} Next steps due</h3><div class="sub">From your pipeline — overdue first</div></div><button class="link" data-go="pipeline">Open pipeline →</button></div>
     <div class="duelist">${due.map(pcard).join("")}</div></section>`; }
 async function startRescore(){
   const b = $("#rescoreBtn"); if (b.getAttribute("aria-busy") === "true") return;

@@ -163,6 +163,11 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):            # quiet: errors only
         pass
 
+    def end_headers(self):
+        if self.path.split("?")[0] in ("/", "/index.html"):
+            self.send_header("Cache-Control", "no-cache")     # always the latest page after an update
+        super().end_headers()
+
     def _json(self, obj, code=200):
         data = json.dumps(obj, ensure_ascii=False).encode("utf-8")
         self.send_response(code)
