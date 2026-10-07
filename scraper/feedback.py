@@ -11,6 +11,7 @@ Effect on results:
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 from contextlib import closing
 from datetime import datetime, timezone
@@ -57,6 +58,18 @@ CREATE TABLE IF NOT EXISTS rejections (
     title      TEXT,
     rejected_at TEXT NOT NULL,
     PRIMARY KEY (listing_id, researcher)
+);
+-- My pipeline: deals you marked 👍 / ✅, with the stage you're at and the next step.
+CREATE TABLE IF NOT EXISTS pipeline (
+    listing_id TEXT PRIMARY KEY,
+    researcher TEXT NOT NULL,
+    stage      TEXT NOT NULL,          -- see STAGES
+    next_step  TEXT,
+    due        TEXT,                   -- ISO date of the next step
+    notes      TEXT,
+    snapshot   TEXT,                   -- JSON copy of the deal (kept if the ad disappears)
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
 );
 -- Which Telegram message shows which deal, so replies can be matched.
 CREATE TABLE IF NOT EXISTS messages (
@@ -187,6 +200,114 @@ def rejected_list(path: Path | None = None) -> list[dict]:
                     "reason": code, "reason_label": BY_CODE[code].label if code in BY_CODE else "no reason given",
                     "note": r.get("note"), "rejected_at": r.get("rejected_at")})
     return out
+
+
+STAGES = ["interested", "contacted", "viewing", "checks", "offer", "negotiating", "won", "dropped"]
+NEXT_STEP = {
+    "interested": "Call the seller / agency",
+    "contacted": "Book a viewing",
+    "viewing": "Visit: condition, documents, utilities on site",
+    "checks": "Check the property sheet (имотен лист), debts and charges on it (товари), zoning / building permit",
+    "offer": "Wait for the answer — follow up in 2 days",
+    "negotiating": "Agree price, deposit and notary date",
+    "won": "Done 🎉",
+    "dropped": "—",
+}
+NEXT_STEP_AUCTION = {
+    "interested": "Read the official notice",
+    "contacted": "Ask the bailiff for a viewing",
+    "checks": "Check debts and charges (товари) and whether it's occupied",
+    "offer": "Pay the deposit before the sale",
+    "negotiating": "Attend the sale",
+}
+
+
+def default_next_step(stage: str, researcher: str) -> str:
+    if researcher == "auctions" and stage in NEXT_STEP_AUCTION:
+        return NEXT_STEP_AUCTION[stage]
+    return NEXT_STEP.get(stage, "")
+
+
+def pipeline_add(conn, listing_id: str, researcher: str) -> None:
+    """Put a deal into My pipeline (stage 'interested') unless it's already there."""
+    ts = _now()
+    conn.execute("INSERT OR IGNORE INTO pipeline (listing_id, researcher, stage, next_step, created_at, updated_at) "
+                 "VALUES (?,?,?,?,?,?)",
+                 (listing_id, researcher, "interested", default_next_step("interested", researcher), ts, ts))
+    conn.commit()
+
+
+def pipeline_update(conn, listing_id: str, **fields) -> bool:
+    row = conn.execute("SELECT researcher, stage, next_step FROM pipeline WHERE listing_id=?", (listing_id,)).fetchone()
+    if not row:
+        return False
+    sets = {}
+    if "stage" in fields and fields["stage"] in STAGES and fields["stage"] != row["stage"]:
+        sets["stage"] = fields["stage"]
+        # Moving on: the next step becomes that stage's default unless you typed one.
+        if "next_step" not in fields:
+            sets["next_step"] = default_next_step(fields["stage"], row["researcher"])
+    if "next_step" in fields:
+        sets["next_step"] = (fields["next_step"] or "")[:300]
+    if "due" in fields:
+        sets["due"] = fields["due"] or None
+    if "notes" in fields:
+        sets["notes"] = (fields["notes"] or "")[:5000]
+    if sets:
+        sets["updated_at"] = _now()
+        conn.execute(f"UPDATE pipeline SET {', '.join(k + '=?' for k in sets)} WHERE listing_id=?",
+                     (*sets.values(), listing_id))
+        conn.commit()
+    return True
+
+
+def pipeline_remove(conn, listing_id: str) -> None:
+    conn.execute("DELETE FROM pipeline WHERE listing_id=?", (listing_id,))
+    conn.commit()
+
+
+def load_pipeline(path: Path | None = None) -> list[dict]:
+    path = path or DB_PATH
+    if not path.exists():
+        return []
+    with closing(connect(path)) as conn:
+        return [dict(r) for r in conn.execute("SELECT * FROM pipeline ORDER BY updated_at DESC")]
+
+
+def take_pipeline(results: dict, path: Path | None = None) -> tuple[dict, list[dict]]:
+    """Move pipeline deals out of the result lists into their own list.
+
+    Each entry carries the latest version of the deal if it's still found,
+    otherwise the saved copy (flagged removed). Saved copies are refreshed."""
+    entries = load_pipeline(path)
+    if not entries:
+        return results, []
+    ids = {e["listing_id"] for e in entries}
+    latest: dict[str, dict] = {}
+    kept = {}
+    for researcher, items in results.items():
+        kept[researcher] = []
+        for x in items:
+            if x["id"] in ids:
+                latest.setdefault(x["id"], x)
+            else:
+                kept[researcher].append(x)
+    out = []
+    with closing(connect(path or DB_PATH)) as conn:
+        for e in entries:
+            item = latest.get(e["listing_id"])
+            if item is not None:
+                conn.execute("UPDATE pipeline SET snapshot=? WHERE listing_id=?",
+                             (json.dumps(item, ensure_ascii=False), e["listing_id"]))
+            elif e.get("snapshot"):
+                item = json.loads(e["snapshot"])
+            out.append({"id": e["listing_id"], "researcher": e["researcher"], "stage": e["stage"],
+                        "next_step": e["next_step"], "due": e["due"], "notes": e["notes"],
+                        "created_at": e["created_at"], "updated_at": e["updated_at"],
+                        # not in today's results: sold, removed, or now outside your filters
+                        "removed": e["listing_id"] not in latest, "item": item or {"id": e["listing_id"]}})
+        conn.commit()
+    return kept, out
 
 
 def load_rejections(path: Path | None = None) -> list[dict]:

@@ -175,6 +175,31 @@ def send(results: dict, db, cfg: dict, researchers) -> int:
     return sent + asked
 
 
+def send_due(pipeline: list[dict], db) -> int:
+    """One Telegram reminder per day listing pipeline next steps that are due."""
+    if not configured():
+        return 0
+    from datetime import date
+    today = date.today().isoformat()
+    due = sorted((e for e in pipeline if e.get("due") and e["due"] <= today and e["stage"] not in ("won", "dropped")),
+                 key=lambda e: e["due"])
+    key = f"due:{today}"
+    if not due or db.was_notified(key, "pipeline"):
+        return 0
+    lines = [f"📋 <b>Next steps due</b> ({len(due)})"]
+    for e in due[:15]:
+        it = e.get("item") or {}
+        when = "overdue" if e["due"] < today else "today"
+        lines.append(f"• [{when}] {html.escape(e.get('next_step') or '')} — "
+                     f"<a href=\"{html.escape(it.get('url') or '')}\">{html.escape((it.get('title') or e['id'])[:60])}</a>")
+    lines.append(f"\nUpdate them on your dashboard: {PRIVATE_DASHBOARD}")
+    if api("sendMessage", chat_id=os.environ["TELEGRAM_CHAT_ID"], text="\n".join(lines)[:4000], parse_mode="HTML",
+           disable_web_page_preview="true"):
+        db.mark_notified(key, "pipeline")
+        db.conn.commit()
+    return len(due)
+
+
 def send_status(text: str) -> None:
     """Plain warning message (failed / blocked runs)."""
     if configured():

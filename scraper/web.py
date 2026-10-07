@@ -9,6 +9,7 @@ you can rate deals right on the page:
     POST /api/vote   {id, researcher, vote: up|ok|down|clear, reason?, note?}
     POST /api/facts  {id, researcher, facts: {electricity|water|road: yes|no|unknown,
                                               area_m2, price_eur, land_type, note}}
+    POST /api/pipeline {id, researcher, stage?, next_step?, due?, notes?}
     POST /api/rescore              → re-score now (no scraping); GET it for progress
 
 Only listens on 127.0.0.1 — nothing is reachable from your network or the internet.
@@ -47,6 +48,7 @@ def vote(body: dict) -> dict:
     with feedback.closing(feedback.connect()) as conn:
         if v == "clear":
             feedback.undo(conn, lid, researcher)
+            feedback.pipeline_remove(conn, lid)
             return {"ok": True}
         info = _listing(lid)
         feedback.undo(conn, lid, researcher)                 # one current opinion per deal
@@ -59,10 +61,12 @@ def vote(body: dict) -> dict:
             note = (body.get("note") or "").strip()
             if note:
                 feedback.add_rejection_note(conn, lid, note[:500])
+            feedback.pipeline_remove(conn, lid)
         else:
             feedback.record(conn, lid, researcher, 1, info)
             if v == "ok":
                 feedback.confirm(conn, lid)
+            feedback.pipeline_add(conn, lid, researcher)       # 👍 / ✅ → My pipeline
     log.info("vote %s %s %s %s", v, researcher, lid, body.get("reason") or "")
     return {"ok": True}
 
@@ -106,6 +110,28 @@ def facts(body: dict) -> dict:
                 else:
                     feedback.set_override(conn, lid, "note", str(v)[:500])
     log.info("facts %s %s", lid, f)
+    return {"ok": True}
+
+
+def pipeline(body: dict) -> dict:
+    lid = body.get("id")
+    if not lid:
+        return {"ok": False, "error": "id is required"}
+    fields = {k: body[k] for k in ("stage", "next_step", "due", "notes") if k in body}
+    if "stage" in fields and fields["stage"] not in feedback.STAGES:
+        return {"ok": False, "error": f"stage must be one of {', '.join(feedback.STAGES)}"}
+    if fields.get("due"):
+        try:
+            from datetime import date
+            date.fromisoformat(fields["due"])
+        except ValueError:
+            return {"ok": False, "error": "due must be a date (YYYY-MM-DD)"}
+    with feedback.closing(feedback.connect()) as conn:
+        if not feedback.pipeline_update(conn, lid, **fields):
+            # not there yet (e.g. moved straight from a list) — add, then update
+            feedback.pipeline_add(conn, lid, body.get("researcher") or "flip")
+            feedback.pipeline_update(conn, lid, **fields)
+    log.info("pipeline %s %s", lid, fields)
     return {"ok": True}
 
 
@@ -182,7 +208,8 @@ class Handler(SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(min(n, 100_000)) or b"{}")
         except (ValueError, json.JSONDecodeError):
             return self._json({"ok": False, "error": "bad JSON"}, 400)
-        handler = {"/api/vote": vote, "/api/facts": facts, "/api/rescore": lambda _b: start_rescore()}.get(path)
+        handler = {"/api/vote": vote, "/api/facts": facts, "/api/pipeline": pipeline,
+                   "/api/rescore": lambda _b: start_rescore()}.get(path)
         if not handler:
             return self._json({"ok": False, "error": "not found"}, 404)
         try:

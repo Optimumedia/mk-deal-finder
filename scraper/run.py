@@ -391,8 +391,11 @@ def write_outputs(db: DB, cfg: dict, results: dict, market: Market, by_id: dict,
         export.write(ROOT / "docs" / "data.json", pub, market, db, cfg, RESEARCHERS)
     private = rating.rate_all(feedback.apply(results, votes, rejections=feedback.load_rejections(), listings=by_id))
     private = feedback.annotate_mine(private)
-    export.write(PRIVATE_JSON, private, market, db, cfg, RESEARCHERS, extra={"rejected": feedback.rejected_list()})
-    return private
+    # Deals you marked 👍 / ✅ leave the lists and live in My pipeline.
+    lists, pipeline = feedback.take_pipeline(private)
+    export.write(PRIVATE_JSON, lists, market, db, cfg, RESEARCHERS,
+                 extra={"rejected": feedback.rejected_list(), "pipeline": pipeline})
+    return lists, pipeline
 
 
 def rescore(cfg: dict | None = None) -> None:
@@ -462,8 +465,9 @@ def main(argv=None) -> int:
     db.finish_run(run_id, status=status, mode="full" if full else "quick", pages=stats["pages"], details=details,
                   new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
-    private = write_outputs(db, cfg, results, market, by_id)
+    private, pipeline = write_outputs(db, cfg, results, market, by_id)
     notify.send(private, db, cfg, RESEARCHERS)
+    notify.send_due(pipeline, db)
     if status != "ok":
         notify.send_status(
             f"⚠️ MK Deal Finder run #{run_id} {status.upper()} after {stats['pages']} pages.\n{message}\n\n"

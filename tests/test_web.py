@@ -106,3 +106,33 @@ class HttpTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PipelineTests(ApiTests):
+    def test_interested_moves_deal_to_pipeline_and_out_of_lists(self):
+        web.vote({"id": "reklama5:10", "researcher": "land", "vote": "up"})
+        results = {"land": [{"id": "reklama5:10", "title": "Plac A"}, {"id": "reklama5:11", "title": "Plac B"}]}
+        lists, pipe = feedback.take_pipeline(results)
+        self.assertEqual([x["id"] for x in lists["land"]], ["reklama5:11"])
+        self.assertEqual((pipe[0]["stage"], pipe[0]["next_step"], pipe[0]["removed"]),
+                         ("interested", "Call the seller / agency", False))
+        # The ad disappears: the saved copy stays, flagged removed.
+        lists, pipe = feedback.take_pipeline({"land": [{"id": "reklama5:11"}]})
+        self.assertEqual((pipe[0]["item"]["title"], pipe[0]["removed"]), ("Plac A", True))
+
+    def test_stage_moves_bring_their_next_step(self):
+        web.vote({"id": "kirsm:5", "researcher": "auctions", "vote": "ok"})
+        self.assertTrue(web.pipeline({"id": "kirsm:5", "stage": "checks", "due": "2026-10-20", "notes": "bailiff: Mon"})["ok"])
+        e = feedback.load_pipeline()[0]
+        self.assertEqual((e["stage"], e["due"], e["notes"]), ("checks", "2026-10-20", "bailiff: Mon"))
+        self.assertIn("occupied", e["next_step"])                    # the auction-specific step
+        self.assertFalse(web.pipeline({"id": "kirsm:5", "stage": "bought it"})["ok"])
+        self.assertFalse(web.pipeline({"id": "kirsm:5", "due": "next week"})["ok"])
+
+    def test_reject_or_undo_leaves_pipeline(self):
+        web.vote({"id": "reklama5:12", "researcher": "flip", "vote": "up"})
+        web.vote({"id": "reklama5:12", "researcher": "flip", "vote": "down", "reason": "prc"})
+        self.assertEqual(feedback.load_pipeline(), [])
+        web.vote({"id": "reklama5:13", "researcher": "flip", "vote": "up"})
+        web.vote({"id": "reklama5:13", "researcher": "flip", "vote": "clear"})
+        self.assertEqual(feedback.load_pipeline(), [])
