@@ -100,6 +100,8 @@ class DB:
         self.conn = sqlite3.connect(path)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
+        if "mode" not in {r[1] for r in self.conn.execute("PRAGMA table_info(runs)")}:
+            self.conn.execute("ALTER TABLE runs ADD COLUMN mode TEXT")      # 'full' | 'quick'
         have = {r[1] for r in self.conn.execute("PRAGMA table_info(listings)")}
         for col, typ in MIGRATIONS.items():
             if col not in have:
@@ -214,6 +216,15 @@ class DB:
         cur = self.conn.execute("INSERT INTO runs (started_at, status) VALUES (?, 'running')", (now(),))
         self.conn.commit()
         return cur.lastrowid
+
+    def hours_since_full_sweep(self) -> float | None:
+        """Hours since the last successful full sweep (None = never)."""
+        r = self.conn.execute("SELECT MAX(finished_at) FROM runs WHERE status = 'ok' AND mode = 'full'").fetchone()
+        if not r or not r[0]:
+            r = self.conn.execute("SELECT MAX(finished_at) FROM runs WHERE status = 'ok' AND pages > 250").fetchone()
+        if not r or not r[0]:
+            return None
+        return (datetime.now(timezone.utc) - datetime.fromisoformat(r[0])).total_seconds() / 3600
 
     def finish_run(self, run_id: int, **kw):
         kw["finished_at"] = now()

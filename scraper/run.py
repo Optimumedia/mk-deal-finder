@@ -395,8 +395,10 @@ def main(argv=None) -> int:
     sc = cfg["scraper"]
     db = DB(args.db)
     first_run = not db.has_completed_run()     # backfill until one run has succeeded
-    full = args.full or first_run or (
-        not args.quick and datetime.now(timezone.utc).hour in sc.get("full_sweep_hours_utc", []))
+    # Full sweep once a day: whenever the last one is older than ~20 h — so a PC
+    # that slept through 06:15 still gets its full sweep when it wakes up.
+    since = db.hours_since_full_sweep()
+    full = args.full or first_run or (not args.quick and (since is None or since >= sc["full_sweep_every_hours"]))
 
     run_id = db.start_run()
     status, message, stats, details = "ok", "", {"pages": 0, "new": 0, "changed": 0}, 0
@@ -419,7 +421,8 @@ def main(argv=None) -> int:
         db.prune(sc["prune_after_days"])
 
     results, market, by_id = analyse(db, cfg)
-    db.finish_run(run_id, status=status, pages=stats["pages"], details=details, new_listings=stats["new"],
+    db.finish_run(run_id, status=status, mode="full" if full else "quick", pages=stats["pages"], details=details,
+                  new_listings=stats["new"],
                   price_changes=stats["changed"], message=message)
     votes = feedback.load_votes()
     public = needs_info.public(rating.rate_all(feedback.apply(results, votes, personalize=False)))
