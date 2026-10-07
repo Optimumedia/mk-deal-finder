@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import socket
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -148,8 +149,8 @@ class Handler(SimpleHTTPRequestHandler):
     def _local_only(self) -> bool:
         # The page and the API must come from this PC (blocks other sites posting here).
         origin = self.headers.get("Origin")
-        return origin in (None, f"http://localhost:{self.server.server_port}",
-                          f"http://127.0.0.1:{self.server.server_port}")
+        port = self.server.server_port
+        return origin in (None, f"http://localhost:{port}", f"http://127.0.0.1:{port}", f"http://[::1]:{port}")
 
     def do_GET(self):
         path = self.path.split("?")[0]
@@ -192,17 +193,35 @@ class Handler(SimpleHTTPRequestHandler):
         return self._json(res, 200 if res.get("ok") else 400)
 
 
+class _V6Server(ThreadingHTTPServer):
+    address_family = socket.AF_INET6
+
+
 def serve(port: int = 8800, block: bool = False) -> ThreadingHTTPServer | None:
+    """Listen on the IPv4 and IPv6 loopback addresses only.
+
+    Windows resolves "localhost" to ::1 first; with an IPv4-only server every
+    request to http://localhost waited ~2 s for the fallback (the desktop
+    shortcut timed out on exactly that).
+    """
     try:
         httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     except OSError as e:
         log.error("private dashboard not started (port %d busy?): %s", port, e)
         return None
+    servers = [httpd]
+    try:
+        servers.append(_V6Server(("::1", port), Handler))
+    except OSError as e:                      # no IPv6 loopback: IPv4 still works
+        log.warning("IPv6 loopback not available: %s", e)
     log.info("private dashboard on http://localhost:%d", port)
+    for srv in servers[1:]:
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
     if block:
         httpd.serve_forever()
     else:
         threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    httpd.extra_servers = servers[1:]         # so callers (tests) can close them too
     return httpd
 
 

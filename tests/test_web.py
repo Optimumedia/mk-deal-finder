@@ -80,6 +80,9 @@ class HttpTests(unittest.TestCase):
         if cls.httpd:
             cls.httpd.shutdown()
             cls.httpd.server_close()
+            for s in getattr(cls.httpd, "extra_servers", []):
+                s.shutdown()
+                s.server_close()
 
     def req(self, path, body=None, origin=None):
         r = urllib.request.Request(f"http://127.0.0.1:8813{path}", data=json.dumps(body).encode() if body else None,
