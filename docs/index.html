@@ -172,6 +172,58 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .ask .btn{height:40px}
 .mini .q{font-size:12.5px;color:var(--ni);display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere}
 .toggle.wide{white-space:normal}
+/* ---------- private mode ---------- */
+.privpill{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);white-space:nowrap}
+.rescore{height:36px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);padding:0 12px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.rescore:hover{background:var(--surface-2)}
+.rescore[aria-busy="true"]{color:var(--ink-3);cursor:progress}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.vbtn{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.vbtn:hover{background:var(--surface-2);color:var(--ink)}
+.vbtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-text)}
+.vbtn.down[aria-pressed="true"]{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.vbtn.sm{height:28px;padding:0 7px}
+.drawer .vbtn{height:40px;padding:0 14px;font-size:14px}
+.mine{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;white-space:nowrap;background:var(--good-soft);color:var(--good);border:1px solid transparent}
+.mine.up{background:var(--accent-soft);color:var(--accent-text)}
+.priv{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.priv .lbl,.facts-form .lbl{font-size:13px;font-weight:600;color:var(--ink-2)}
+.priv textarea,.priv input[type=number],.priv select,.facts-form textarea,.facts-form input[type=number],.facts-form select{font:inherit;color:inherit;width:100%;border:1px solid var(--line-2);background:var(--bg);border-radius:10px;padding:8px 10px;font-size:14px;min-width:0}
+.priv textarea,.facts-form textarea{min-height:64px;resize:vertical}
+.priv textarea:focus,.priv input:focus,.priv select:focus,.facts-form textarea:focus,.facts-form input:focus,.facts-form select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.rej{border-top:1px solid var(--line);padding-top:var(--s3);display:flex;flex-direction:column;gap:var(--s2)}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.danger:hover{background:var(--bad);filter:brightness(1.07)}
+.facts-form{border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.facts-form>summary{cursor:pointer;padding:12px 14px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:8px}
+.facts-form>summary::-webkit-details-marker{display:none}
+.facts-form>summary::after{content:"＋";color:var(--ink-3)}
+.facts-form[open]>summary::after{content:"－"}
+.facts-form .fb{padding:0 14px 14px;display:flex;flex-direction:column;gap:var(--s3)}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:var(--s2);flex-wrap:wrap}
+.frow>span{font-size:14px;font-weight:500}
+.tri{display:inline-flex;border:1px solid var(--line-2);border-radius:9px;overflow:hidden}
+.tri label{position:relative;cursor:pointer}
+.tri input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.tri span{display:block;padding:6px 11px;font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface)}
+.tri label+label span{border-left:1px solid var(--line)}
+.tri input:checked+span{background:var(--ink);color:var(--bg)}
+.tri input:focus-visible+span{outline:3px solid var(--accent);outline-offset:-3px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3)}
+.fgrid label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:var(--ink-2);min-width:0}
+.fsum{font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.savednote{font-size:13px;color:var(--good);font-weight:600}
+.toasts{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;width:min(480px,calc(100vw - 32px));pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:12px;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-2);font-size:14px}
+.toast.err{background:var(--bad);color:#fff}
+.toast span{flex:1;min-width:0}
+.toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:8px;padding:4px 10px;font-weight:700;cursor:pointer;white-space:nowrap}
+.rejlist{display:flex;flex-direction:column;gap:var(--s2)}
+.rejrow{display:flex;align-items:center;gap:var(--s3);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-m);padding:10px 14px}
+.rejrow .rt{flex:1;min-width:0}
+.rejrow .rt b{display:block;overflow-wrap:anywhere;font-size:14px}
+.rejrow .rt span{font-size:13px;color:var(--ink-3);overflow-wrap:anywhere}
+@media (max-width:640px){.rescore .rl{display:none}.privpill{display:none}}
 .pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;line-height:18px;white-space:nowrap}
 .pill.new{background:var(--accent);color:var(--accent-ink)}
 .pill.good{background:var(--good-soft);color:var(--good)}
@@ -386,6 +438,8 @@ td .utils{flex-wrap:nowrap;gap:4px}
     </div>
     <span class="health" id="health" aria-live="polite">Loading…</span>
     <span class="spacer"></span>
+    <span class="privpill" id="privPill" hidden title="Private mode: your ratings are saved on this PC">Private</span>
+    <button class="rescore" id="rescoreBtn" type="button" hidden><span aria-hidden="true">↻</span><span class="rl">Re-score now</span><span class="sr"> Re-score now</span></button>
     <button class="iconbtn" id="themeBtn" type="button" aria-label="Switch to dark mode" title="Toggle light / dark"></button>
   </div>
   <nav class="tabs" id="tabs" role="tablist" aria-label="Sections"></nav>
@@ -393,6 +447,7 @@ td .utils{flex-wrap:nowrap;gap:4px}
 <main id="main" tabindex="-1"></main>
 <div class="foot" id="foot"></div>
 
+<div class="toasts" id="toasts" aria-live="polite"></div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle" hidden>
   <div class="dhead">
@@ -667,7 +722,7 @@ function card(i){
   const why = cleanReasons(i).slice(0, 3);
   const ad = safeUrl(i.url);
   return `<article class="card${tierCls(i)}" data-open="${esc(i.id)}" data-r="${esc(i._r)}">
-    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${niBadge(i)}</div>${i.is_new ? `<span class="pill new">New</span>` : ""}</div>
+    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${niBadge(i)}${myBadge(i)}</div>${i.is_new ? `<span class="pill new">New</span>` : ""}</div>
     ${starBtn(i)}
     <div class="cbody">
       ${keyHtml(i)}${subsHtml(i)}
@@ -675,6 +730,7 @@ function card(i){
       <div class="loc">${esc(placeLine(i))}</div>
       ${why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
       ${i._r === "land" || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChips(i) : ""}
+      ${PRIV && !i._gone ? voteBtns(i, false) : ""}
       <div class="cfoot"><span>${esc(footLeft(i))}</span>${ad ? `<a class="adlink" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${i._r === "auctions" ? "Official notice" : "Open ad"} ↗</a>` : ""}</div>
     </div></article>`;
 }
@@ -683,7 +739,7 @@ function mini(i){
   return `<article class="mini${tierCls(i)}" data-open="${esc(i.id)}" data-r="${esc(i._r)}">
     <div class="media">${media(i)}</div>
     <div class="mb">
-      <div class="badges">${ratingBadge(i, true)}${niBadge(i)}</div>
+      <div class="badges">${ratingBadge(i, true)}${niBadge(i)}${myBadge(i)}</div>
       ${keyHtml(i)}
       <h4 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h4>
       <div class="loc">${esc([where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "))}${i.is_new ? ` · <span class="pill new">New</span>` : ""}</div>
@@ -692,12 +748,16 @@ function mini(i){
 }
 
 /* ================= boot ================= */
-fetch("data.json?" + Date.now(), {cache:"no-store"}).then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => { DATA = d; boot(); })
+detectPrivate().then(p => { PRIV = p; if (PRIV) initPrivate(); return fetch((PRIV ? "/private.json?" : "data.json?") + Date.now(), {cache:"no-store"}); })
+  .then(r => { if (!r.ok) throw 0; return r.json(); }).then(d => { DATA = d; boot(); })
   .catch(() => { $("#health").textContent = "No data yet";
     $("#main").innerHTML = `<div class="empty"><h3>No data yet</h3><p>The first scheduled run will create it. Check back after the next update.</p></div>`; });
 
 function boot(){
+  ITEMS = new Map();
   DATA.researchers = (DATA.researchers || []).filter(r => r && r.key);
+  DATA.rejected = Array.isArray(DATA.rejected) ? DATA.rejected.filter(x => x && x.id) : [];
+  if (PRIV) { const rej = new Set(DATA.rejected.map(x => x.researcher + "|" + x.id)); for (const R of DATA.researchers) R.items = (R.items || []).filter(i => i && i.my_vote !== "down" && !rej.has(R.key + "|" + i.id)); }
   DATA.runs ||= []; DATA.market ||= [];
   for (const R of DATA.researchers) { R.items = (R.items || []).filter(Boolean); for (const i of R.items) { i._r = R.key; if (!ITEMS.has(i.id)) ITEMS.set(i.id, i); } }
   // refresh shortlist snapshots with latest data
@@ -891,6 +951,7 @@ function drawTable(R, items, list){
     {id:"score", h:"Rating", v:i => -(rankOf(i) * 1000 - (i.score ?? 0)), f:(v,i) => ratingBadge(i, true), sort:true},
     {id:"deal", h:"Deal", v:i => (i.title || "").toLowerCase(), f:(v,i) => `<div class="tdeal"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a><div class="loc">${esc(where(i) || "—")}${i.is_new ? ` · <span class="pill new" style="font-size:11px;padding:0 6px">New</span>` : ""}</div></div>`, sort:true, left:true},
     ...c.cols.map((x, n) => ({id:"c" + n, h:x.h, v:x.v, f:(v,i) => x.f(v, i), sort:true, num:x.num !== false, hideM:x.hideM})),
+    ...(PRIV ? [{id:"rate", h:"Your call", f:i => voteBtns(i, true), raw:true}] : []),
     {id:"status", h:"Status", v:i => needsInfo(i) ? 1 : 0, f:(v,i) => statusOf(i) !== "ready" ? niBadge(i) : `<span class="pill good">Ready</span>`, sort:true},
     {id:"age", h:"Posted", v:i => ageDays(i), f:(v,i) => esc(ageText(i).replace("Posted ", "")), sort:true, num:true, hideM:true},
   ];
@@ -933,12 +994,12 @@ function drawMap(items, list){
 function renderShortlist(){
   const ids = Object.keys(shortlist).sort((a,b) => (shortlist[b].at || 0) - (shortlist[a].at || 0));
   let html = `<div class="pagehead"><div><div class="eyebrow">Your picks</div><h2>Shortlist</h2><p>Deals you starred. Saved only in this browser on this device.</p></div></div>`;
-  if (!ids.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Nothing saved yet</h3><p>Tap the ★ on any deal to keep it here while you call sellers and arrange visits.</p></div>`; return; }
+  if (!ids.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Nothing saved yet</h3><p>Tap the ★ on any deal to keep it here while you call sellers and arrange visits.</p></div>` + rejectedHtml(); return; }
   const items = ids.map(id => { const s = shortlist[id]; const live = DATA.researchers.find(r => r.key === s.r)?.items.find(x => x.id === id) || ITEMS.get(id);
     if (live) return live; const snap = Object.assign({}, s.item, {_r:s.r, _gone:true}); return snap; });
   const gone = items.filter(i => i._gone).length;
   if (gone) html += `<div class="note warn" style="margin-bottom:16px"><span class="ic">${I.info}</span><div>${gone} saved deal${gone > 1 ? "s are" : " is"} no longer in the latest results (sold, removed, or no longer scoring). Shown from your saved copy.</div></div>`;
-  html += `<div class="grid">${items.map(card).join("")}</div>`;
+  html += `<div class="grid">${items.map(card).join("")}</div>` + rejectedHtml();
   $("#main").innerHTML = html;
 }
 function toggleStar(id, r){
@@ -953,6 +1014,8 @@ function toggleStar(id, r){
 
 /* ================= global clicks ================= */
 document.addEventListener("click", e => {
+  const v = e.target.closest("[data-vote]"); if (v) { e.preventDefault(); e.stopPropagation(); onVoteBtn(v); return; }
+  const un = e.target.closest("[data-unreject]"); if (un) { e.preventDefault(); unreject(un.dataset.unreject, un.dataset.r); return; }
   const s = e.target.closest("[data-star]"); if (s) { e.preventDefault(); e.stopPropagation(); toggleStar(s.dataset.star, s.dataset.r); return; }
   const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); selectTab(g.dataset.go, true); return; }
   if (e.target.closest("a:not([data-open-link])")) return;
@@ -996,7 +1059,7 @@ function openDeal(id, r, push){
   $("#dBody").innerHTML = `
     <div class="dhero">${media(i)}${i.is_new ? `<span class="pill new" style="position:absolute;left:12px;bottom:12px">New today</span>` : ""}</div>
     <div class="dsec">
-      <div class="dmeta">${ratingBadge(i)}${isNum(i.score) ? `<span class="pill muted">Score ${i.score} / 100</span>` : ""}${i._gone ? `<span class="pill warn">Not in latest results</span>` : ""}${niBadge(i)}</div>
+      <div class="dmeta">${ratingBadge(i)}${isNum(i.score) ? `<span class="pill muted">Score ${i.score} / 100</span>` : ""}${i._gone ? `<span class="pill warn">Not in latest results</span>` : ""}${niBadge(i)}${myBadge(i)}</div>
       <h2 class="dtitle" id="dTitle">${esc(i.title || "Untitled ad")}</h2>
       <div class="loc" style="margin-top:6px;font-size:14px">${esc(placeLine(i))}</div>
     </div>
@@ -1006,7 +1069,8 @@ function openDeal(id, r, push){
     ${qs.length ? `<div class="dsec"><div class="ask" role="region" aria-labelledby="askH"><h3 id="askH">❓ Ask the seller</h3>
       <ol>${qs.map(q => `<li>${esc(q)}</li>`).join("")}</ol>
       <button type="button" class="btn" id="copyQ">Copy questions</button> <span id="copyQs" class="also" aria-live="polite"></span>
-      <p>Got answers? Reply to this deal's Telegram message, e.g. <i>“water yes, area 450, price 32000”</i> — it's re-scored on the next run.</p></div></div>` : ""}
+      <p>${PRIV ? "Got answers? Fill in <b>What the seller told you</b> below, then re-score." : "Got answers? Reply to this deal's Telegram message, e.g. <i>“water yes, area 450, price 32000”</i> — it's re-scored on the next run."}</p></div></div>` : ""}
+    ${PRIV && !i._gone ? privPanel(i) : ""}
     ${(i.reasons || []).length ? `<div class="dsec"><h3>Why it's a deal</h3><ul class="reasons">${i.reasons.map(x => `<li>${I.check}<span>${esc(x)}</span></li>`).join("")}</ul></div>` : ""}
     <div class="dsec"><h3>Key facts</h3><dl class="facts">
       <div><dt>${i._r === "auctions" ? "Starting price" : "Asking price"}</dt><dd>${esc(eur(i.price))}</dd></div>
@@ -1022,6 +1086,7 @@ function openDeal(id, r, push){
     <div class="dsec"><h3>Before you buy</h3><ul class="check">${c.checklist.map(([t,h], n) => `<li><label><input type="checkbox" data-ck="${n}" ${ck[n] ? "checked" : ""}><span>${esc(t)}<span class="ch">${esc(h)}</span></span></label></li>`).join("")}</ul>
       <p class="also" style="margin:8px 0 0">Ticks are saved in this browser. All numbers are estimates from the ad text — verify before paying any deposit.</p></div>
     ${also.length ? `<div class="dsec"><p class="also">Also flagged by: <b>${esc(also.join(", "))}</b></p></div>` : ""}
+    ${PRIV ? "" : `<div class="dsec"><p class="also" style="color:var(--ink-3)">Rate deals on your PC's private dashboard: http://localhost:8800</p></div>`}
   `;
   paintDStar(id);
   const cq = $("#copyQ"); if (cq) cq.onclick = async () => { const txt = (i.title ? i.title + "\n" : "") + (safeUrl(i.url) ? i.url + "\n" : "") + qs.map((q, n) => `${n + 1}. ${q}`).join("\n");
@@ -1029,6 +1094,7 @@ function openDeal(id, r, push){
     if (!ok) { try { const ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy"); ta.remove(); } catch {} }
     $("#copyQs").textContent = ok ? "Copied — paste into Viber or SMS." : "Couldn't copy — select the list above."; };
   $("#dStar").onclick = () => toggleStar(id, i._r);
+  if (PRIV) bindPriv(i);
   $$("[data-ck]", $("#dBody")).forEach(cb => cb.onchange = () => { const a = checks[id] || []; a[+cb.dataset.ck] = cb.checked; checks[id] = a; store.set("mkdeal.checks", checks); });
   const sc = $("#scrim"), dr = $("#drawer"); sc.hidden = false; dr.hidden = false;
   requestAnimationFrame(() => { sc.classList.add("on"); dr.classList.add("on"); });
@@ -1182,6 +1248,143 @@ function renderRuns(){
       <td class="n">${r.pages ?? "—"}</td><td class="n hide-m">${r.details ?? "—"}</td><td class="n">${r.new_listings ?? "—"}</td><td class="n hide-m">${r.price_changes ?? "—"}</td><td class="hide-m" style="max-width:360px;overflow-wrap:anywhere;font-size:13px;color:var(--ink-2)">${esc(r.message || "")}</td></tr>`).join("")}
     </tbody></table></div>` : `<div class="empty"><p>No runs recorded yet.</p></div>`}`;
 }
+/* ================= PRIVATE MODE (owner's PC, http://localhost:8800) ================= */
+var PRIV = false;
+let REASONS = null, rescorePoll = null;
+const GENERIC_REASONS = [{code:"other", label:"Other (see note)", group:"Other"}];
+async function detectPrivate(){
+  if (!/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) return false; // public site: never call the API
+  try { const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 2500);
+    const r = await fetch("/api/ping", {cache:"no-store", signal:ac.signal}); clearTimeout(t);
+    if (!r.ok) return false; const j = await r.json(); return !!(j && j.ok === true); } catch { return false; } }
+async function api(method, url, body){
+  let r; try { r = await fetch(url, {method, cache:"no-store", headers: body ? {"Content-Type":"application/json"} : {}, body: body ? JSON.stringify(body) : undefined}); }
+  catch { throw new Error("Can't reach the private server — is it still running?"); }
+  let j = null; try { j = await r.json(); } catch {}
+  if (!r.ok || !j || j.ok === false) throw new Error((j && j.error) || `Server error (${r.status})`);
+  return j; }
+function toast(msg, opt = {}){
+  const box = $("#toasts"); const t = document.createElement("div"); t.className = "toast" + (opt.err ? " err" : ""); t.setAttribute("role", opt.err ? "alert" : "status");
+  t.innerHTML = `<span>${esc(msg)}</span>${opt.action ? `<button type="button">${esc(opt.action)}</button>` : ""}`;
+  const kill = () => { t.remove(); }; if (opt.action) t.querySelector("button").onclick = () => { kill(); opt.onAction && opt.onAction(); };
+  box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(kill, opt.timeout || (opt.action ? 8000 : 4000)); }
+const SAVED_MSG = "Saved — included next time you re-score.";
+function initPrivate(){
+  $("#privPill").hidden = false; const b = $("#rescoreBtn"); b.hidden = false; b.onclick = startRescore;
+  api("GET", "/api/reasons").then(j => { REASONS = j; }).catch(() => { REASONS = {}; });
+  api("GET", "/api/rescore").then(j => { if (j.running) watchRescore(); }).catch(() => {});
+}
+function reasonsFor(r){ const all = REASONS || {}; const list = all[r] || all["*"] || all.default || all.all || [];
+  return (Array.isArray(list) && list.length ? list : GENERIC_REASONS).filter(x => x && x.code); }
+const isConfirmed = i => i.status === "confirmed" || i.my_vote === "ok";
+function myBadge(i){ if (!PRIV) return ""; if (isConfirmed(i)) return `<span class="mine">✅ Confirmed by you</span>`; if (i.my_vote === "up") return `<span class="mine up">👍 Interested</span>`; return ""; }
+function voteBtns(i, sm){
+  const k = sm ? " sm" : ""; const ni = i.status === "needs_info" || (needsInfo(i) && !isConfirmed(i));
+  const b = (vote, ico, label, cls = "") => `<button type="button" class="vbtn${k}${cls}" data-vote="${vote}" data-id="${esc(i.id)}" data-r="${esc(i._r)}" aria-pressed="${vote === "down" ? "false" : String(i.my_vote === vote)}" aria-label="${esc(label)}" title="${esc(label)}"><span aria-hidden="true">${ico}</span>${sm ? "" : esc(label.replace(" — confirmed", ""))}</button>`;
+  return `<div class="acts" role="group" aria-label="Your call on this deal">${b("up","👍","Interested")}${ni || i.my_vote === "ok" ? b("ok","✅","Fits — confirmed") : ""}${b("down","❌","Not a fit"," down")}</div>`; }
+function itemsById(id, r){ const out = []; for (const R of DATA.researchers) if (!r || R.key === r) for (const x of R.items) if (x.id === id) out.push(x); return out; }
+function repaint(){ const y = window.scrollY; if (state.tab !== "today" || true) render(); window.scrollTo({top:y}); if (openId) { const i = findItem(openId, parseHash().in); if (i) { const st = $("#dBody").scrollTop; openDeal(openId, i._r, false); $("#dBody").scrollTop = st; } } }
+function onVoteBtn(btn){
+  const id = btn.dataset.id, r = btn.dataset.r, vote = btn.dataset.vote;
+  if (vote === "down") { if (openId !== id) openDeal(id, r, true); setTimeout(openReject, 60); return; }
+  const it = itemsById(id, r)[0]; if (!it) return;
+  sendVote(it, it.my_vote === vote ? "clear" : vote);
+}
+async function sendVote(it, vote){
+  const prev = it.my_vote ?? null; it.my_vote = vote === "clear" ? null : vote; repaint();
+  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote}); toast(vote === "clear" ? "Vote cleared. " + SAVED_MSG : SAVED_MSG); }
+  catch (e) { it.my_vote = prev; repaint(); toast(e.message, {err:true}); } }
+function openReject(){ const p = $("#rejPanel"); if (!p) return; p.hidden = false; $("#rejReason")?.focus(); p.scrollIntoView({block:"nearest"}); }
+async function rejectDeal(it, reason, note){
+  const removed = []; for (const R of DATA.researchers) { if (R.key !== it._r) continue; const n = R.items.findIndex(x => x.id === it.id); if (n >= 0) removed.push([R, n, R.items.splice(n, 1)[0]]); }
+  const rec = {id:it.id, researcher:it._r, title:it.title, reason, reason_label:(reasonsFor(it._r).find(x => x.code === reason) || {}).label || reason, note: note || null, _item: it};
+  DATA.rejected.unshift(rec); ITEMS.delete(it.id); for (const R of DATA.researchers) for (const x of R.items) if (!ITEMS.has(x.id)) ITEMS.set(x.id, x);
+  if (openId === it.id) closeDeal(true); buildTabs(); $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+  const y = window.scrollY; render(); window.scrollTo({top:y});
+  const restore = () => { for (const [R, n, x] of removed.reverse()) R.items.splice(Math.min(n, R.items.length), 0, x); DATA.rejected = DATA.rejected.filter(x => x !== rec); if (!ITEMS.has(it.id)) ITEMS.set(it.id, it); buildTabs(); $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; }); const yy = window.scrollY; render(); window.scrollTo({top:yy}); };
+  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"down", reason, note: note || undefined}); it.my_vote = "down";
+    toast("Rejected. " + SAVED_MSG, {action:"Undo", onAction: async () => { try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"clear"}); it.my_vote = null; restore(); toast("Restored. " + SAVED_MSG); } catch (e) { toast(e.message, {err:true}); } }}); }
+  catch (e) { restore(); toast(e.message, {err:true}); } }
+async function unreject(id, r){
+  const rec = DATA.rejected.find(x => x.id === id && x.researcher === r); if (!rec) return;
+  try { await api("POST", "/api/vote", {id, researcher:r, vote:"clear"});
+    DATA.rejected = DATA.rejected.filter(x => x !== rec);
+    if (rec._item) { rec._item.my_vote = null; const R = DATA.researchers.find(x => x.key === r); if (R && !R.items.includes(rec._item)) { R.items.push(rec._item); R.items.sort(bestSort); } ITEMS.set(id, rec._item); buildTabs(); toast("Restored. " + SAVED_MSG); }
+    else toast("Restored — it'll be back in the lists after you re-score.");
+    $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; }); render(); }
+  catch (e) { toast(e.message, {err:true}); } }
+function rejectedHtml(){
+  if (!PRIV) return ""; const rj = DATA.rejected || [];
+  return `<section class="section" aria-labelledby="sec-rej"><div class="sechead"><div><h3 id="sec-rej">Rejected</h3><div class="sub">Deals you marked ❌ Not a fit — hidden from every list</div></div><span class="sub">${rj.length}</span></div>
+    ${rj.length ? `<div class="rejlist">${rj.map(x => `<div class="rejrow"><div class="rt"><b>${esc(x.title || x.id)}</b><span>${esc(cfg(x.researcher).short || x.researcher || "")} · ${esc(x.reason_label || x.reason || "no reason")}${x.note ? " — “" + esc(x.note) + "”" : ""}</span></div>
+      <button type="button" class="btn" style="height:36px;padding:0 12px" data-unreject="${esc(x.id)}" data-r="${esc(x.researcher)}">Undo</button></div>`).join("")}</div>` : `<div class="empty"><p>Nothing rejected yet.</p></div>`}</section>`; }
+const FACT_U = [["electricity","⚡ Electricity"],["water","💧 Water"],["road","🛣 Road"]];
+function factsSummary(f){ if (!f) return ""; const p = [];
+  for (const [k,l] of FACT_U) if (f[k] === "yes" || f[k] === "no") p.push(`${l} ${f[k] === "yes" ? "yes" : "no"}`);
+  if (isNum(f.area_m2)) p.push(`Area ${nf0.format(f.area_m2)} m²`); if (isNum(f.price_eur)) p.push(`Price ${eur(f.price_eur)}`);
+  if (f.land_type) p.push(f.land_type === "building" ? "Building land" : f.land_type === "agricultural" ? "Agricultural land" : esc(f.land_type));
+  return (p.length ? p.map(esc).join(" · ") : "") + (f.note ? `${p.length ? "<br>" : ""}Note: “${esc(f.note)}”` : ""); }
+function privPanel(i){
+  const f = i.facts || {}; const ni = needsInfo(i) && !isConfirmed(i); const rs = reasonsFor(i._r);
+  const groups = []; for (const x of rs) { const g = x.group || "Other"; let G = groups.find(y => y[0] === g); if (!G) groups.push(G = [g, []]); G[1].push(x); }
+  const tri = (k, l) => `<div class="frow"><span>${esc(l)}</span><div class="tri" role="radiogroup" aria-label="${esc(l)}">${[["yes","Yes"],["no","No"],["","Unknown"]].map(([v,t]) => `<label><input type="radio" name="f_${k}" value="${v}" ${(f[k] || "") === v ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></div>`;
+  const sum = factsSummary(i.facts);
+  return `<div class="dsec"><h3>Your call</h3><div class="priv">
+    ${voteBtns(i, false)}
+    ${i.my_note ? `<div class="fsum">Your note: “${esc(i.my_note)}”</div>` : ""}
+    <div class="rej" id="rejPanel" hidden>
+      <label class="lbl" for="rejReason">Why isn't it a fit?</label>
+      <select id="rejReason"><option value="">Choose a reason…</option>${groups.map(([g, xs]) => `<optgroup label="${esc(g)}">${xs.map(x => `<option value="${esc(x.code)}">${esc(x.label || x.code)}</option>`).join("")}</optgroup>`).join("")}</select>
+      <label class="lbl" for="rejNote">Note (optional)</label>
+      <textarea id="rejNote" placeholder="e.g. seller says no water connection"></textarea>
+      <div class="actions"><button type="button" class="btn danger" id="rejGo">Reject</button><button type="button" class="btn" id="rejCancel">Cancel</button></div>
+      <span class="also" id="rejMsg" aria-live="polite"></span>
+    </div>
+    <span class="savednote" id="privSaved" aria-live="polite"></span>
+  </div></div>
+  <div class="dsec"><details class="facts-form" id="factsForm" ${ni ? "open" : ""}><summary>What the seller told you</summary><div class="fb">
+    ${sum ? `<div class="fsum"><b>Saved:</b> ${sum}</div>` : ""}
+    ${FACT_U.map(([k,l]) => tri(k, l)).join("")}
+    <div class="fgrid"><label>Area (m²)<input type="number" inputmode="decimal" min="0" step="any" id="fArea" value="${isNum(f.area_m2) ? f.area_m2 : ""}" placeholder="${isNum(i.area) ? esc(nf0.format(i.area)) : ""}"></label>
+      <label>Price (€)<input type="number" inputmode="decimal" min="0" step="any" id="fPrice" value="${isNum(f.price_eur) ? f.price_eur : ""}" placeholder="${isNum(i.price) ? esc(String(i.price)) : ""}"></label></div>
+    ${i._r === "land" || i.kind === "land" ? `<label class="lbl" for="fLand">Land type</label><select id="fLand">${[["","Unknown"],["building","Building (градежно)"],["agricultural","Agricultural"]].map(([v,t]) => `<option value="${v}" ${(f.land_type || "") === v ? "selected" : ""}>${t}</option>`).join("")}</select>` : ""}
+    <label class="lbl" for="fNote">Note</label><textarea id="fNote" placeholder="Anything else the seller said">${esc(f.note || "")}</textarea>
+    <div class="actions"><button type="button" class="btn primary" id="fSave">Save facts</button><span class="savednote" id="fMsg" aria-live="polite"></span></div>
+  </div></details></div>`; }
+function bindPriv(i){
+  const go = $("#rejGo"); if (!go) return;
+  $("#rejCancel").onclick = () => { $("#rejPanel").hidden = true; };
+  go.onclick = () => { const reason = $("#rejReason").value; if (!reason) { $("#rejMsg").textContent = "Pick a reason first."; $("#rejReason").focus(); return; }
+    rejectDeal(i, reason, $("#rejNote").value.trim()); };
+  $("#fSave").onclick = async () => {
+    const old = i.facts || {}; const ch = {};
+    for (const [k] of FACT_U) { const v = ($(`input[name="f_${k}"]:checked`) || {}).value || ""; if (v !== (old[k] || "")) ch[k] = v || null; }
+    const num = (el, key) => { const raw = el.value.trim(); const v = raw === "" ? null : Number(raw); if (raw !== "" && !(isFinite(v) && v >= 0)) return false; if (v !== (isNum(old[key]) ? old[key] : null)) ch[key] = v; return true; };
+    if (!num($("#fArea"), "area_m2") || !num($("#fPrice"), "price_eur")) { $("#fMsg").textContent = "Area and price must be positive numbers."; return; }
+    const lt = $("#fLand"); if (lt && lt.value !== (old.land_type || "")) ch.land_type = lt.value || null;
+    const note = $("#fNote").value.trim(); if (note !== (old.note || "")) ch.note = note || null;
+    if (!Object.keys(ch).length) { $("#fMsg").textContent = "Nothing changed."; return; }
+    const btn = $("#fSave"); btn.disabled = true; $("#fMsg").textContent = "Saving…";
+    try { await api("POST", "/api/facts", {id:i.id, researcher:i._r, facts:ch});
+      const nf = Object.assign({}, old, ch); for (const k in nf) if (nf[k] == null) delete nf[k]; for (const x of itemsById(i.id, i._r)) x.facts = nf;
+      const st = $("#dBody").scrollTop; openDeal(i.id, i._r, false); const ff = $("#factsForm"); if (ff) ff.open = true; $("#dBody").scrollTop = st; const m = $("#fMsg"); if (m) m.textContent = SAVED_MSG; toast(SAVED_MSG); }
+    catch (e) { btn.disabled = false; $("#fMsg").textContent = ""; toast(e.message, {err:true}); } };
+}
+async function startRescore(){
+  const b = $("#rescoreBtn"); if (b.getAttribute("aria-busy") === "true") return;
+  try { await api("POST", "/api/rescore", {}); toast("Re-scoring started — this takes about a minute."); watchRescore(); }
+  catch (e) { toast(e.message, {err:true}); } }
+function watchRescore(){
+  const b = $("#rescoreBtn"); b.setAttribute("aria-busy", "true"); b.querySelector(".rl").textContent = "Re-scoring…"; b.querySelector(".sr").textContent = " Re-scoring, please wait";
+  clearInterval(rescorePoll); let fails = 0;
+  const done = () => { clearInterval(rescorePoll); rescorePoll = null; b.removeAttribute("aria-busy"); b.querySelector(".rl").textContent = "Re-score now"; b.querySelector(".sr").textContent = " Re-score now"; };
+  rescorePoll = setInterval(async () => {
+    let j; try { j = await api("GET", "/api/rescore"); fails = 0; } catch (e) { if (++fails >= 5) { done(); toast(e.message, {err:true}); } return; }
+    if (j.running) return; done();
+    if (j.error) { toast("Re-score failed: " + j.error, {err:true}); return; }
+    try { const r = await fetch("/private.json?" + Date.now(), {cache:"no-store"}); if (!r.ok) throw 0; DATA = await r.json(); boot(); toast("Re-scored — deals updated."); }
+    catch { toast("Re-scored, but couldn't reload the data. Refresh the page.", {err:true}); }
+  }, 2000); }
 </script>
 </body>
 </html>

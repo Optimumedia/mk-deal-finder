@@ -99,7 +99,11 @@ def facts(body: dict) -> dict:
                     conn.execute("DELETE FROM overrides WHERE listing_id=? AND field='land_type'", (lid,))
                     conn.commit()
             elif k == "note":
-                feedback.set_override(conn, lid, "note", str(v)[:500])
+                if v in (None, ""):
+                    conn.execute("DELETE FROM overrides WHERE listing_id=? AND field='note'", (lid,))
+                    conn.commit()
+                else:
+                    feedback.set_override(conn, lid, "note", str(v)[:500])
     log.info("facts %s %s", lid, f)
     return {"ok": True}
 

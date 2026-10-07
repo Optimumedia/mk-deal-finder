@@ -85,7 +85,16 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
    After each run you get the new deals scoring at least 60 (`[notify]` in `config.toml`),
    up to 5 per researcher. Each deal is sent only once.
 
-5. **Telegram bot.** It's registered by `setup_schedule.ps1` and starts at logon with no window.
+5. **Rate deals on the platform: http://localhost:8800.** Open it on your PC while it's on.
+   The bot task serves a private copy of the dashboard that only your own PC can reach.
+   - Every deal has **👍 Interested** and **❌ Not a fit**. ❌ asks for a reason from a dropdown, plus an optional note.
+   - **❓ Needs-info** deals also have **✅ Fits**, and a **"What the seller told you"** form for power, water,
+     road, area, price, land type and a note.
+   - **↻ Re-score now** applies what you've entered immediately, without waiting for the next run.
+   - Rejected deals are listed under Shortlist → Rejected, with Undo.
+   - Your ratings and seller facts stay in `data/feedback.db` on your PC. The public GitHub page never shows them;
+     it only has a link that points back here.
+6. **Telegram bot.** It's registered by `setup_schedule.ps1` and starts at logon with no window.
    - **❓ Needs-info leads** come with the questions to ask and two buttons: **✅ Fits** and **❌ Not a fit**.
      Reply to the message with what you learned, for example `water yes, area 450, price 32000, building yes`.
      The facts are saved and the deal is re-scored with them on every run.
