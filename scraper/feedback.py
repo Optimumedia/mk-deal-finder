@@ -196,9 +196,15 @@ def rejected_list(path: Path | None = None) -> list[dict]:
     out = []
     for r in rows + bare:
         code = r.get("reason")
+        reason = BY_CODE.get(code)
+        learned = ("similar deals now rank lower" if reason and reason.learn == "learn"
+                   else "smaller deals now rank lower" if reason and reason.learn == "size_min"
+                   else "bigger deals now rank lower" if reason and reason.learn == "size_max"
+                   else "reported as a data problem" if reason and reason.learn == "data"
+                   else "this deal only" if reason else "no reason given — nothing learned")
         out.append({"id": r["listing_id"], "researcher": r["researcher"], "title": r.get("title"),
-                    "reason": code, "reason_label": BY_CODE[code].label if code in BY_CODE else "no reason given",
-                    "note": r.get("note"), "rejected_at": r.get("rejected_at")})
+                    "reason": code, "reason_label": reason.label if reason else "no reason given",
+                    "learned": learned, "note": r.get("note"), "rejected_at": r.get("rejected_at")})
     return out
 
 

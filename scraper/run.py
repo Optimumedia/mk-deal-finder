@@ -426,6 +426,8 @@ def write_outputs(db: DB, cfg: dict, results: dict, market: Market, by_id: dict,
     votes = feedback.load_votes()
     if public:
         pub = needs_info.public(rating.rate_all(feedback.apply(results, votes, personalize=False)))
+        reviewed = {e["listing_id"] for e in feedback.load_pipeline()}
+        pub = {k: [x for x in v if x["id"] not in reviewed] for k, v in pub.items()}
         export.write(ROOT / "docs" / "data.json", pub, market, db, cfg, RESEARCHERS)
     private = rating.rate_all(feedback.apply(results, votes, rejections=feedback.load_rejections(), listings=by_id))
     private = feedback.annotate_mine(private)

@@ -136,3 +136,38 @@ class PipelineTests(ApiTests):
         web.vote({"id": "reklama5:13", "researcher": "flip", "vote": "up"})
         web.vote({"id": "reklama5:13", "researcher": "flip", "vote": "clear"})
         self.assertEqual(feedback.load_pipeline(), [])
+
+
+class InstantReviewTests(ApiTests):
+    """A vote must move the deal in private.json at once — not after the next re-score."""
+
+    def setUp(self):
+        super().setUp()
+        self.pj = Path(self.tmp.name) / "private.json"
+        self.patches.append(mock.patch.object(web, "PRIVATE_JSON", self.pj))
+        self.patches[-1].start()
+        card = lambda i, s: {"id": i, "score": s, "rating": {"rank": 3}, "qualified": True, "title": i}
+        self.pj.write_text(json.dumps({"researchers": [{"key": "land", "items": [card("reklama5:1", 80), card("reklama5:2", 60)],
+                                                        "count": 2, "qualified": 2}],
+                                       "pipeline": [], "rejected": []}), encoding="utf-8")
+
+    def read(self):
+        return json.loads(self.pj.read_text(encoding="utf-8"))
+
+    def test_interested_moves_to_pipeline_immediately(self):
+        web.vote({"id": "reklama5:1", "researcher": "land", "vote": "up"})
+        d = self.read()
+        self.assertEqual([x["id"] for x in d["researchers"][0]["items"]], ["reklama5:2"])
+        self.assertEqual((d["pipeline"][0]["id"], d["pipeline"][0]["stage"], d["pipeline"][0]["item"]["title"]),
+                         ("reklama5:1", "interested", "reklama5:1"))
+
+    def test_reject_archives_and_undo_restores(self):
+        web.vote({"id": "reklama5:2", "researcher": "land", "vote": "down", "reason": "sml"})
+        d = self.read()
+        self.assertEqual([x["id"] for x in d["researchers"][0]["items"]], ["reklama5:1"])
+        self.assertEqual((d["rejected"][0]["id"], d["rejected"][0]["reason_label"], d["rejected"][0]["learned"]),
+                         ("reklama5:2", "Too small", "smaller deals now rank lower"))
+        web.vote({"id": "reklama5:2", "researcher": "land", "vote": "clear"})
+        d = self.read()
+        self.assertEqual(sorted(x["id"] for x in d["researchers"][0]["items"]), ["reklama5:1", "reklama5:2"])
+        self.assertEqual(d["rejected"], [])

@@ -49,6 +49,10 @@ def vote(body: dict) -> dict:
         if v == "clear":
             feedback.undo(conn, lid, researcher)
             feedback.pipeline_remove(conn, lid)
+            try:
+                move_in_private_json(lid, researcher, "clear")
+            except Exception:
+                log.exception("could not update private.json after an undo")
             return {"ok": True}
         info = _listing(lid)
         feedback.undo(conn, lid, researcher)                 # one current opinion per deal
@@ -68,7 +72,59 @@ def vote(body: dict) -> dict:
                 feedback.confirm(conn, lid)
             feedback.pipeline_add(conn, lid, researcher)       # 👍 / ✅ → My pipeline
     log.info("vote %s %s %s %s", v, researcher, lid, body.get("reason") or "")
+    try:
+        move_in_private_json(lid, researcher, v)
+    except Exception:                       # the next re-score fixes the file anyway
+        log.exception("could not update private.json after a vote")
     return {"ok": True}
+
+
+_json_lock = threading.Lock()
+
+
+def move_in_private_json(lid: str, researcher: str, action: str) -> None:
+    """Reflect a vote in data/private.json immediately, so the main page stays
+    a list of UNREVIEWED offers even after a reload:
+      up / ok  → out of every list, into `pipeline`
+      down     → out of every list, into `rejected` (keeps the card for Undo)
+      clear    → back into its researcher's list"""
+    if not PRIVATE_JSON.exists():
+        return
+    with _json_lock:
+        d = json.loads(PRIVATE_JSON.read_text(encoding="utf-8"))
+        pipeline, rejected = d.setdefault("pipeline", []), d.setdefault("rejected", [])
+        # the card, wherever it currently lives
+        card = None
+        for r in d["researchers"]:
+            for x in r["items"]:
+                if x["id"] == lid and (card is None or r["key"] == researcher):
+                    card = x
+        card = card or next((e.get("item") for e in pipeline + rejected if e.get("id") == lid and e.get("item")), None)
+        for r in d["researchers"]:
+            r["items"] = [x for x in r["items"] if x["id"] != lid]
+            r["count"], r["qualified"] = len(r["items"]), sum(1 for x in r["items"] if x.get("qualified"))
+        pipeline[:] = [e for e in pipeline if e.get("id") != lid]
+        rejected[:] = [e for e in rejected if e.get("id") != lid]
+        if action in ("up", "ok"):
+            row = next((e for e in feedback.load_pipeline() if e["listing_id"] == lid), None)
+            if row:
+                pipeline.insert(0, {"id": lid, "researcher": row["researcher"], "stage": row["stage"],
+                                    "next_step": row["next_step"], "due": row["due"], "notes": row["notes"],
+                                    "created_at": row["created_at"], "updated_at": row["updated_at"],
+                                    "removed": False, "item": card or {"id": lid}})
+        elif action == "down":
+            row = next((e for e in feedback.rejected_list() if e["id"] == lid), None)
+            if row:
+                rejected.insert(0, {**row, "item": card})
+        elif action == "clear" and card:
+            for r in d["researchers"]:
+                if r["key"] == researcher:
+                    r["items"].append(card)
+                    r["items"].sort(key=lambda x: ((x.get("rating") or {}).get("rank", 9), -x.get("score", 0)))
+                    r["count"], r["qualified"] = len(r["items"]), sum(1 for x in r["items"] if x.get("qualified"))
+        tmp = PRIVATE_JSON.with_suffix(".tmp")
+        tmp.write_text(json.dumps(d, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        tmp.replace(PRIVATE_JSON)
 
 
 def facts(body: dict) -> dict:
