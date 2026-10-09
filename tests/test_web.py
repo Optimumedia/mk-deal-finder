@@ -16,7 +16,9 @@ class ApiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.path = Path(self.tmp.name) / "feedback.db"
+        # Every API test works on temporary files — never the owner's real feedback.db / private.json.
         self.patches = [mock.patch.object(feedback, "DB_PATH", self.path),
+                        mock.patch.object(web, "PRIVATE_JSON", Path(self.tmp.name) / "private.json"),
                         mock.patch.object(web, "_listing", lambda lid: {"kind": "land", "city": "Охрид",
                                                                          "district": None, "title": "Plac", "area_m2": 600,
                                                                          "price_eur": 30000})]
@@ -144,8 +146,6 @@ class InstantReviewTests(ApiTests):
     def setUp(self):
         super().setUp()
         self.pj = Path(self.tmp.name) / "private.json"
-        self.patches.append(mock.patch.object(web, "PRIVATE_JSON", self.pj))
-        self.patches[-1].start()
         card = lambda i, s: {"id": i, "score": s, "rating": {"rank": 3}, "qualified": True, "title": i}
         self.pj.write_text(json.dumps({"researchers": [{"key": "land", "items": [card("reklama5:1", 80), card("reklama5:2", 60)],
                                                         "count": 2, "qualified": 2}],

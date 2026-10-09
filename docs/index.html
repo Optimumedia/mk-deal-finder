@@ -311,6 +311,20 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .due.today{background:var(--warn-soft);color:var(--warn)}
 .pill.gone{background:var(--surface-3);color:var(--ink-2);text-decoration:line-through}
 .pgroup{margin-bottom:var(--s6)}
+.catchip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:600;background:var(--surface-3);color:var(--ink-2);white-space:nowrap}
+.stchip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:600;background:var(--accent-soft);color:var(--accent-text);white-space:nowrap}
+.pcard .ptop{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.catgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:var(--s2)}
+.archive{margin-top:var(--s10);border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface)}
+.archive>summary{list-style:none;cursor:pointer;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.archive>summary::-webkit-details-marker{display:none}
+.archive>summary .sub{font-weight:500;font-size:13px;color:var(--ink-3)}
+.archive>summary::after{content:"＋";color:var(--ink-3);font-weight:400}
+.archive[open]>summary::after{content:"－"}
+.archive .ab{padding:0 14px 14px}
+.rejrow .rt .lr{display:block;font-size:13px;color:var(--accent-text);margin-top:2px}
+.reviewed{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;color:var(--ink-2);margin:-8px 0 var(--s4);padding:8px 12px;border-radius:10px;background:var(--surface-2)}
+.reviewed b{color:var(--ink)}
 .pgroup>h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:var(--s2)}
 .pgroup>h3 .n{font:600 12px var(--font);background:var(--surface-3);border-radius:999px;padding:0 8px;line-height:20px;color:var(--ink-2)}
 .pgroup .pl{display:flex;flex-direction:column;gap:var(--s2)}
@@ -777,7 +791,7 @@ let DATA = null, ITEMS = new Map(), mapObj = null, miniMap = null;
 const state = Object.assign({tab:"today", f:{}}, store.get("mkdeal.v2", {}));
 let shortlist = store.get("mkdeal.shortlist", {});
 let checks = store.get("mkdeal.checks", {});
-const save = () => store.set("mkdeal.v2", {tab:state.tab, f:state.f});
+const save = () => store.set("mkdeal.v2", {tab:state.tab, f:state.f, pgroup:state.pgroup});
 const PAGE = 24;
 let shown = PAGE;
 const F_DEF = {q:"", city:"", tiers:[], status:"", minAlt:0, maxSk:0, maxOh:0, util:false, newOnly:false, sort:"best", view:"cards", tsort:null, tdir:-1};
@@ -961,9 +975,10 @@ function selectTab(k, user){
 }
 
 /* ================= hash routing ================= */
-function parseHash(){ const p = new URLSearchParams(location.hash.slice(1)); return {tab:p.get("tab"), deal:p.get("deal"), in:p.get("in")}; }
+function parseHash(){ const p = new URLSearchParams(location.hash.slice(1)); return {tab:p.get("tab"), deal:p.get("deal"), in:p.get("in"), view:p.get("view")}; }
 function setHash(o, push){ const p = new URLSearchParams(); const tab = o.tab ?? state.tab; if (tab && tab !== "today") p.set("tab", tab);
   if (o.deal) { p.set("deal", o.deal); if (o.in) p.set("in", o.in); }
+  if (o.view) p.set("view", o.view);
   const h = p.toString(); const url = location.pathname + location.search + (h ? "#" + h : "");
   try { push ? history.pushState({deal:!!o.deal}, "", url) : history.replaceState(null, "", url); } catch {} }
 window.addEventListener("popstate", syncHash); window.addEventListener("hashchange", syncHash);
@@ -1002,6 +1017,8 @@ function renderToday(){
   const genT = new Date(DATA.generated_at); const hhmm = isNaN(genT) ? "—" : genT.toLocaleTimeString("en-GB", {hour:"2-digit", minute:"2-digit"});
   let html = `<div class="tophead"><h2 id="todayH">Today's best deals</h2><span class="meta">${esc(new Date().toLocaleDateString("en-GB", {weekday:"long", day:"numeric", month:"long"}))} · updated ${esc(relTime(DATA.generated_at))} · <span class="status" style="font-weight:500"><span class="dot ${h.cls}"></span>${esc(h.text)}</span></span></div>`;
   if (h.cls === "bad") html += `<p class="runnote">Last update partly failed · showing data from ${esc(hhmm)} · <details><summary>details</summary><span>${esc(last.status)}${last.message ? " — " + esc(String(last.message)) : ""}</span></details></p>`;
+  if (PRIV) { const nP = (DATA.pipeline || []).length, nR = (DATA.rejected || []).length;
+    html += `<div class="reviewed"><span>Unreviewed offers — 👍 to move a deal into your pipeline, ❌ to archive it.</span><span>Reviewed: <b>${nP}</b> in pipeline · <b>${nR}</b> rejected</span><button class="link" data-go="pipeline" style="font-size:13px">Open pipeline →</button></div>`; }
   html += PRIV ? dueSection() : "";
   if (stars.length) {
     const LIM = 6; const showAll = renderToday.all;
@@ -1016,7 +1033,7 @@ function renderToday(){
     <div class="kpi${stars.length ? " hot" : ""}"><div class="k">💎 + 🔥 deals</div><div class="v">${nf0.format(stars.length)}</div><div class="s">${nOnce} once-in-a-lifetime · ${nExc} exceptional</div></div>
     <div class="kpi"><div class="k">Saved</div><div class="v">${saved}</div><div class="s">${saved ? `<button class="link" data-go="shortlist">Open saved →</button>` : "tap ★ on a deal to save it"}</div></div>
     <div class="kpi"><div class="k">Last update</div><div class="v" style="font-size:22px;padding-top:4px">${esc(relTime(DATA.generated_at))}</div><div class="s"><span class="status" style="font-weight:500"><span class="dot ${h.cls}"></span>${esc(h.text)}</span> · <button class="link" data-go="runs" style="font-size:13px">run log</button></div></div>
-    </div>${rtiles}<p class="also" style="margin:12px 0 0">Macedonian property ads and official bailiff sales are checked twice a day. Each researcher rates every deal — 💎 Once-in-a-lifetime, 🔥 Exceptional, ⭐ Great, 👍 Good, 👀 Worth a look — and lists the reasons why.</p></div></details>`;
+    </div>${rtiles}<p class="also" style="margin:12px 0 0">${PRIV ? "This page shows only unreviewed offers — 👍 moves a deal into your pipeline, ❌ archives it. " : ""}Macedonian property ads and official bailiff sales are checked twice a day. Each researcher rates every deal — 💎 Once-in-a-lifetime, 🔥 Exceptional, ⭐ Great, 👍 Good, 👀 Worth a look — and lists the reasons why.</p></div></details>`;
   const ni = [...bestById.values()].filter(needsInfo).sort((a,b) => ((b.score ?? 0) - (a.score ?? 0)) || (rankOf(a) - rankOf(b))).slice(0, 5);
   if (ni.length) { mini.q = true;
     html += `<section class="section" aria-labelledby="sec-ni"><div class="sechead"><div><h3 id="sec-ni">${I.q} To check with sellers</h3><div class="sub">Promising deals with facts the ad doesn't confirm — one call or message can turn them into real leads</div></div></div>
@@ -1160,12 +1177,12 @@ function drawMap(items, list){
 function renderShortlist(){
   const ids = Object.keys(shortlist).sort((a,b) => (shortlist[b].at || 0) - (shortlist[a].at || 0));
   let html = `<div class="pagehead"><div><div class="eyebrow">Your picks</div><h2>Saved</h2><p>Deals you starred. Saved only in this browser on this device.</p></div></div>`;
-  if (!ids.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Nothing saved yet</h3><p>Tap the ★ on any deal to keep it here while you call sellers and arrange visits.</p></div>` + rejectedHtml(); return; }
+  if (!ids.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Nothing saved yet</h3><p>Tap the ★ on any deal to keep it here while you call sellers and arrange visits.</p></div>`; return; }
   const items = ids.map(id => { const s = shortlist[id]; const live = DATA.researchers.find(r => r.key === s.r)?.items.find(x => x.id === id) || ITEMS.get(id);
     if (live) return live; const snap = Object.assign({}, s.item, {_r:s.r, _gone:true}); return snap; });
   const gone = items.filter(i => i._gone).length;
   if (gone) html += `<div class="note warn" style="margin-bottom:16px"><span class="ic">${I.info}</span><div>${gone} saved deal${gone > 1 ? "s are" : " is"} no longer in the latest results (sold, removed, or no longer scoring). Shown from your saved copy.</div></div>`;
-  html += `<div class="grid">${items.map(card).join("")}</div>` + rejectedHtml();
+  html += `<div class="grid">${items.map(card).join("")}</div>`;
   $("#main").innerHTML = html;
 }
 function toggleStar(id, r){
@@ -1406,7 +1423,7 @@ function drawChart(rows, lab){
   el.innerHTML = svg;
   $("#legend").innerHTML = `<span><i class="sw"></i>20+ listings</span><span><i class="sw weak"></i>fewer than 20 listings (less reliable)</span>${nat ? `<span><i class="sw ref"></i>National median ${esc(f(nat.median_ppm2))} €</span>` : ""}`;
 }
-let chartRT; let pipeWide = innerWidth >= 900; window.addEventListener("resize", () => { const w = innerWidth >= 900; if (w !== pipeWide) { pipeWide = w; if (state.tab === "pipeline" && PRIV) renderPipeline(); } });
+let chartRT; let pipeWide = innerWidth >= 900; window.addEventListener("resize", () => { const w = innerWidth >= 900; if (w !== pipeWide) { pipeWide = w; if (state.tab === "pipeline" && PRIV && state.pgroup === "stage") renderPipeline(); } });
 window.addEventListener("resize", () => { if (state.tab !== "market" || !$("#chart")) return; clearTimeout(chartRT); chartRT = setTimeout(() => drawChart(DATA.market.filter(r => r && r.city && isNum(r.median_ppm2)), s => { const [k,d] = s.split("|"); return `${KIND_PL[k] || k} — ${(DEAL_TXT[d] || d).toLowerCase()}`; }), 150); });
 function drawMTable(rows){
   const q = mkState.q.trim().toLowerCase();
@@ -1480,35 +1497,46 @@ function onVoteBtn(btn){
   const it = itemsById(id, r)[0]; if (!it) return;
   sendVote(it, it.my_vote === vote ? "clear" : vote);
 }
+let reloading = null;
+async function reloadPrivate(){
+  if (!PRIV) return; if (reloading) return reloading;
+  reloading = (async () => { try { const r = await fetch("/private.json?" + Date.now(), {cache:"no-store"}); if (!r.ok) throw 0; const d = await r.json();
+      const y = window.scrollY, ds = $("#dBody").scrollTop, bx = $(".board")?.scrollLeft; DATA = d; boot(); window.scrollTo({top:y}); if (openId) $("#dBody").scrollTop = ds; const bd = $(".board"); if (bd && bx != null) bd.scrollLeft = bx; }
+    catch { /* keep the optimistic state; next load will be fresh */ } finally { reloading = null; } })();
+  return reloading; }
 async function sendVote(it, vote){
   if ((vote === "up" || vote === "ok") && !it._pipe) return moveToPipeline(it, vote);
   const prev = it.my_vote ?? null; it.my_vote = vote === "clear" ? null : vote; repaint();
-  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote}); toast(vote === "clear" ? "Vote cleared. " + SAVED_MSG : SAVED_MSG); }
+  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote}); toast(vote === "clear" ? "Vote cleared. " + SAVED_MSG : SAVED_MSG); reloadPrivate(); }
   catch (e) { it.my_vote = prev; repaint(); toast(e.message, {err:true}); } }
 function openReject(){ const p = $("#rejPanel"); if (!p) return; p.hidden = false; $("#rejReason")?.focus(); p.scrollIntoView({block:"nearest"}); }
 async function rejectDeal(it, reason, note){
   const removed = []; for (const R of DATA.researchers) { if (R.key !== it._r) continue; const n = R.items.findIndex(x => x.id === it.id); if (n >= 0) removed.push([R, n, R.items.splice(n, 1)[0]]); }
-  const rec = {id:it.id, researcher:it._r, title:it.title, reason, reason_label:(reasonsFor(it._r).find(x => x.code === reason) || {}).label || reason, note: note || null, _item: it};
+  const rec = {id:it.id, researcher:it._r, title:it.title, reason, reason_label:(reasonsFor(it._r).find(x => x.code === reason) || {}).label || reason, note: note || null, item: strip(it), _item: it};
   DATA.rejected.unshift(rec); ITEMS.delete(it.id); for (const R of DATA.researchers) for (const x of R.items) if (!ITEMS.has(x.id)) ITEMS.set(x.id, x);
   if (openId === it.id) closeDeal(true); buildTabs(); $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   const y = window.scrollY; render(); window.scrollTo({top:y});
   const restore = () => { for (const [R, n, x] of removed.reverse()) R.items.splice(Math.min(n, R.items.length), 0, x); DATA.rejected = DATA.rejected.filter(x => x !== rec); if (!ITEMS.has(it.id)) ITEMS.set(it.id, it); buildTabs(); $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; }); const yy = window.scrollY; render(); window.scrollTo({top:yy}); };
-  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"down", reason, note: note || undefined}); it.my_vote = "down";
-    toast("Rejected. " + SAVED_MSG, {action:"Undo", onAction: async () => { try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"clear"}); it.my_vote = null; restore(); toast("Restored. " + SAVED_MSG); } catch (e) { toast(e.message, {err:true}); } }}); }
+  try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"down", reason, note: note || undefined}); it.my_vote = "down"; reloadPrivate();
+    toast("Archived as rejected. " + SAVED_MSG, {action:"Undo", onAction: async () => { try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote:"clear"}); it.my_vote = null; restore(); await reloadPrivate(); toast("Restored. " + SAVED_MSG); } catch (e) { toast(e.message, {err:true}); } }}); }
   catch (e) { restore(); toast(e.message, {err:true}); } }
 async function unreject(id, r){
   const rec = DATA.rejected.find(x => x.id === id && x.researcher === r); if (!rec) return;
   try { await api("POST", "/api/vote", {id, researcher:r, vote:"clear"});
     DATA.rejected = DATA.rejected.filter(x => x !== rec);
-    if (rec._item) { rec._item.my_vote = null; const R = DATA.researchers.find(x => x.key === r); if (R && !R.items.includes(rec._item)) { R.items.push(rec._item); R.items.sort(bestSort); } ITEMS.set(id, rec._item); buildTabs(); toast("Restored. " + SAVED_MSG); }
+    const back = rec._item || (rec.item && typeof rec.item === "object" ? Object.assign({}, rec.item, {id, _r:r}) : null);
+    if (back) { back.my_vote = null; const R = DATA.researchers.find(x => x.key === r); if (R && !R.items.includes(back)) { R.items.push(back); R.items.sort(bestSort); } ITEMS.set(id, back); buildTabs(); toast("Restored to the lists. " + SAVED_MSG); }
     else toast("Restored — it'll be back in the lists after you re-score.");
-    $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; }); render(); }
+    $$(".tab").forEach(b => { const on = b.dataset.k === state.tab; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; }); render(); reloadPrivate(); }
   catch (e) { toast(e.message, {err:true}); } }
-function rejectedHtml(){
+function rejectedHtml(open){
   if (!PRIV) return ""; const rj = DATA.rejected || [];
-  return `<section class="section" aria-labelledby="sec-rej"><div class="sechead"><div><h3 id="sec-rej">Rejected</h3><div class="sub">Deals you marked ❌ Not a fit — hidden from every list</div></div><span class="sub">${rj.length}</span></div>
-    ${rj.length ? `<div class="rejlist">${rj.map(x => `<div class="rejrow"><div class="rt"><b>${esc(x.title || x.id)}</b><span>${esc(cfg(x.researcher).short || x.researcher || "")} · ${esc(x.reason_label || x.reason || "no reason")}${x.note ? " — “" + esc(x.note) + "”" : ""}</span></div>
-      <button type="button" class="btn" style="height:36px;padding:0 12px" data-unreject="${esc(x.id)}" data-r="${esc(x.researcher)}">Undo</button></div>`).join("")}</div>` : `<div class="empty"><p>Nothing rejected yet.</p></div>`}</section>`; }
+  const emo = x => { const it = x.item || x._item; return it ? ratingOf(it).emoji : "❌"; };
+  return `<details class="archive" id="archive" ${open ? "open" : ""}><summary><span>Archive — rejected (${rj.length})</span><span class="sub">what you turned down, and why</span></summary><div class="ab">
+    ${rj.length ? `<div class="rejlist">${rj.map(x => `<div class="rejrow"><div class="rt"><b><span aria-hidden="true">${esc(emo(x))}</span> ${esc((x.item && x.item.title) || x.title || x.id)}</b>
+      <span><span class="catchip">${esc(cfg(x.researcher).short || x.researcher || "")}</span> ${esc(x.reason_label || x.reason || "no reason")}${x.note ? " — “" + esc(x.note) + "”" : ""}</span>${x.learned ? `<span class="lr">learned: ${esc(x.learned)}</span>` : ""}</div>
+      <button type="button" class="btn" style="height:36px;padding:0 12px" data-unreject="${esc(x.id)}" data-r="${esc(x.researcher)}">Undo</button></div>`).join("")}</div>` : `<p class="also" style="margin:0">Nothing rejected yet. ❌ on a deal archives it here.</p>`}
+  </div></details>`; }
 const FACT_U = [["electricity","⚡ Electricity"],["water","💧 Water"],["road","🛣 Road"]];
 function factsSummary(f){ if (!f) return ""; const p = [];
   for (const [k,l] of FACT_U) if (f[k] === "yes" || f[k] === "no") p.push(`${l} ${f[k] === "yes" ? "yes" : "no"}`);
@@ -1595,9 +1623,10 @@ function stageSuggestions(e){ const r = e.researcher, c = cfg(r);
     negotiating:["Agree price, deposit and notary date","Book the notary"], won:["Register at the cadastre","Move utilities into your name"], dropped:[]})[e.stage] || []; }
 function pcard(e){ const i = e.item; const st = stageOf(e.stage), n = stageIdx(e.stage); const k = cfg(e.researcher).key(i);
   return `<article class="pcard" data-open="${esc(e.id)}" data-r="${esc(e.researcher)}">
+    <div class="ptop"><span class="catchip">${esc(cfg(e.researcher).short || e.researcher)}</span>${pcard.showStage ? `<span class="stchip">${st.emoji} ${esc(st.label)}</span>` : ""}</div>
     <div class="pt"><span aria-hidden="true">${esc(ratingOf(i).emoji)}</span> <a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></div>
     <div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span></div>
-    <div class="pm">${esc([eur(i.price), where(i), cfg(e.researcher).short || e.researcher].filter(x => x && x !== "—").join(" · "))}${hasAlt(i) ? " " + altChip(i) : ""}${hasDist(i) ? " " + distChip(i) : ""}</div>
+    <div class="pm">${esc([eur(i.price), where(i)].filter(x => x && x !== "—").join(" · "))}${hasAlt(i) ? " " + altChip(i) : ""}${hasDist(i) ? " " + distChip(i) : ""}</div>
     ${e.due || e.removed ? `<div class="badges">${dueChip(e)}${e.removed ? `<span class="pill gone" title="The ad is no longer listed">Ad removed</span>` : ""}</div>` : ""}
     ${e.next_step && e.next_step !== "—" ? `<div class="ns">${esc(e.next_step)}</div>` : ""}
     <div class="pctl"><button type="button" data-pmove="-1" data-id="${esc(e.id)}" data-r="${esc(e.researcher)}" aria-label="Move back to ${esc(n > 0 ? STAGES[n - 1].label : "")}" ${n === 0 ? "disabled" : ""}>←</button>
@@ -1608,11 +1637,21 @@ function pcard(e){ const i = e.item; const st = stageOf(e.stage), n = stageIdx(e
 const pipeSort = (a,b) => ((a.due || "9999") > (b.due || "9999") ? 1 : (a.due || "9999") < (b.due || "9999") ? -1 : 0) || String(b.updated_at || "").localeCompare(String(a.updated_at || ""));
 function renderPipeline(){
   const P = DATA.pipeline || []; const act = pipeActive().length;
+  const hv = parseHash().view; const archOpen = hv === "archive";
+  if (!["category", "stage"].includes(state.pgroup)) state.pgroup = "category";
   let html = `<div class="pagehead"><div><div class="eyebrow">Next steps</div><h2>My pipeline</h2>
-    <p>Deals you marked 👍 Interested or ✅ Fits. Move each one along as you call, visit and check it — tap a card for notes, due dates and the to-do list for that stage.</p></div></div>`;
-  if (!P.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Your pipeline is empty</h3><p>Tap 👍 Interested on any deal and it moves here, ready for the next step.</p></div>`; return; }
+    <p>Deals you marked 👍 Interested or ✅ Fits. Move each one along as you call, visit and check it — tap a card for notes, due dates and the to-do list for that stage.</p></div>
+    <div class="seg" role="group" aria-label="Group by"><button type="button" data-pg="category" aria-pressed="${state.pgroup === "category"}">By category</button><button type="button" data-pg="stage" aria-pressed="${state.pgroup === "stage"}">By stage</button></div></div>`;
+  if (!P.length) { $("#main").innerHTML = html + `<div class="empty"><h3>Your pipeline is empty</h3><p>Tap 👍 Interested on any deal and it moves here, ready for the next step.</p></div>` + rejectedHtml(archOpen); bindPipeGroup(); return; }
   const by = k => P.filter(e => e.stage === k).sort(pipeSort);
-  if (innerWidth >= 900) {
+  if (state.pgroup === "category") {
+    pcard.showStage = true;
+    const cats = DATA.researchers.map(R => R.key).concat([...new Set(P.map(e => e.researcher))].filter(k => !DATA.researchers.some(R => R.key === k)));
+    html += `<p class="resultline">${act} active · ${P.length - act} finished</p>` + cats.map(k => { const xs = P.filter(e => e.researcher === k).sort((a,b) => (stageIdx(a.stage) - stageIdx(b.stage)) || pipeSort(a,b)); if (!xs.length) return "";
+      const open = xs.filter(e => e.stage !== "won" && e.stage !== "dropped").length;
+      return `<section class="pgroup" aria-labelledby="pg-${esc(k)}"><h3 id="pg-${esc(k)}">${esc(cfg(k).short || k)} <span class="n">${xs.length}</span>${open !== xs.length ? `<span class="sub" style="font-weight:500;font-size:12px;color:var(--ink-3)"> · ${open} active</span>` : ""}</h3><div class="catgrid">${xs.map(pcard).join("")}</div></section>`; }).join("");
+    pcard.showStage = false;
+  } else if (innerWidth >= 900) {
     html += `<p class="resultline">${act} active · scroll sideways inside the board to see every stage</p><div class="board" role="region" aria-label="Pipeline board" tabindex="0">${STAGES.map(s => { const xs = by(s.key);
       const coll = (s.key === "won" || s.key === "dropped") && !pipeExpand[s.key];
       if (coll) return `<section class="pcol collapsed" aria-label="${esc(s.label)}"><button type="button" class="colbtn" data-colx="${s.key}" aria-expanded="false" title="Show ${esc(s.label)}"><span aria-hidden="true">${s.emoji}</span><span class="v">${esc(s.label)}</span><span class="n">${xs.length}</span></button></section>`;
@@ -1622,8 +1661,12 @@ function renderPipeline(){
     html += STAGES.map(s => { const xs = by(s.key); if (!xs.length) return "";
       return `<section class="pgroup" aria-labelledby="pg-${s.key}"><h3 id="pg-${s.key}">${s.emoji} ${esc(s.label)} <span class="n">${xs.length}</span></h3><div class="pl">${xs.map(pcard).join("")}</div></section>`; }).join("");
   }
-  $("#main").innerHTML = html; bindPipeControls($("#main"));
+  html += rejectedHtml(archOpen);
+  $("#main").innerHTML = html; bindPipeControls($("#main")); bindPipeGroup();
+  if (archOpen) { const a = $("#archive"); if (a) setTimeout(() => a.scrollIntoView({block:"start"}), 50); }
 }
+function bindPipeGroup(){ $$("[data-pg]").forEach(b => b.onclick = () => { state.pgroup = b.dataset.pg; save(); renderPipeline(); });
+  const a = $("#archive"); if (a) a.addEventListener("toggle", () => { if (state.tab === "pipeline") setHash({tab:"pipeline", view: a.open ? "archive" : null}, false); }); }
 function bindPipeControls(root){
   $$("[data-pstage]", root).forEach(sel => sel.onchange = () => { const e = pipeFind(sel.dataset.id, sel.dataset.r); if (e) setStage(e, sel.value, sel.id); });
   $$("[data-pmove]", root).forEach(b => b.onclick = ev => { ev.stopPropagation(); const e = pipeFind(b.dataset.id, b.dataset.r); if (!e) return;
@@ -1664,7 +1707,7 @@ function bindPipe(e){
   txt($("#pNext"), "next_step"); txt($("#pNotes"), "notes");
   $$("[data-pck]", $("#dBody")).forEach(cb => cb.onchange = () => { const k = e.id + "|" + e.stage; const a = checks[k] || []; a[+cb.dataset.pck] = cb.checked; checks[k] = a; store.set("mkdeal.checks", checks); });
   const rm = $("#pipeRemove"); if (rm) rm.onclick = async () => {
-    try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"clear"}); DATA.pipeline = DATA.pipeline.filter(x => x !== e); closeDeal(true); refreshPipeViews(); toast("Removed from your pipeline — it'll be back in the lists after you re-score."); }
+    try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"clear"}); DATA.pipeline = DATA.pipeline.filter(x => x !== e); closeDeal(true); refreshPipeViews(); await reloadPrivate(); toast("Removed from your pipeline — it's back in the lists."); }
     catch (err) { toast(err.message, {err:true}); } };
 }
 async function moveToPipeline(it, vote){
@@ -1675,7 +1718,7 @@ async function moveToPipeline(it, vote){
   const wasOpen = openId === it.id; if (wasOpen) closeDeal(true);
   refreshPipeViews(); if (state.tab !== "today" && state.tab !== "pipeline") { const y = window.scrollY; render(); window.scrollTo({top:y}); }
   try { await api("POST", "/api/vote", {id:it.id, researcher:it._r, vote});
-    toast(`Moved to My pipeline → next: ${e.next_step}`, {action:"Open", onAction: () => { selectTab("pipeline", true); openDeal(e.id, e.researcher, true); }}); }
+    reloadPrivate(); toast(`Moved to My pipeline → next: ${e.next_step}`, {action:"Open", onAction: () => { selectTab("pipeline", true); openDeal(e.id, e.researcher, true); }}); }
   catch (err) { for (const [R, n, x] of removed.reverse()) R.items.splice(Math.min(n, R.items.length), 0, x); DATA.pipeline = DATA.pipeline.filter(x => x !== e); if (!ITEMS.has(it.id)) ITEMS.set(it.id, it);
     refreshPipeViews(); if (state.tab !== "today" && state.tab !== "pipeline") render(); toast(err.message, {err:true}); } }
 function dueSection(){
