@@ -27,8 +27,8 @@ from .sources import kirsm, nedviznosti, novel, reklama5
 
 # Which parser reads a listing's detail page.
 DETAIL_PARSERS = {reklama5.SOURCE: reklama5.parse_detail, novel.SOURCE: novel.parse_detail}
-from .text import (KeywordSet, classify_deal, redact, detect_furnished, detect_utilities, is_abroad, land_type,
-                   mentions_price_per_m2, needs_renovation, norm)
+from .text import (KeywordSet, altitude_in_text, classify_deal, detect_furnished, detect_utilities, is_abroad,
+                   land_type, mentions_price_per_m2, needs_renovation, norm, price_in_text, redact)
 
 ROOT = Path(__file__).resolve().parent.parent
 RESEARCHERS = [airbnb, land, flip, motivated, auctions]
@@ -107,8 +107,15 @@ def detail_update(listing: dict, d: dict) -> dict:
             area = float(hm.group(1))
     raw = d.get("price_eur") if d.get("price_eur") is not None else listing.get("price_eur")
     price, note, deal = price_and_deal(raw, listing["kind"], area, title, desc)
+    # The seller often writes the real price in the text ("Cena..20000evra") while
+    # the price field holds a placeholder, denars, or a per-m² figure.
+    stated = price_in_text(desc)
+    if stated and (price is None or note in ("placeholder", "per_m2") or price < 0.1 * stated):
+        price, note, deal = stated, "from_text", classify_deal(title, desc, stated, listing["kind"])
+    stated_alt = altitude_in_text(desc)
     upd = {
         "title": title,
+        **({"elevation": stated_alt, "elevation_src": "text"} if stated_alt else {}),
         "description": desc,
         "fields": fields,
         "price_eur": price,
@@ -197,6 +204,32 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
             if not full and known_streak >= sc["stop_after_known_pages"]:
                 break
         log.info("%-28s pages so far %4d  new %4d  price changes %3d", name, stats["pages"], stats["new"], stats["changed"])
+
+
+def renormalise(db: DB, cfg: dict) -> dict:
+    """Re-read every stored description with the current rules (price / altitude
+    stated in the text). Cheap, no network; runs at the start of each run so
+    parser improvements reach ads collected earlier."""
+    stats = {"price": 0, "altitude": 0}
+    rows = db.conn.execute(
+        "SELECT id, kind, title, description, price_eur, price_note, area_m2, elevation_src FROM listings "
+        "WHERE description IS NOT NULL AND description != '' AND deal != 'auction'").fetchall()
+    for r in rows:
+        stated = price_in_text(r["description"], cfg["market"]["mkd_per_eur"])
+        if stated and r["price_note"] != "from_text" and (
+                r["price_eur"] is None or r["price_note"] in ("placeholder", "per_m2") or r["price_eur"] < 0.1 * stated):
+            deal = classify_deal(r["title"] or "", r["description"], stated, r["kind"])
+            db.conn.execute("UPDATE listings SET price_eur=?, price_note='from_text', deal=? WHERE id=?",
+                            (stated, deal, r["id"]))
+            stats["price"] += 1
+        alt = altitude_in_text(r["description"])
+        if alt and r["elevation_src"] != "text":
+            db.conn.execute("UPDATE listings SET elevation=?, elevation_src='text' WHERE id=?", (alt, r["id"]))
+            stats["altitude"] += 1
+    db.conn.commit()
+    if stats["price"] or stats["altitude"]:
+        log.info("re-read descriptions: %d prices and %d altitudes taken from the ad text", stats["price"], stats["altitude"])
+    return stats
 
 
 def scrape_kirsm(db: DB, http: PoliteSession, cfg: dict, stats: dict) -> None:
@@ -481,6 +514,7 @@ def main(argv=None) -> int:
     since = db.hours_since_full_sweep()
     full = args.full or first_run or (not args.quick and (since is None or since >= sc["full_sweep_every_hours"]))
 
+    renormalise(db, cfg)
     run_id = db.start_run()
     status, message, stats, details = "ok", "", {"pages": 0, "new": 0, "changed": 0}, 0
     if not args.no_scrape:

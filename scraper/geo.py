@@ -19,7 +19,7 @@ import time
 import requests
 
 from . import maps
-from .text import norm
+from .text import KeywordSet, norm
 
 log = logging.getLogger(__name__)
 ELEVATION_URL = "https://api.open-meteo.com/v1/elevation"
@@ -34,11 +34,15 @@ _LAT = [("dzh", "џ"), ("dz", "џ"), ("zh", "ж"), ("ch", "ч"), ("sh", "ш"), (
         ("i", "и"), ("j", "ј"), ("k", "к"), ("l", "л"), ("m", "м"), ("n", "н"), ("o", "о"), ("p", "п"), ("r", "р"), ("s", "с"),
         ("š", "ш"), ("t", "т"), ("u", "у"), ("v", "в"), ("z", "з"), ("ž", "ж")]
 # "плац во Кучково", "plac vo s.Orman", "с. Велгошти"
-_PLACE_IN_TITLE = re.compile(r"(?:\bво|\bvo|\bс\.|\bs\.|\bсело|\bselo|\bнас\.|\bnas\.|\bнаселба|\bnaselba)\s*"
+_PLACE_IN_TITLE = re.compile(r"(?:\bво|\bvo|\bна|\bna|\bкај|\bkaj|\bдо|\bdo|\bпод|\bpod|\bс\.|\bs\.|\bсело|\bselo|"
+                             r"\bнас\.|\bnas\.|\bнаселба|\bnaselba)\s*"
                              r"(?:с\.|s\.|село|selo)?\s*([A-ZА-ШЃЌЅЈЉЊЏŠŽČĆa-zа-шѓќѕјљњџšžčć][\w\-ЃЌЅЈЉЊЏѓќѕјљњџšžčć]{2,})",
                              re.I)
 _STOP = {"центар", "centar", "град", "grad", "близина", "blizina", "скопје", "skopje", "плац", "plac", "одлична",
-         "odlicna", "населба", "naselba", "викенд", "vikend", "куќа", "kuka", "kukja", "стан", "stan", "продажба"}
+         "odlicna", "населба", "naselba", "викенд", "vikend", "куќа", "kuka", "kukja", "стан", "stan", "продажба",
+         "викендица", "vikendica", "вила", "vila", "имот", "imot", "земјиште", "zemjiste", "парцела", "parcela",
+         "нива", "niva", "лозје", "lozje", "продавам", "prodavam", "издавам", "izdavam", "итно", "itno", "плацеви",
+         "placevi", "placot", "плацот", "хитно", "hitno", "ekskluzivno", "ексклузивно", "nova", "нова", "nov", "нов"}
 
 
 def to_cyrillic(word: str) -> str:
@@ -50,6 +54,19 @@ def to_cyrillic(word: str) -> str:
     return w[:1].upper() + w[1:]
 
 
+# Named places that are often written in Latin or hidden in the text — with their proper spelling.
+_MOUNTAIN_SPELLING = {
+    "mavrovo": "Маврово", "popova sapka": "Попова Шапка", "krusevo": "Крушево", "pelister": "Пелистер",
+    "brajcino": "Брајчино", "galicica": "Галичица", "vevcani": "Вевчани", "berovo": "Берово", "pehcevo": "Пехчево",
+    "ponikva": "Пониква", "kratovo": "Кратово", "nikiste": "Никиштане", "lazaropole": "Лазарополе",
+    "galicnik": "Галичник", "nizepole": "Нижеполе", "trnovo": "Трново", "magarevo": "Магарево",
+    "ljubaniste": "Љубаништа", "velgosti": "Велгошти", "leunovo": "Леуново", "mavrovi anovi": "Маврови Анови",
+    "dojran": "Дојран", "meseista": "Мешеишта", "otesevo": "Отешево", "pretor": "Претор", "elsani": "Елшани",
+    "stenje": "Стење", "kucкovo": "Кучково",
+}
+_MOUNTAIN_PLACES = KeywordSet(list(_MOUNTAIN_SPELLING), whole_word=True)
+
+
 def place_candidates(listing: dict) -> list[str]:
     """Names to try, most specific first."""
     out = []
@@ -58,9 +75,13 @@ def place_candidates(listing: dict) -> list[str]:
     if m and norm(m.group(1)).strip() not in _STOP:
         out.append(to_cyrillic(m.group(1)))
     # Other capitalised words in the title ("…во близина на Охрид, Мешеишта").
-    for w in re.findall(r"\b([A-ZА-ШЃЌЅЈЉЊЏ][a-zа-шѓќѕјљњџšžčć]{3,})\b", title)[:4]:
+    for w in re.findall(r"\b([A-ZА-ШЃЌЅЈЉЊЏ][A-Za-zА-Ша-шЃЌЅЈЉЊЏѓќѕјљњџšžčć]{3,})\b", title)[:5]:
+        w = w if w[1:].islower() else w.capitalize()            # "PONIKVA" → "Ponikva"
         if norm(w).strip() not in _STOP and w != listing.get("city"):
             out.append(to_cyrillic(w))
+    # Named mountain places anywhere in the text (they're all real, geocodable places).
+    for word in _MOUNTAIN_PLACES.find(norm(" ".join(filter(None, [title, listing.get("description")])))):
+        out.append(_MOUNTAIN_SPELLING.get(word, to_cyrillic(word.title())))
     ko = maps.cadastral_area((listing.get("extra") or {}).get("note"))
     if ko:
         out.append(ko)
@@ -131,6 +152,32 @@ class Geo:
         return out
 
 
+def _km(a, b, c, d) -> float:
+    import math
+    p1, p2 = math.radians(a), math.radians(c)
+    x = math.sin(p1) * math.sin(p2) + math.cos(p1) * math.cos(p2) * math.cos(math.radians(d - b))
+    return 6371 * math.acos(max(-1.0, min(1.0, x)))
+
+
+def drop_default_pins(db, max_share: int = 3) -> int:
+    """A pin shared by many ads is the site's default for a town, not a location."""
+    shared = [(a, b) for a, b, n in db.conn.execute(
+        "SELECT ROUND(lat, 5), ROUND(lng, 5), COUNT(*) FROM listings WHERE lat IS NOT NULL "
+        "GROUP BY 1, 2 HAVING COUNT(*) > ?", (max_share,))]
+    n = 0
+    for a, b in shared:
+        cur = db.conn.execute(
+            "UPDATE listings SET lat=NULL, lng=NULL, elevation=CASE WHEN elevation_src='gps' THEN NULL ELSE elevation END, "
+            "elevation_src=CASE WHEN elevation_src='gps' THEN NULL ELSE elevation_src END, "
+            "skopje_km=NULL, skopje_min=NULL, ohrid_km=NULL, ohrid_min=NULL "
+            "WHERE ROUND(lat, 5)=? AND ROUND(lng, 5)=?", (a, b))
+        n += cur.rowcount
+    if n:
+        db.conn.commit()
+        log.info("dropped %d default map pins (%d locations shared by >%d ads)", n, len(shared), max_share)
+    return n
+
+
 def enrich(db, cfg: dict) -> int:
     """Fill elevation for active land / houses / weekend houses that don't have it yet."""
     c = cfg.get("geo", {})
@@ -138,7 +185,7 @@ def enrich(db, cfg: dict) -> int:
         return 0
     from .db import days_ago
     rows = db.conn.execute(
-        f"""SELECT id, title, address, district, city, lat, lng, extra FROM listings
+        f"""SELECT id, title, address, district, city, lat, lng, extra, elevation_src FROM listings
             WHERE kind IN ({','.join('?' * len(KINDS))}) AND abroad = 0 AND last_seen >= ?
               AND ((elevation IS NULL AND COALESCE(elevation_src, '') != 'none')      -- never looked up
                    OR (lat IS NOT NULL AND COALESCE(elevation_src, '') != 'gps'))     -- GPS arrived: upgrade
@@ -146,7 +193,23 @@ def enrich(db, cfg: dict) -> int:
     ).fetchall()
     geo = Geo(db)
     done = 0
+    drop_default_pins(db)
+    rows = [r for r in rows if r["elevation_src"] != "text"]
     gps = [r for r in rows if r["lat"] and r["lng"]]
+    # A pin that sits far from a place named in the ad is the seller's leftover: use the place.
+    kept = []
+    for r in gps:
+        names = [n for n in place_candidates(dict(r) | {"extra": {}})
+                 if n not in ((r["district"] or "").replace("Скопје ", ""), r["city"] or "")]
+        hit = geo.place(names[0]) if names and geo.calls < c.get("max_lookups_per_run", 400) else None
+        if hit and _km(r["lat"], r["lng"], hit[0], hit[1]) > c.get("pin_vs_place_km", 15):
+            db.conn.execute("UPDATE listings SET lat=NULL, lng=NULL, elevation=?, elevation_src=?, approx_lat=?, approx_lng=?, "
+                            "skopje_km=NULL, skopje_min=NULL, ohrid_km=NULL, ohrid_min=NULL WHERE id=?",
+                            (hit[2], "place:" + (hit[3] or names[0]), hit[0], hit[1], r["id"]))
+            done += 1
+        else:
+            kept.append(r)
+    gps = kept
     for r, el in zip(gps, geo.points([(r["lat"], r["lng"]) for r in gps])):
         if el is not None:
             # exact pin: its altitude, and recompute routes from the pin instead of the village

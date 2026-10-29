@@ -420,3 +420,30 @@ class UtilityHedgeTests(unittest.TestCase):
         self.assertEqual((u["electricity"], u["water"]), (None, True))
         u = detect_utilities("струја има, вода во близина")
         self.assertEqual((u["electricity"], u["water"]), (True, None))
+
+
+class FactsFromTextTests(unittest.TestCase):
+    """Owner report (ad 5057730): the text said 'Cena..20000evra' and '1600m nadmorska visochina',
+    the price field held 20,000 denars and the map pin sat in Skopje."""
+
+    def test_price_and_altitude_in_text(self):
+        from scraper.text import altitude_in_text, price_in_text
+        desc = "Plac na Ponikva so gradezna markica. 1600m e nadmorska visochina. Cena po dogovor. 078 33 56 23 Boge.Cena..20000evra"
+        self.assertEqual(price_in_text(desc), 20000)
+        self.assertEqual(altitude_in_text(desc), 1600)
+        self.assertEqual(price_in_text("цена 45.000 € фиксно"), 45000)
+        self.assertEqual(altitude_in_text("на 1.350 м надморска висина"), 1350)
+        self.assertIsNone(price_in_text("kontakt 070 123 456, cena po dogovor"))
+
+    def test_text_price_beats_a_placeholder_field(self):
+        from scraper.run import detail_update
+        l = {"kind": "land", "title": "Ponikva", "price_eur": 325.0, "area_m2": 322}
+        d = {"title": "Ponikva", "description": "Plac na Ponikva. 1600m e nadmorska visochina. Cena..20000evra",
+             "fields": {"Квадратура": "322 m²", "Тип на земјиште": "Градежно"}, "area_m2": 322, "price_eur": 325.0}
+        u = detail_update(l, d)
+        self.assertEqual((u["price_eur"], u["price_note"], u["elevation"], u["elevation_src"]), (20000, "from_text", 1600, "text"))
+
+    def test_named_place_in_title(self):
+        from scraper.geo import place_candidates
+        self.assertEqual(place_candidates({"title": "Plac na PONIKVA so gradezna markica", "district": "Карпош",
+                                           "city": "Скопје", "extra": {}})[0], "Пониква")

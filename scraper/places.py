@@ -90,7 +90,9 @@ def _km(a, b, c, d) -> float:
 def refile_by_gps(listing: dict, max_km: float = 40) -> bool:
     """If the ad's pin is far from the filed town, re-file it under the nearest
     town (within 25 km) or mark the town unknown. Returns True when changed."""
-    lat, lng, city = listing.get("lat"), listing.get("lng"), listing.get("city")
+    lat = listing.get("lat") or listing.get("approx_lat")
+    lng = listing.get("lng") or listing.get("approx_lng")
+    city = listing.get("city")
     if not (lat and lng) or city not in CITY_CENTRES:
         return False
     if _km(lat, lng, *CITY_CENTRES[city]) <= max_km:

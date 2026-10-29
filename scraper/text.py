@@ -212,6 +212,44 @@ def is_abroad(text: str) -> bool:
     return _ABROAD.any(norm(text))
 
 
+_TEXT_PRICE = re.compile(
+    r"(?:cena|цена|price|prodavam za|продавам за|se prodava za|се продава за)[^\d€]{0,25}?"
+    r"(\d{1,3}(?:[ .,]\d{3})+|\d{4,7})\s*(k\b|илј|ilj)?\s*(евра|evra|eur|€|e\b|мкд|mkd|ден|den|денари|denari)?", re.I)
+
+
+def price_in_text(text: str, mkd_per_eur: float = 61.5) -> float | None:
+    """A total price the seller wrote in the description: 'Cena..20000evra',
+    'цена 45.000 €', 'продавам за 20 000 евра'. None when nothing clear."""
+    if not text:
+        return None
+    for m in _TEXT_PRICE.finditer(html.unescape(text)):
+        digits = re.sub(r"[^\d]", "", m.group(1))
+        if not digits:
+            continue
+        v = float(digits) * (1000 if m.group(2) else 1)
+        unit = (m.group(3) or "").lower()
+        if unit in ("мкд", "mkd", "ден", "den", "денари", "denari"):
+            v /= mkd_per_eur
+        if 1000 <= v <= 5_000_000:
+            return v
+    return None
+
+
+_TEXT_ALT = re.compile(
+    r"(\d{1,2}[.,]\d{3}|\d{3,4})\s*(?:m|м|metri|метри|mnv|мнв)?(?:\s+\w+){0,2}\s*(?:nadmorska|надморска|n\.?v\.?|н\.?в\.?)"
+    r"|(?:nadmorska|надморска)\s+(?:visina|височина|visochina|висина)\D{0,12}(\d{1,2}[.,]\d{3}|\d{3,4})", re.I)
+
+
+def altitude_in_text(text: str) -> float | None:
+    """'1600m e nadmorska visochina', 'на 1.350 м надморска висина' → metres."""
+    m = _TEXT_ALT.search(html.unescape(text or ""))
+    if not m:
+        return None
+    raw = (m.group(1) or m.group(2)).replace(".", "").replace(",", "")
+    v = float(raw)
+    return v if 100 <= v <= 2800 else None
+
+
 def parse_rooms(text: str) -> float | None:
     m = re.search(r"(\d+(?:[.,]5)?)\s*(?:соби|соба|sobi|soba)", html.unescape(text or ""), re.I)
     return float(m.group(1).replace(",", ".")) if m else None

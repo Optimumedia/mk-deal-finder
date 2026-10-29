@@ -261,13 +261,17 @@ class Handler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        if not self._local_only():
-            return self._json({"ok": False, "error": "forbidden"}, 403)
         path = self.path.split("?")[0]
         try:
             n = int(self.headers.get("Content-Length") or 0)
-            body = json.loads(self.rfile.read(min(n, 100_000)) or b"{}")
-        except (ValueError, json.JSONDecodeError):
+            raw = self.rfile.read(min(n, 100_000))
+        except ValueError:
+            raw = b""
+        if not self._local_only():
+            return self._json({"ok": False, "error": "forbidden"}, 403)
+        try:
+            body = json.loads(raw or b"{}")
+        except json.JSONDecodeError:
             return self._json({"ok": False, "error": "bad JSON"}, 400)
         handler = {"/api/vote": vote, "/api/facts": facts, "/api/pipeline": pipeline,
                    "/api/rescore": lambda _b: start_rescore()}.get(path)
