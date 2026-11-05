@@ -480,3 +480,21 @@ class WeekendPlotTests(unittest.TestCase):
         self.assertFalse(out[0]["qualified"])
         self.assertEqual(out[0]["metrics"]["Altitude source"], "village (approx.)")
         self.assertEqual(out[0]["comps"], 0)
+
+
+class RedactTests(unittest.TestCase):
+    def test_spaced_mobile_numbers_are_removed(self):
+        from scraper.text import redact
+        self.assertEqual(redact("Cena po dogovor\n078 33 56 23 Boge"), "Cena po dogovor\n[тел.] Boge")
+        self.assertEqual(redact("тел 076 506 300"), "тел [тел.]")
+        self.assertEqual(redact("плац 1500 m2 за 20 000 евра"), "плац 1500 m2 за 20 000 евра")
+
+
+class NamesakeVillageTests(unittest.TestCase):
+    def test_far_namesake_rejected_but_named_resorts_kept(self):
+        from scraper.geo import near_city
+        from scraper.text import KeywordSet
+        known = KeywordSet(["маврово", "mavrovo"])
+        self.assertFalse(near_city((41.35, 22.20), "Скопје", 40, "Волково", known))      # another Volkovo
+        self.assertTrue(near_city((42.03, 21.36), "Скопје", 40, "Волково", known))       # the Skopje one
+        self.assertTrue(near_city((41.70, 20.75), "Скопје", 40, "Маврово", known))       # resort filed under Skopje

@@ -198,6 +198,15 @@ class DB:
         )
         return [_row(r) for r in rows]
 
+    def stale_details(self, older_than_days: float) -> list[dict]:
+        """Still-listed ads whose detail page was read long ago (sellers edit price and text)."""
+        rows = self.conn.execute(
+            "SELECT * FROM listings WHERE detail_at < ? AND last_seen >= ? AND deal != 'wanted' AND abroad = 0 "
+            "AND gone_at IS NULL AND COALESCE(sold, 0) = 0 AND source != 'kirsm'",
+            (days_ago(older_than_days), days_ago(3)),
+        )
+        return [_row(r) for r in rows]
+
     def active(self, stale_days: float) -> list[dict]:
         rows = self.conn.execute("SELECT * FROM listings WHERE last_seen >= ?", (days_ago(stale_days),))
         return [_row(r) for r in rows]

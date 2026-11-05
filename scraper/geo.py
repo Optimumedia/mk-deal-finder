@@ -178,6 +178,29 @@ def drop_default_pins(db, max_share: int = 3) -> int:
     return n
 
 
+def near_city(hit, city: str | None, max_km: float, name: str = "", known: KeywordSet | None = None) -> bool:
+    """Is a place hit plausibly in the town the ad is filed under? Named resorts and
+    mountain areas (Mavrovo, Ponikva…) are often filed under Skopje: those always count."""
+    from .places import CITY_CENTRES, _OTHER_PLACES
+    if city not in CITY_CENTRES:
+        return True
+    if _OTHER_PLACES.any(norm(name)) or (known and known.any(norm(name))):
+        return True
+    return _km(hit[0], hit[1], *CITY_CENTRES[city]) <= max_km
+
+
+def forget_far_places(db, max_km: float, known: KeywordSet | None = None) -> int:
+    """Village altitudes taken from a namesake far from the ad's town: look them up again."""
+    n = 0
+    for r in db.conn.execute("SELECT id, city, approx_lat, approx_lng, elevation_src FROM listings "
+                             "WHERE elevation_src LIKE 'place:%' AND approx_lat IS NOT NULL").fetchall():
+        if not near_city((r["approx_lat"], r["approx_lng"]), r["city"], max_km, r["elevation_src"][6:], known):
+            db.conn.execute("UPDATE listings SET elevation=NULL, elevation_src=NULL, approx_lat=NULL, approx_lng=NULL, "
+                            "skopje_km=NULL, skopje_min=NULL, ohrid_km=NULL, ohrid_min=NULL WHERE id=?", (r["id"],))
+            n += 1
+    return n
+
+
 def enrich(db, cfg: dict) -> int:
     """Fill elevation for active land / houses / weekend houses that don't have it yet."""
     c = cfg.get("geo", {})
@@ -194,6 +217,9 @@ def enrich(db, cfg: dict) -> int:
     geo = Geo(db)
     done = 0
     drop_default_pins(db)
+    known = KeywordSet(cfg["land"]["mountain_keywords"])
+    if (far := forget_far_places(db, c.get("place_vs_city_km", 40), known)):
+        log.info("geo: %d village altitudes were a namesake far from the ad's town — looking them up again", far)
     rows = [r for r in rows if r["elevation_src"] != "text"]
     gps = [r for r in rows if r["lat"] and r["lng"]]
     # A pin that sits far from a place named in the ad is the seller's leftover: use the place.
@@ -224,6 +250,8 @@ def enrich(db, cfg: dict) -> int:
         listing["extra"] = json.loads(r["extra"]) if r["extra"] else {}
         for name in place_candidates(listing):
             hit = geo.place(name)
+            if hit and not near_city(hit, r["city"], c.get("place_vs_city_km", 40), hit[3] or name, known):
+                continue        # a namesake village elsewhere (there are several Volkovos)
             if hit:
                 db.conn.execute("UPDATE listings SET elevation=?, elevation_src=?, approx_lat=?, approx_lng=? WHERE id=?",
                                 (hit[2], "place:" + (hit[3] or name), hit[0], hit[1], r["id"]))

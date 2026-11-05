@@ -215,6 +215,8 @@ def renormalise(db: DB, cfg: dict) -> dict:
         "SELECT id, kind, title, description, price_eur, price_note, area_m2, elevation_src FROM listings "
         "WHERE description IS NOT NULL AND description != '' AND deal != 'auction'").fetchall()
     for r in rows:
+        if (clean_desc := redact(r["description"])) != r["description"]:
+            db.conn.execute("UPDATE listings SET description=? WHERE id=?", (clean_desc, r["id"]))
         stated = price_in_text(r["description"], cfg["market"]["mkd_per_eur"])
         if stated and r["price_note"] != "from_text" and (
                 r["price_eur"] is None or r["price_note"] in ("placeholder", "per_m2") or r["price_eur"] < 0.1 * stated):
@@ -354,7 +356,8 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
     if l["kind"] == "apartment" and l["deal"] == "short_term" and l.get("city") == cfg["airbnb"]["city"]:
         p = max(p, 1.5)   # real nightly prices calibrate the Airbnb researcher
     if l["kind"] == "land" and l["deal"] == "sale":
-        in_region = l.get("city") in cfg["land"]["cities"] or land_kw.any(title)
+        in_region = (l.get("city") in cfg["land"]["cities"] or land_kw.any(title)
+                     or (l.get("elevation") or 0) >= cfg.get("weekend", {}).get("min_elevation", 700))
         # Land cards carry no area or utilities — the detail page is everything.
         p = max(p, (3.5 if l.get("price_eur") else 2.5) if in_region else 0.5)
     if l["kind"] in ("apartment", "house", "weekend_house") and l["deal"] == "sale":
@@ -379,6 +382,12 @@ def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
     queue = [(detail_priority(l, cfg, market, land_kw, urgent_kw), l) for l in db.pending_details()]
     max_age = cfg["scraper"]["max_listing_age_days"]
     queue = [x for x in queue if x[0] > 0 and days_listed(x[1]) <= max_age]
+    # Re-read promising ads every week or so: sellers change the price or add facts.
+    s = cfg["scraper"]
+    stale = [(p * 0.6, l) for l in db.stale_details(s.get("refresh_details_days", 7))
+             if (p := detail_priority(l, cfg, market, land_kw, urgent_kw)) >= 2.5]
+    stale.sort(key=lambda x: (-x[0], x[1].get("detail_at") or ""))
+    queue += stale[:s.get("refresh_details_per_run", 80)]
     # Highest priority first; within a priority the most recently posted ads
     # (first_seen is misleading on a backfill: later pages = older ads).
     queue.sort(key=lambda x: (-x[0], days_listed(x[1])))

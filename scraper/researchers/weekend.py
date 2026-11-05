@@ -75,6 +75,8 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         minutes = (drive or {}).get("min")
 
         reasons = [f"altitude {'~' if approx else ''}{el} m" + (" (village altitude — check the exact plot)" if approx else "")]
+        if discount is not None and discount >= 0.9:
+            reasons.append("⚠ price is 90%+ under similar plots — probably a typo or denars; check the ad")
         if discount is not None and discount > 0:
             reasons.append(f"{discount:.0%} below the {rf.describe('land').replace('mountain median', 'median of 700 m+ plots')} "
                            f"({rf[0]:.0f} €/m², {rf[1]} listings)")
