@@ -692,6 +692,31 @@ const RCFG = {
       ["Visit the plot","Slope, views, neighbours, flood risk; walk the boundaries with the seller."],
     ],
   },
+  weekend: {
+    short:"Weekend 700m+",
+    plain:"Plots at 700 m altitude or higher anywhere in North Macedonia, for a weekend house. Prices are compared with other 700 m+ plots of a similar size, and power, water and road access must be confirmed in the ad. Altitude marked ~ is the village's, not the exact plot's.",
+    keyLabel:"€ / m²", sortLabel:"Most under asking",
+    key(i){ const u = M(i,"€/m²") ?? i.ppm2; const b = pctNum(M(i,"Below market")); const el = M(i,"Altitude (m)") ?? i.elevation;
+      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b != null && b > 0 ? underTxt(i, b) : null, line2pos: b != null && b > 0,
+        subs:[["Altitude", isNum(el) ? (i.elevation_approx ? "~" : "") + nf0.format(el) + " m" : null], ["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null]]}; },
+    cols:[
+      {h:"Altitude", v:i=>M(i,"Altitude (m)") ?? i.elevation, f:(v,i)=>isNum(v)?(i.elevation_approx?"~":"")+nf0.format(v)+" m":"—"},
+      {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?ppm(v).replace("/m²",""):"—"},
+      {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`, hideM:true},
+      {h:"Utilities", v:i=>utilScore(i), f:(v,i)=>utilChip(i), num:false},
+    ],
+    groups:[["Price",["€/m²","700 m+ median €/m²","Below market","Compared against","Price"]],
+            ["The plot",["Altitude (m)","Altitude source","Area (m²)","Land type"]],
+            ["Getting there",["To Skopje","To Ohrid"]]],
+    highlight:["Altitude (m)","Below market"],
+    checklist:[
+      ["Get the title deed (имотен лист)","From the Cadastre (АКН): confirm the owner, the exact m² and that there are no mortgages or liens."],
+      ["Check you can build a weekend house","Ask the municipality: is it in a plan (ДУП/УП or a village plan) that allows a weekend house (викендица)? Agricultural or forest land needs re-zoning."],
+      ["Confirm power, water and road","Is the electricity connection on the plot? Water from mains, a spring or a well? A road a normal car can use in winter?"],
+      ["Check winter access","At 700 m+ snow is normal: is the road cleared, and how far is the nearest shop?"],
+      ["Visit the plot","Slope, views, sun, neighbours, forest boundary; walk the boundaries with the seller."],
+    ],
+  },
   flip: {
     short:"Flip",
     plain:"Flats and houses priced well under the local average per m². We estimate renovation, taxes and fees, then the profit if you resell at the local price.",
@@ -889,7 +914,7 @@ function card(i){
       <h3 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h3>
       <div class="loc">${esc(placeLine(i))}</div>
       ${why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
-      <div class="chiprow">${i._r === "land" || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChip(i) : ""}${hasAlt(i) ? altChip(i) : ""}${hasDist(i) ? distChip(i) : ""}${uncChips(i)}</div>
+      <div class="chiprow">${(i._r === "land" || i._r === "weekend") || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChip(i) : ""}${hasAlt(i) ? altChip(i) : ""}${hasDist(i) ? distChip(i) : ""}${uncChips(i)}</div>
       ${PRIV && !i._gone ? voteBtns(i, false) : ""}
       <div class="cfoot"><span>${esc(footLeft(i))}</span>${ad ? `<a class="adlink" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${i._r === "auctions" ? "Official notice" : "Open ad"} ↗</a>` : ""}</div>
     </div></article>`;
@@ -1044,7 +1069,7 @@ function renderToday(){
     html += `<section class="section" aria-labelledby="sec-${esc(R.key)}"><div class="sechead"><div><h3 id="sec-${esc(R.key)}">${shownIds.size ? "More" : "Top"} ${esc(c.short || R.title)} picks</h3><div class="sub">${esc(R.title)}</div></div>
       ${R.items.length ? `<button class="link" data-go="${esc(R.key)}">See all ${nf0.format(R.items.length)} →</button>` : ""}</div>`;
     if (R.items.length && R.items.every(needsInfo))
-      html += `<div class="note info" style="margin-bottom:12px"><span class="ic">${I.info}</span><div>None of these are fully confirmed yet${R.key === "land" ? " (power, water and road)" : ""} — they're all <b>Needs info</b>. Open one for the questions to ask the seller.</div></div>`;
+      html += `<div class="note info" style="margin-bottom:12px"><span class="ic">${I.info}</span><div>None of these are fully confirmed yet${R.key === "land" || R.key === "weekend" ? " (power, water and road)" : ""} — they're all <b>Needs info</b>. Open one for the questions to ask the seller.</div></div>`;
     html += top.length ? `<div class="minis">${top.map(mini).join("")}</div>` : `<div class="empty"><p>${R.items.length ? "Its best deals are already shown above." : "No deals from this researcher yet — results appear after the next run."}</p></div>`;
     html += `</section>`;
   }
@@ -1064,7 +1089,7 @@ function renderResearcher(R){
     <div class="pagehead"><div><div class="eyebrow">Researcher</div><h2>${esc(R.title)}</h2>
       <p>${esc(c.plain || R.description || "")}</p></div></div>
     <div class="note info"><span class="ic">${I.info}</span><div><b>${nf0.format(R.items.length)} deals</b>${nNew ? `, ${nNew} new in the last 24 h` : ""}${PRIV && (DATA.pipeline || []).some(e => e.researcher === R.key) ? ` (${(DATA.pipeline || []).filter(e => e.researcher === R.key).length} more in your pipeline)` : ""}.
-      Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look (the number is the 0–100 score).${R.key === "land" ? ` Utilities: <b>✓</b> confirmed in the ad, <b>?</b> not mentioned, <b>✗</b> missing.` : ""}${nNI ? `<br><b>${I.q} ${nNI} need info</b> — they look like a fit but something isn't confirmed in the ad${R.key === "land" ? " (usually power, water or road)" : ""}. Open one to see the questions to ask the seller.` : ""}</div></div>
+      Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look (the number is the 0–100 score).${R.key === "land" || R.key === "weekend" ? ` Utilities: <b>✓</b> confirmed in the ad, <b>?</b> not mentioned, <b>✗</b> missing.` : ""}${nNI ? `<br><b>${I.q} ${nNI} need info</b> — they look like a fit but something isn't confirmed in the ad${R.key === "land" || R.key === "weekend" ? " (usually power, water or road)" : ""}. Open one to see the questions to ask the seller.` : ""}</div></div>
     <div class="controls" role="search">
       <label class="field"><span class="sr">Search deals</span>${I.search}<input class="input" type="search" id="fq" placeholder="Search title, area, street…" value="${esc(f.q)}"></label>
       <label class="sr" for="fcity">Location</label>
@@ -1072,7 +1097,7 @@ function renderResearcher(R){
       <label class="sr" for="fsort">Sort by</label>
       <select class="select" id="fsort">${[["best","Best rating"],["value",c.sortLabel],...(R.key === "auctions" ? [["soon","Soonest sale"]] : []),["new","Newest first"],["price","Lowest price"]].map(([v,l]) => `<option value="${v}" ${f.sort === v ? "selected" : ""}>Sort: ${esc(l)}</option>`).join("")}</select>
       <label class="sr" for="fstatus">Status</label>
-      <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" || R.key === "weekend" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
       ${R.items.some(hasAlt) ? `<label class="sr" for="falt">Minimum altitude</label><select class="select" id="falt">${[[0,"Any altitude"],[500,"Altitude 500 m+"],[800,"Altitude 800 m+"],[1000,"Altitude 1,000 m+"],[1200,"Altitude 1,200 m+"]].map(([v,l]) => `<option value="${v}" ${(+f.minAlt || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
       ${[["maxSk","to_skopje","Skopje"],["maxOh","to_ohrid","Ohrid"]].filter(([, key]) => R.items.some(i => okDist(i[key]))).map(([fk, key, n]) => `<label class="sr" for="f${fk}">Max drive to ${n}</label><select class="select" id="f${fk}" data-fdist="${fk}">${[[0,`Drive to ${n}: any`],[30,`Drive to ${n} ≤ 30 min`],[60,`Drive to ${n} ≤ 1 h`],[120,`Drive to ${n} ≤ 2 h`]].map(([v,l]) => `<option value="${v}" ${(+f[fk] || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>`).join("")}
       <label class="toggle"><input type="checkbox" id="fnew" ${f.newOnly ? "checked" : ""}> New only</label>

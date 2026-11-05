@@ -22,7 +22,7 @@ from .db import DB, now
 from .http import Blocked, PoliteSession
 from .market import Market, ppm2
 from .researchers.common import days_listed
-from .researchers import airbnb, auctions, flip, land, motivated
+from .researchers import airbnb, auctions, flip, land, motivated, weekend
 from .sources import kirsm, nedviznosti, novel, reklama5
 
 # Which parser reads a listing's detail page.
@@ -31,7 +31,7 @@ from .text import (KeywordSet, altitude_in_text, classify_deal, detect_furnished
                    land_type, mentions_price_per_m2, needs_renovation, norm, price_in_text, redact)
 
 ROOT = Path(__file__).resolve().parent.parent
-RESEARCHERS = [airbnb, land, flip, motivated, auctions]
+RESEARCHERS = [airbnb, land, weekend, flip, motivated, auctions]
 log = logging.getLogger("scraper")
 
 

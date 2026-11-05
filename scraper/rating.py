@@ -22,7 +22,7 @@ TIERS = [
 ]
 _ORDER = [t[1] for t in TIERS]
 # Researchers whose verdict rests on a below-market comparison.
-NEEDS_MARKET = {"land", "flip", "auctions"}
+NEEDS_MARKET = {"land", "weekend", "flip", "auctions"}
 
 
 def _evidence_ok(item: dict, researcher: str) -> bool:

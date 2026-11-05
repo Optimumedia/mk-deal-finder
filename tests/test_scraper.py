@@ -447,3 +447,36 @@ class FactsFromTextTests(unittest.TestCase):
         from scraper.geo import place_candidates
         self.assertEqual(place_candidates({"title": "Plac na PONIKVA so gradezna markica", "district": "Карпош",
                                            "city": "Скопје", "extra": {}})[0], "Пониква")
+
+
+class WeekendPlotTests(unittest.TestCase):
+    CFG = {"weekend": {"min_elevation": 700, "min_area_m2": 200, "max_area_m2": 20000, "max_price_eur": 170000,
+                       "require_all_utilities": True, "min_samples_band": 8, "min_samples_all": 15},
+           "budget": {"personal_home": 170000}}
+    UTIL = "Има струја, вода и асфалтен пат до плацот."
+
+    def plot(self, i, el, ppm, area=600, src="gps", desc=UTIL):
+        return {"id": f"r{i}", "url": "u", "source": "reklama5", "source_id": str(i), "kind": "land", "deal": "sale",
+                "price_eur": ppm * area, "price_note": None, "area_m2": area, "city": "Тетово", "title": "Плац",
+                "description": desc, "elevation": el, "elevation_src": src, "first_seen": "2026-11-01"}
+
+    def test_only_plots_at_700m_or_higher(self):
+        from scraper.researchers import weekend
+        rows = [self.plot(i, 900, 20) for i in range(10)] + [self.plot(50, 650, 5), self.plot(51, 1100, 10)]
+        out = weekend.run(rows, Market([], 8, 8, 15), self.CFG)
+        ids = {r["id"] for r in out}
+        self.assertNotIn("r50", ids)
+        best = next(r for r in out if r["id"] == "r51")
+        self.assertEqual(best["metrics"]["Below market"], "50%")
+        self.assertIn("700 m+", best["metrics"]["Compared against"])
+        self.assertTrue(best["qualified"])
+        self.assertEqual(out[0]["id"], "r51")
+
+    def test_village_altitude_is_marked_approximate_and_unknown_utilities_need_info(self):
+        from scraper.researchers import weekend
+        out = weekend.run([self.plot(1, 1200, 10, src="place:Пониква", desc="Плац со убав поглед")],
+                          Market([], 8, 8, 15), self.CFG)
+        self.assertTrue(out[0]["elevation_approx"])
+        self.assertFalse(out[0]["qualified"])
+        self.assertEqual(out[0]["metrics"]["Altitude source"], "village (approx.)")
+        self.assertEqual(out[0]["comps"], 0)

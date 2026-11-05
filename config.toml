@@ -150,6 +150,17 @@ require_all_utilities = true
 # Plots this high count as "mountain" even if the ad names no mountain area.
 mountain_min_elevation = 700
 
+[weekend]
+enabled = true
+# Plots at this altitude or higher, anywhere in MK, for a weekend house.
+min_elevation = 700
+min_area_m2 = 200
+max_area_m2 = 20000
+max_price_eur = 170000   # = [budget].personal_home
+require_all_utilities = true      # electricity, water and road confirmed in the ad
+min_samples_band = 8     # 700 m+ plots of the same size band needed to compare prices
+min_samples_all = 15     # else all 700 m+ plots
+
 [geo]
 enabled = true                 # altitude from Open-Meteo (free, no key), cached in deals.db
 max_lookups_per_run = 400      # place searches per run (each place is looked up once, ever)

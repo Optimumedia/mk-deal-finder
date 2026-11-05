@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 HEADLINE = ["Est. profit / month", "Rent / month", "Payback (months)", "Starting price", "Sale date",
             "Price", "Price now", "Area (m²)",
             "€/m²", "Below market", "Est. profit", "ROI", "Price cut", "Land type"]
-ICON = {"airbnb": "🛏", "land": "🌲", "flip": "🔨", "motivated": "📉", "auctions": "⚖️"}
+ICON = {"airbnb": "🛏", "land": "🌲", "weekend": "🏔", "flip": "🔨", "motivated": "📉", "auctions": "⚖️"}
 
 
 SETTINGS_FILE = Path(__file__).resolve().parent.parent / ".telegram"

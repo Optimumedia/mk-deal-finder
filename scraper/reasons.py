@@ -16,7 +16,7 @@ from typing import Callable
 
 from .text import norm
 
-ALL = ("airbnb", "land", "flip", "motivated", "auctions")
+ALL = ("airbnb", "land", "weekend", "flip", "motivated", "auctions")
 
 
 def _words(*stems: str) -> Callable[[dict], bool]:
@@ -45,8 +45,8 @@ REASONS: list[Reason] = [
     Reason("prc", "Not really under market / overpriced", group="Price"),
     Reason("pm2", "Price is per m² or misleading", learn="data", group="Price"),
     # Property
-    Reason("sml", "Too small", ("airbnb", "flip", "motivated", "auctions", "land"), learn="size_min", group="Property"),
-    Reason("big", "Too big", ("airbnb", "flip", "motivated", "auctions", "land"), learn="size_max", group="Property"),
+    Reason("sml", "Too small", ("airbnb", "flip", "motivated", "auctions", "land", "weekend"), learn="size_min", group="Property"),
+    Reason("big", "Too big", ("airbnb", "flip", "motivated", "auctions", "land", "weekend"), learn="size_max", group="Property"),
     Reason("ren", "Needs too much renovation", ("flip", "motivated", "auctions", "airbnb"),
            _words("renovir", "adaptac", "stara gradba", "star stan", "za rusenje"), group="Property"),
     Reason("bsm", "Basement / ground floor / no light", ("airbnb", "flip", "motivated", "auctions"),
@@ -62,21 +62,21 @@ REASONS: list[Reason] = [
            similar=_words("bez imoten", "без имотен", "vo postapka", "во постапка", "legaliz", "легализ")),
     Reason("shr", "Ownership share / co-owners", group="Legal",
            similar=_words("idealen del", "идеален дел", "sosopstven", "сосопствен")),
-    Reason("ill", "Illegal / not legalised build", ("flip", "motivated", "auctions", "land"),
+    Reason("ill", "Illegal / not legalised build", ("flip", "motivated", "auctions", "land", "weekend"),
            _words("legaliz", "легализ", "divo", "диво"), group="Legal"),
     # Land
-    Reason("noe", "No electricity", ("land",), learn="self", group="Land"),
-    Reason("now", "No water", ("land",), learn="self", group="Land"),
-    Reason("nor", "No road access", ("land",), learn="self", group="Land"),
-    Reason("agr", "Agricultural — can't build", ("land", "auctions", "motivated"),
+    Reason("noe", "No electricity", ("land", "weekend",), learn="self", group="Land"),
+    Reason("now", "No water", ("land", "weekend",), learn="self", group="Land"),
+    Reason("nor", "No road access", ("land", "weekend",), learn="self", group="Land"),
+    Reason("agr", "Agricultural — can't build", ("land", "weekend", "auctions", "motivated"),
            _words("zemjodel", "земјодел", "niva", "нива", "lozje", "лозје", "livada", "ливада"), group="Land"),
-    Reason("ter", "Bad terrain (steep, flood, forest)", ("land",),
+    Reason("ter", "Bad terrain (steep, flood, forest)", ("land", "weekend",),
            _words("strmn", "стрмн", "padina", "падина", "suma", "шума", "reka", "река"), group="Land"),
     # The ad itself
     Reason("dup", "Duplicate / already seen", learn="data", group="Ad"),
     Reason("sold", "Already sold / rented", learn="self", group="Ad"),
     Reason("fake", "Fake or bait ad", learn="data", group="Ad"),
-    Reason("agc", "Agency won't share details", ("airbnb", "flip", "motivated", "land"), learn="self", group="Ad"),
+    Reason("agc", "Agency won't share details", ("airbnb", "flip", "motivated", "land", "weekend"), learn="self", group="Ad"),
     # Strategy
     Reason("rnt", "Rent too high for Airbnb", ("airbnb",), learn="self", group="Strategy"),
     Reason("sub", "Landlord won't allow subletting", ("airbnb",), learn="self", group="Strategy"),

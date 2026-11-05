@@ -20,7 +20,7 @@ from . import feedback
 from .reasons import BY_CODE
 
 ROOT = Path(__file__).resolve().parent.parent
-MIN_AREA_KEY = {"flip": ("flip", "min_area_m2"), "land": ("land", "min_area_m2")}
+MIN_AREA_KEY = {"flip": ("flip", "min_area_m2"), "land": ("land", "min_area_m2"), "weekend": ("weekend", "min_area_m2")}
 
 
 def report() -> str:
