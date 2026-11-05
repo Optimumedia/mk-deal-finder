@@ -139,6 +139,22 @@ class PipelineTests(ApiTests):
         web.vote({"id": "reklama5:13", "researcher": "flip", "vote": "clear"})
         self.assertEqual(feedback.load_pipeline(), [])
 
+    def test_dropping_archives_the_deal_as_rejected(self):
+        web.vote({"id": "reklama5:14", "researcher": "weekend", "vote": "up"})
+        self.assertTrue(web.pipeline({"id": "reklama5:14", "stage": "dropped", "reason": "nor"})["ok"])
+        self.assertEqual(feedback.load_pipeline(), [])
+        rej = feedback.load_rejections()
+        self.assertEqual((rej[0]["listing_id"], rej[0]["reason"]), ("reklama5:14", "nor"))
+
+    def test_old_dropped_rows_move_to_the_archive(self):
+        web.vote({"id": "reklama5:15", "researcher": "land", "vote": "up"})
+        with feedback.closing(feedback.connect()) as conn:
+            conn.execute("UPDATE pipeline SET stage='dropped'")
+            conn.commit()
+        lists, pipe = feedback.take_pipeline({"land": []})
+        self.assertEqual(pipe, [])
+        self.assertEqual(feedback.load_rejections()[0]["note"], "dropped from the pipeline")
+
 
 class InstantReviewTests(ApiTests):
     """A vote must move the deal in private.json at once — not after the next re-score."""

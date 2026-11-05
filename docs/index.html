@@ -1574,7 +1574,7 @@ function privPanel(i){
   const tri = (k, l) => `<div class="frow"><span>${esc(l)}</span><div class="tri" role="radiogroup" aria-label="${esc(l)}">${[["yes","Yes"],["no","No"],["","Unknown"]].map(([v,t]) => `<label><input type="radio" name="f_${k}" value="${v}" ${(f[k] || "") === v ? "checked" : ""}><span>${t}</span></label>`).join("")}</div></div>`;
   const sum = factsSummary(i.facts);
   return `<div class="dsec"><h3>Your call</h3><div class="priv">
-    ${i._pipe ? `<div class="acts"><button type="button" class="vbtn" id="pipeRemove">✖ Remove from pipeline</button></div><p class="also" style="margin:0">Removing puts the deal back in the normal lists after the next re-score.</p>` : voteBtns(i, false)}
+    ${i._pipe ? `<div class="acts"><button type="button" class="vbtn" id="pipeDrop">✖ Drop — not a fit</button><button type="button" class="vbtn" id="pipeRemove">↩ Back to the lists</button></div><p class="also" style="margin:0"><b>Drop</b> archives it as rejected (with a reason, so research learns). <b>Back to the lists</b> just undoes moving it here.</p>` : voteBtns(i, false)}
     ${i.my_note ? `<div class="fsum">Your note: “${esc(i.my_note)}”</div>` : ""}
     <div class="rej" id="rejPanel" hidden>
       <label class="lbl" for="rejReason">Why isn't it a fit?</label>
@@ -1600,7 +1600,7 @@ function bindPriv(i){
   const go = $("#rejGo"); if (!go) return;
   $("#rejCancel").onclick = () => { $("#rejPanel").hidden = true; };
   go.onclick = () => { const reason = $("#rejReason").value; if (!reason) { $("#rejMsg").textContent = "Pick a reason first."; $("#rejReason").focus(); return; }
-    rejectDeal(i, reason, $("#rejNote").value.trim()); };
+    if (i._pipe) dropPipe(i._pipe, reason, $("#rejNote").value.trim()); else rejectDeal(i, reason, $("#rejNote").value.trim()); };
   $("#fSave").onclick = async () => {
     const old = i.facts || {}; const ch = {};
     for (const [k] of FACT_U) { const v = ($(`input[name="f_${k}"]:checked`) || {}).value || ""; if (v !== (old[k] || "")) ch[k] = v || null; }
@@ -1619,7 +1619,7 @@ function bindPriv(i){
 const STAGES = [
   {key:"interested", emoji:"👍", label:"Interested"}, {key:"contacted", emoji:"📞", label:"Contacted"}, {key:"viewing", emoji:"🏠", label:"Viewing"},
   {key:"checks", emoji:"🔍", label:"Checks"}, {key:"offer", emoji:"💶", label:"Offer made"}, {key:"negotiating", emoji:"🤝", label:"Negotiating"},
-  {key:"won", emoji:"✅", label:"Bought / Rented"}, {key:"dropped", emoji:"✖", label:"Dropped"}];
+  {key:"won", emoji:"✅", label:"Bought / Rented"}, {key:"dropped", emoji:"✖", label:"Drop — not a fit"}];
 const NEXT_DEF = {interested:"Call the seller / agency", contacted:"Book a viewing", viewing:"Visit: condition, documents, utilities on site",
   checks:"Check the property sheet (имотен лист), debts and charges on it (товари), zoning / building permit", offer:"Wait for the answer — follow up in 2 days",
   negotiating:"Agree price, deposit and notary date", won:"Done 🎉", dropped:"—"};
@@ -1677,13 +1677,13 @@ function renderPipeline(){
       return `<section class="pgroup" aria-labelledby="pg-${esc(k)}"><h3 id="pg-${esc(k)}">${esc(cfg(k).short || k)} <span class="n">${xs.length}</span>${open !== xs.length ? `<span class="sub" style="font-weight:500;font-size:12px;color:var(--ink-3)"> · ${open} active</span>` : ""}</h3><div class="catgrid">${xs.map(pcard).join("")}</div></section>`; }).join("");
     pcard.showStage = false;
   } else if (innerWidth >= 900) {
-    html += `<p class="resultline">${act} active · scroll sideways inside the board to see every stage</p><div class="board" role="region" aria-label="Pipeline board" tabindex="0">${STAGES.map(s => { const xs = by(s.key);
+    html += `<p class="resultline">${act} active · scroll sideways inside the board to see every stage</p><div class="board" role="region" aria-label="Pipeline board" tabindex="0">${STAGES.filter(s => s.key !== "dropped").map(s => { const xs = by(s.key);
       const coll = (s.key === "won" || s.key === "dropped") && !pipeExpand[s.key];
       if (coll) return `<section class="pcol collapsed" aria-label="${esc(s.label)}"><button type="button" class="colbtn" data-colx="${s.key}" aria-expanded="false" title="Show ${esc(s.label)}"><span aria-hidden="true">${s.emoji}</span><span class="v">${esc(s.label)}</span><span class="n">${xs.length}</span></button></section>`;
       return `<section class="pcol" aria-labelledby="pc-${s.key}"><h3 id="pc-${s.key}"><span>${s.emoji} ${esc(s.label)}</span><span class="n">${xs.length}</span>${s.key === "won" || s.key === "dropped" ? `<button type="button" class="link" data-colx="${s.key}" aria-expanded="true" style="font-size:12px">Hide</button>` : ""}</h3>
         <div class="pl">${xs.length ? xs.map(pcard).join("") : `<div class="empty-col">Nothing here</div>`}</div></section>`; }).join("")}</div>`;
   } else {
-    html += STAGES.map(s => { const xs = by(s.key); if (!xs.length) return "";
+    html += STAGES.filter(s => s.key !== "dropped").map(s => { const xs = by(s.key); if (!xs.length) return "";
       return `<section class="pgroup" aria-labelledby="pg-${s.key}"><h3 id="pg-${s.key}">${s.emoji} ${esc(s.label)} <span class="n">${xs.length}</span></h3><div class="pl">${xs.map(pcard).join("")}</div></section>`; }).join("");
   }
   html += rejectedHtml(archOpen);
@@ -1708,10 +1708,28 @@ async function pipeSave(e, ch, quiet){
   try { await api("POST", "/api/pipeline", Object.assign({id:e.id, researcher:e.researcher}, ch)); if (!quiet) toast(SAVED_MSG); return true; }
   catch (err) { Object.assign(e, before); toast(err.message, {err:true}); return false; } }
 async function setStage(e, stage, focusSel){
-  if (stage === e.stage) return; const old = e.stage; const ch = {stage};
+  if (stage === e.stage) return;
+  if (stage === "dropped") { refreshPipeViews(); askDrop(e); return; } const old = e.stage; const ch = {stage};
   if (!e.next_step || e.next_step === defNext(old, e.researcher)) ch.next_step = defNext(stage, e.researcher);
   const p = pipeSave(e, ch, true); refreshPipeViews(focusSel); if (openId === e.id) reopenDrawer();
   if (await p) toast(`Moved to ${stageOf(stage).emoji} ${stageOf(stage).label}${ch.next_step && ch.next_step !== "—" ? " → next: " + ch.next_step : ""}`); else { refreshPipeViews(); if (openId === e.id) reopenDrawer(); } }
+// Dropping a pipeline deal = rejecting it: it leaves the pipeline and goes to the archive with a reason.
+function askDrop(e){
+  openDeal(e.id, e.researcher, true);
+  setTimeout(() => { openReject(); const m = $("#rejMsg"); if (m) m.textContent = "Dropping takes it out of your pipeline and into the rejected archive. Pick why, so future research avoids deals like it."; }, 60); }
+async function dropPipe(e, reason, note){
+  const it = e.item || {}; const old = {stage:e.stage, next_step:e.next_step, due:e.due, notes:e.notes};
+  try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"down", reason, note: note || undefined}); }
+  catch (err) { toast(err.message, {err:true}); return; }
+  DATA.pipeline = (DATA.pipeline || []).filter(x => x !== e);
+  DATA.rejected = DATA.rejected || [];
+  DATA.rejected.unshift({id:e.id, researcher:e.researcher, title:it.title, reason, reason_label:(reasonsFor(e.researcher).find(x => x.code === reason) || {}).label || reason, note: note || null, item: strip(it), _item: it});
+  closeDeal(true); refreshPipeViews(); reloadPrivate();
+  toast("Dropped — moved to the rejected archive. " + SAVED_MSG, {action:"Undo", onAction: async () => {
+    try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"up"});
+      await api("POST", "/api/pipeline", Object.assign({id:e.id, researcher:e.researcher}, old));
+      await reloadPrivate(); refreshPipeViews(); toast("Back in your pipeline. " + SAVED_MSG); }
+    catch (err) { toast(err.message, {err:true}); } }}); }
 function reopenDrawer(){ const st = $("#dBody").scrollTop; const e = openId && (pipeFind(openId, parseHash().in) || pipeFind(openId)); const i = e ? e.item : findItem(openId, parseHash().in); if (i) { openDeal(openId, i._r, false); $("#dBody").scrollTop = st; } }
 function pipeSection(e){ const sug = stageSuggestions(e); const ck = checks[e.id + "|" + e.stage] || [];
   return `<div class="dsec"><div class="pipe" role="region" aria-labelledby="pipeH"><h3 id="pipeH" style="margin:0">${stageOf(e.stage).emoji} In my pipeline — ${esc(stageOf(e.stage).label)}</h3>
@@ -1731,6 +1749,7 @@ function bindPipe(e){
     if (await pipeSave(e, {[key]: v}, true)) { msg(SAVED_MSG); refreshPipeViews(); } });
   txt($("#pNext"), "next_step"); txt($("#pNotes"), "notes");
   $$("[data-pck]", $("#dBody")).forEach(cb => cb.onchange = () => { const k = e.id + "|" + e.stage; const a = checks[k] || []; a[+cb.dataset.pck] = cb.checked; checks[k] = a; store.set("mkdeal.checks", checks); });
+  const dr = $("#pipeDrop"); if (dr) dr.onclick = () => { openReject(); const m = $("#rejMsg"); if (m) m.textContent = "Dropping takes it out of your pipeline and into the rejected archive."; };
   const rm = $("#pipeRemove"); if (rm) rm.onclick = async () => {
     try { await api("POST", "/api/vote", {id:e.id, researcher:e.researcher, vote:"clear"}); DATA.pipeline = DATA.pipeline.filter(x => x !== e); closeDeal(true); refreshPipeViews(); await reloadPrivate(); toast("Removed from your pipeline — it's back in the lists."); }
     catch (err) { toast(err.message, {err:true}); } };

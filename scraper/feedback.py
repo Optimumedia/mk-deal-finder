@@ -280,11 +280,38 @@ def load_pipeline(path: Path | None = None) -> list[dict]:
         return [dict(r) for r in conn.execute("SELECT * FROM pipeline ORDER BY updated_at DESC")]
 
 
+def drop_from_pipeline(conn, listing_id: str, researcher: str, reason: str, note: str | None,
+                       listing: dict | None = None) -> None:
+    """Dropped = not a fit: out of the pipeline, into the rejected archive (learned from)."""
+    record(conn, listing_id, researcher, -1, listing)
+    reject(conn, listing_id, researcher, reason, listing)
+    if note:
+        add_rejection_note(conn, listing_id, note)
+    pipeline_remove(conn, listing_id)
+
+
+def migrate_dropped(conn) -> int:
+    """Older pipelines kept a "Dropped" column: archive those deals as rejected."""
+    rows = conn.execute("SELECT listing_id, researcher, snapshot FROM pipeline WHERE stage='dropped'").fetchall()
+    for r in rows:
+        s = json.loads(r["snapshot"]) if r["snapshot"] else {}
+        info = {"kind": s.get("kind"), "city": s.get("city"), "district": s.get("district"),
+                "area_m2": s.get("area"), "price_eur": s.get("price"), "title": s.get("title")}
+        if not conn.execute("SELECT 1 FROM rejections WHERE listing_id=?", (r["listing_id"],)).fetchone():
+            drop_from_pipeline(conn, r["listing_id"], r["researcher"], "oth", "dropped from the pipeline", info)
+        else:
+            pipeline_remove(conn, r["listing_id"])
+    return len(rows)
+
+
 def take_pipeline(results: dict, path: Path | None = None) -> tuple[dict, list[dict]]:
     """Move pipeline deals out of the result lists into their own list.
 
     Each entry carries the latest version of the deal if it's still found,
     otherwise the saved copy (flagged removed). Saved copies are refreshed."""
+    if (path or DB_PATH).exists():
+        with closing(connect(path or DB_PATH)) as conn:
+            migrate_dropped(conn)
     entries = load_pipeline(path)
     if not entries:
         return results, []

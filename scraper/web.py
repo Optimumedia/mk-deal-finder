@@ -182,6 +182,14 @@ def pipeline(body: dict) -> dict:
             date.fromisoformat(fields["due"])
         except ValueError:
             return {"ok": False, "error": "due must be a date (YYYY-MM-DD)"}
+    if fields.get("stage") == "dropped":
+        # Dropping = rejecting: it leaves the pipeline for the archive, with a reason to learn from.
+        row = next((e for e in feedback.load_pipeline() if e["listing_id"] == lid), None)
+        researcher = (row or {}).get("researcher") or body.get("researcher")
+        if researcher not in reasons.ALL:
+            return {"ok": False, "error": "researcher is required"}
+        return vote({"id": lid, "researcher": researcher, "vote": "down", "reason": body.get("reason") or "oth",
+                     "note": body.get("note") or "dropped from the pipeline"})
     with feedback.closing(feedback.connect()) as conn:
         if not feedback.pipeline_update(conn, lid, **fields):
             # not there yet (e.g. moved straight from a list) — add, then update
