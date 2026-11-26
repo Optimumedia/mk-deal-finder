@@ -91,6 +91,13 @@ MIGRATIONS = {"auction_date": "TEXT", "auction_round": "INTEGER", "extra": "TEXT
               "renewed": "TEXT",                                # last renewal date shown on the card
               "gone_at": "TEXT",                                # the ad page returned 404
               "sold": "INTEGER"}                                # ad text says sold / rented
+# Run health (added 2026-11): how long it took, warnings, per-source counts and
+# a plain-language note when a source returned far fewer ads than usual.
+RUN_MIGRATIONS = {"mode": "TEXT",              # 'full' | 'quick' | 'rescore'
+                  "duration_s": "INTEGER",
+                  "warnings": "INTEGER",         # warning + error lines logged during the run
+                  "broken": "TEXT",              # e.g. "novelestate.com: 3 ads instead of the usual ~1,580"
+                  "health": "TEXT"}              # JSON: per-source pages / ads seen / new / seconds, DB size
 
 
 def now() -> str:
@@ -108,8 +115,10 @@ class DB:
         self.conn.execute("PRAGMA journal_mode=WAL")      # readers (bot, dashboard) never block the writer
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
-        if "mode" not in {r[1] for r in self.conn.execute("PRAGMA table_info(runs)")}:
-            self.conn.execute("ALTER TABLE runs ADD COLUMN mode TEXT")      # 'full' | 'quick'
+        have_runs = {r[1] for r in self.conn.execute("PRAGMA table_info(runs)")}
+        for col, typ in RUN_MIGRATIONS.items():
+            if col not in have_runs:
+                self.conn.execute(f"ALTER TABLE runs ADD COLUMN {col} {typ}")
         have = {r[1] for r in self.conn.execute("PRAGMA table_info(listings)")}
         for col, typ in MIGRATIONS.items():
             if col not in have:
@@ -120,8 +129,12 @@ class DB:
         if vacuum:
             try:
                 self.conn.execute("VACUUM")
-            except sqlite3.OperationalError as e:         # a reader is busy — try next time
+            except sqlite3.OperationalError:              # a reader is busy — try next time
                 pass
+        try:                                               # fold the WAL back so it never keeps growing
+            self.conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        except sqlite3.OperationalError:
+            pass
         self.conn.close()
 
     # ------------------------------------------------------------ listings
@@ -251,12 +264,45 @@ class DB:
 
     def finish_run(self, run_id: int, **kw):
         kw["finished_at"] = now()
+        if isinstance(kw.get("health"), dict):
+            kw["health"] = json.dumps(kw["health"], ensure_ascii=False, separators=(",", ":"))
         sets = ", ".join(f"{k}=?" for k in kw)
         self.conn.execute(f"UPDATE runs SET {sets} WHERE id=?", (*kw.values(), run_id))
         self.conn.commit()
 
     def recent_runs(self, n: int = 10) -> list[dict]:
-        return [dict(r) for r in self.conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (n,))]
+        out = []
+        for r in self.conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (n,)):
+            d = dict(r)
+            if d.get("health"):
+                try:
+                    d["health"] = json.loads(d["health"])
+                except ValueError:
+                    d["health"] = None
+            out.append(d)
+        return out
+
+    def source_history(self, mode: str, n: int = 6, before_id: int | None = None) -> list[dict]:
+        """Per-source counts of the last `n` successful runs of this kind (full / quick)."""
+        rows = self.conn.execute(
+            "SELECT health FROM runs WHERE status = 'ok' AND mode = ? AND health IS NOT NULL AND id < ? "
+            "ORDER BY id DESC LIMIT ?", (mode, before_id or 1 << 62, n))
+        out = []
+        for (h,) in rows:
+            try:
+                out.append(json.loads(h).get("sources") or {})
+            except (ValueError, AttributeError):
+                pass
+        return out
+
+    def seen_since(self, ts: str) -> dict[str, int]:
+        """Listings per source whose card was seen at or after `ts` (= ads this run saw)."""
+        return {r[0]: r[1] for r in self.conn.execute(
+            "SELECT source, COUNT(*) FROM listings WHERE last_seen >= ? GROUP BY source", (ts,))}
+
+    def run_started(self, run_id: int) -> str | None:
+        r = self.conn.execute("SELECT started_at FROM runs WHERE id=?", (run_id,)).fetchone()
+        return r[0] if r else None
 
     def was_notified(self, lid: str, researcher: str) -> bool:
         return self.conn.execute("SELECT 1 FROM notified WHERE listing_id=? AND researcher=?",

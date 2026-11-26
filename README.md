@@ -37,7 +37,7 @@ Every deal gets a rating, and every list is sorted by it:
 ## How it works
 
 ```
-Windows Task Scheduler on your PC (06:15 and 18:15) → run_local.ps1
+Windows Task Scheduler on your PC (12:15 and 16:45, plus catch-up) → run_local.ps1
   └─ python -m scraper.run
        1. read Reklama5 search pages      (morning: every page; evening: new ads only)
        2. read detail pages of promising listings  (description, GPS, land type)
@@ -45,7 +45,7 @@ Windows Task Scheduler on your PC (06:15 and 18:15) → run_local.ps1
        4. run the 4 researchers → score 0–100 each
        5. write docs/data.json   → dashboard on GitHub Pages
        6. send new top deals to Telegram (optional)
-       7. commit + push docs/data.json → GitHub Pages updates (deals.db stays on the PC, weekly backup in dataackups)
+       7. commit + push docs/data.json → GitHub Pages updates (deals.db stays on the PC, weekly backup in data/backups)
 ```
 
 **Utilities rule.** Each deal shows ⚡ power, 💧 water and 🛣 road badges:
@@ -67,12 +67,15 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
 ## Setup on a PC (done once)
 
 1. Install Python 3.11+ (the setup script creates its own `.venv` and installs the dependencies there).
-2. Register the two daily tasks (06:15 and 18:15). Re-running the script replaces them:
+2. Register the daily tasks (12:15 and 16:45, local time all year). Re-running the script replaces them:
    ```powershell
    powershell -ExecutionPolicy Bypass -File setup_schedule.ps1
    ```
-   The tasks still run on battery, and a run missed while the PC was off starts as soon
-   as it's back on. Results are pushed to GitHub, and the log is `data\local-run.log`.
+   The tasks still run on battery. A catch-up task checks at logon and every hour while the PC is on:
+   if a slot was missed (PC started late, shut down mid-run) it runs once, otherwise it does nothing.
+   Only one run can go at a time. Each run stores a health summary in the database (ads per source,
+   time, warnings) and warns on Telegram when a source returns far fewer ads than usual. Results are
+   pushed to GitHub; the log is `data\local-run.log` (rotated at 1 MB).
 3. Start a run right away: `Start-ScheduledTask "MK Deal Finder - morning"`.
    The first run reads about 2,300 pages slowly and politely, so it takes about 2 hours.
    After that, runs take about 45 minutes (morning) and 10 minutes (evening).
