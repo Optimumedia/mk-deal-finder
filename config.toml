@@ -169,6 +169,11 @@ min_samples_all = 15     # else all 700 m+ plots
 [geo]
 enabled = true                 # altitude from Open-Meteo (free, no key), cached in deals.db
 max_lookups_per_run = 400      # place searches per run (each place is looked up once, ever)
+# Only a village / locality named in the ad gives an altitude ("~"). An ad that names only
+# its municipality gets rough drive times and no altitude; one that names only its town gets
+# neither (never "Skopje's 247 m, 0 min from Skopje" for a plot somewhere around Skopje).
+place_vs_city_km = 40          # a village this far from the ad's town is a namesake (unless a known resort)
+geocode_results = 10           # namesakes fetched per name; the one nearest the ad's town wins
 # Driving distance / time to Skopje and Ohrid (public OpenStreetMap router).
 pin_vs_place_km = 15           # a pin this far from the place named in the ad is a leftover: ignore it
 routes_per_request = 90
