@@ -3,8 +3,8 @@
     python -m scraper.bot          (setup_schedule.ps1 starts it at logon)
 
 Commands (only from your own chat; everyone else is ignored):
-    /top     best 3 current deals per researcher
-    /status  when the last run happened and how it went
+    /top     best deals you have not rated yet (one message)
+    /status  last run, recent runs, broken sources, pipeline steps due
     /help    this list
 Log: data/bot.log
 """
@@ -27,6 +27,7 @@ from .text import norm
 ROOT = Path(__file__).resolve().parent.parent
 DATA_JSON = ROOT / "docs" / "data.json"
 DEALS_DB = ROOT / "data" / "deals.db"
+PRIVATE_JSON = ROOT / "data" / "private.json"
 log = logging.getLogger("bot")
 
 HELP = ("MK Deal Finder bot\n\n"
@@ -35,7 +36,7 @@ HELP = ("MK Deal Finder bot\n\n"
         "Tap ❌ / 👎 and pick a reason: deals like it rank lower from then on.\n"
         "Reply to a deal with what the seller told you, e.g. 'water yes, area 450, price 32000'.\n"
         "Found something on Facebook / Viber? Forward or paste it here (or a Reklama5 link) for an instant check.\n\n"
-        "/top – best current deals\n/status – last run\n/learn – what your rejections taught me\n"
+        "/top – best deals you haven't rated\n/status – last run and anything broken\n/learn – what your rejections taught me\n"
         "/help – this message")
 
 
@@ -214,39 +215,90 @@ def cmd_learn(chat: str) -> None:
     notify.api("sendMessage", chat_id=chat, text=report()[:4000])
 
 
-def cmd_top(chat: str, conn) -> None:
-    data = load_dashboard()
+def load_results() -> tuple[dict, dict, dict] | None:
+    """(results, titles, data): your private, personalised lists (votes applied, pipeline and
+    rejections removed) when the PC has them, else the public data with your votes applied."""
+    try:
+        data = json.loads(PRIVATE_JSON.read_text(encoding="utf-8"))
+        private = True
+    except (OSError, ValueError):
+        data, private = load_dashboard(), False
     if not data:
+        return None
+    results = {r["key"]: r["items"] for r in data["researchers"]}
+    if not private:
+        results = rating.rate_all(feedback.apply(results, feedback.load_votes()))
+    titles = {r["key"]: r["title"].split(" — ")[0] for r in data["researchers"]}
+    return results, titles, data
+
+
+def _cfg() -> dict:
+    import tomllib
+    return tomllib.loads((ROOT / "config.toml").read_text(encoding="utf-8"))
+
+
+def cmd_top(chat: str, conn=None) -> None:
+    """One message with the best deals you haven't rated (you rate them on the dashboard)."""
+    loaded = load_results()
+    if not loaded:
         notify.api("sendMessage", chat_id=chat, text="No results yet — the first run hasn't finished.")
         return
-    results = {r["key"]: r["items"] for r in data["researchers"]}
-    results = rating.rate_all(feedback.apply(results, feedback.load_votes()))
-    for r in data["researchers"]:
-        best = [x for x in results.get(r["key"], []) if x.get("qualified")][:3]
-        for x in best:
-            res = notify.api("sendMessage", chat_id=chat, parse_mode="HTML", disable_web_page_preview="true",
-                             text=notify.format_deal(x, r["title"].split(" — ")[0], r["key"])[:4000],
-                             reply_markup=notify.vote_buttons(r["key"], x["id"],
-                                                              needs_info=x.get("status") == "needs_info"))
-            if res:
-                feedback.remember_message(conn, res["message_id"], x["id"], r["key"])
-            time.sleep(0.4)
+    results, titles, _ = loaded
+    notify.api("sendMessage", chat_id=chat, parse_mode="HTML", disable_web_page_preview="true",
+               text=notify.top_text(results, _cfg(), titles))
 
 
-def cmd_status(chat: str) -> None:
-    data = load_dashboard()
-    if not data:
-        notify.api("sendMessage", chat_id=chat, text="No runs have finished yet.")
-        return
+class _ReadOnlyDB:
+    """Just enough of db.DB for notify.source_problems(), opened read-only."""
+    def __init__(self, path: Path):
+        self.conn = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=30)
+        self.conn.row_factory = sqlite3.Row
+
+    def recent_runs(self, n: int = 10) -> list[dict]:
+        return [dict(r) for r in self.conn.execute("SELECT * FROM runs ORDER BY id DESC LIMIT ?", (n,))]
+
+
+def status_text(data: dict, db=None, cfg: dict | None = None) -> str:
     run = (data.get("runs") or [{}])[0]
     lines = [f"Last update: {data['generated_at'].replace('T', ' ')[:16]} UTC",
              f"Last run: {run.get('status', '?')} — {run.get('pages', 0)} pages, {run.get('details', 0)} details, "
              f"{run.get('new_listings', 0)} new listings",
-             f"Listings tracked: {data.get('listings_tracked', 0):,}", ""]
+             f"Listings tracked: {data.get('listings_tracked', 0):,}"]
+    runs = data.get("runs") or []
+    bad = [r for r in runs if r.get("status") not in ("ok", "running")]
+    if runs:
+        lines.append(f"Recent runs: {len(runs) - len(bad)} of {len(runs)} ok")
+    lines.append("")
     lines += [f"{r['title'].split(' — ')[0]}: {r['qualified']} deals" for r in data["researchers"]]
+    due = [e for e in data.get("pipeline") or []
+           if e.get("due") and e["due"] <= time.strftime("%Y-%m-%d") and e.get("stage") not in ("won", "dropped")]
+    if due:
+        lines.append(f"\n📋 {len(due)} pipeline step{'s' if len(due) != 1 else ''} due")
     if run.get("message"):
         lines.append(f"\n⚠️ {run['message']}")
-    notify.api("sendMessage", chat_id=chat, text="\n".join(lines))
+    if db is not None and cfg is not None:
+        try:
+            lines += [f"⚠️ {p}" for p in notify.source_problems(db, cfg)]
+        except sqlite3.Error as e:
+            log.warning("source check failed: %s", e)
+    return "\n".join(lines)[:4000]
+
+
+def cmd_status(chat: str) -> None:
+    loaded = load_results()
+    if not loaded:
+        notify.api("sendMessage", chat_id=chat, text="No runs have finished yet.")
+        return
+    db = None
+    try:
+        db = _ReadOnlyDB(DEALS_DB)
+        text = status_text(loaded[2], db, _cfg())
+    except sqlite3.Error:
+        text = status_text(loaded[2])
+    finally:
+        if db is not None:
+            db.conn.close()
+    notify.api("sendMessage", chat_id=chat, text=text)
 
 
 def main() -> int:

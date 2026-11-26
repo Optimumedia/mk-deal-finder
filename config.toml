@@ -253,13 +253,26 @@ per_run = 150                  # changed listings read per run (~8 min)
 backfill_per_run = 250         # until the first run succeeds
 
 [notify]
-# "❓ Needs info" leads (promising, but facts to check with the seller):
+# Dashboard label: a deal scoring this or more with facts still to check is "❓ Needs info".
 needs_info_min_score = 45
-max_needs_info_per_run = 5
-# Telegram alerts are optional and free. Set TELEGRAM_BOT_TOKEN and
-# TELEGRAM_CHAT_ID as GitHub secrets (see README). Leave empty to disable.
-max_items_per_researcher = 5
-min_score = 60
+# Telegram alerts (optional, free; set up with setup_telegram.ps1) are a short nudge —
+# you rate deals on the dashboard. Only new, top-rated deals you haven't voted on are sent,
+# once per property (re-posts and copies on other sites count as the same property).
+min_score = 70                 # default bar (⭐ Great deal)
+min_score_by_researcher = { land = 70, weekend = 75, flip = 70, motivated = 75, auctions = 85, airbnb = 70 }
+min_rating = "great"           # and at least this rating (great | exceptional | once)
+alert_needs_info_min_score = 75   # ❓ needs-info leads: only very strong ones…
+max_needs_info_per_run = 1        # …and at most one per run
+max_per_run = 3                # the rest wait ("➕ N more on the dashboard")
+new_within_days = 7            # older ads are on the dashboard already — no ping…
+old_ads_min_rating = "exceptional"   # …unless never alerted and rated this high
+real_cut_pct = 10              # re-alert a property only for a real price cut:
+real_cut_eur = 1000            #   ≥ 10% and ≥ €1,000 below the price in the last alert
+cooldown_days = 7              # and never twice within a week
+source_stale_hours = 36        # warn when a site delivered nothing for this long
+weekly_summary = true          # a short weekly summary…
+weekly_day = "sun"             # …on the first run of this day
+dashboard_url = "https://optimumedia.github.io/mk-deal-finder/"   # DASHBOARD_URL in .telegram wins
 
 [export]
 max_items_per_researcher = 300
