@@ -82,8 +82,12 @@ schedule is commented out; if the block is ever lifted, put the schedule back in
    ```
    It walks you through creating a bot with @BotFather, finds your chat ID on its own,
    saves both to `.telegram` (git-ignored, never pushed) and sends a test message.
-   After each run you get the new deals scoring at least 60 (`[notify]` in `config.toml`),
-   up to 5 per researcher. Each deal is sent only once.
+   Telegram is a short nudge; you rate on the dashboard. After a run you get only new ⭐+ deals
+   you haven't voted on (bar per researcher in `[notify]`, e.g. land 70, auctions 85), at most 3,
+   and nothing when nothing is great. Each property is sent once: re-posts, copies on other sites
+   and small price changes stay quiet; a real cut (≥10%) gets one "📉 Price cut" alert.
+   Also: a daily reminder for pipeline steps due, a warning when a run fails or a site stops
+   delivering, and a short summary every Sunday.
 
 5. **Rate deals on the platform: http://localhost:8800.** Open it on your PC while it's on.
    The bot task serves a private copy of the dashboard that only your own PC can reach.
