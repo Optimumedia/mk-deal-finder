@@ -14,3 +14,4 @@ data/deals.db
 data/deals.db-wal
 data/deals.db-shm
 data/backups/
+data/run.lock

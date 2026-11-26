@@ -252,6 +252,9 @@ enabled = true
 per_run = 150                  # changed listings read per run (~8 min)
 backfill_per_run = 250         # until the first run succeeds
 
+[stb]                          # Stopanska banka — property the bank owns and sells (monthly "Образец ИП"
+enabled = true                 # spreadsheet, ~17 items, prices in €). 2 requests per run.
+
 [notify]
 # Dashboard label: a deal scoring this or more with facts still to check is "❓ Needs info".
 needs_info_min_score = 45
