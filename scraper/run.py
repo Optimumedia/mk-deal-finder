@@ -23,7 +23,7 @@ from .http import Blocked, PoliteSession
 from .market import Market, ppm2
 from .researchers.common import days_listed
 from .researchers import airbnb, auctions, flip, land, motivated, weekend
-from .sources import kirsm, nedviznosti, novel, reklama5
+from .sources import kirsm, nedviznosti, novel, reklama5, stb
 
 # Which parser reads a listing's detail page.
 DETAIL_PARSERS = {reklama5.SOURCE: reklama5.parse_detail, novel.SOURCE: novel.parse_detail}
@@ -346,6 +346,29 @@ def scrape_nedviznosti(db: DB, http: PoliteSession, cfg: dict, stats: dict, firs
              stats["pages"], done, max(0, len(todo) - cap))
 
 
+def scrape_stb(db: DB, http: PoliteSession, cfg: dict, stats: dict) -> None:
+    """Stopanska banka's monthly list of property it owns and sells (2 requests)."""
+    if not cfg.get("stb", {}).get("enabled", True):
+        return
+    try:
+        url = stb.xlsx_url(http.get(stb.PAGE_URL))
+        data = stb.fetch_bytes(http, url) if url else None
+    except (requests.RequestException, Blocked) as e:     # a small extra source: never stop the run for it
+        log.warning("stb bank list skipped: %s", e)
+        return
+    stats["pages"] += 1 + bool(url)
+    items = stb.parse_xlsx(data) if data else []
+    ts = now()
+    for it in items:
+        is_new, changed = db.upsert_card(it, ts)
+        stats["new"] += is_new
+        stats["changed"] += changed
+        db.apply_detail(f"{stb.SOURCE}:{it['source_id']}", stb.detail_fields(it), ts)
+    db.conn.commit()
+    log.info("%-28s pages so far %4d  bank-owned properties %d", "Stopanska banka (bank sale)", stats["pages"],
+             len(items))
+
+
 def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urgent_kw: KeywordSet) -> float:
     """How likely is this listing to matter? Only >0 gets its detail page read."""
     title = norm(l.get("title"))
@@ -534,6 +557,7 @@ def main(argv=None) -> int:
             scrape_kirsm(db, http, cfg, stats)
             scrape_novel(db, http, cfg, full, stats)
             scrape_nedviznosti(db, http, cfg, stats, first_run)
+            scrape_stb(db, http, cfg, stats)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
             details = fetch_details(db, http, cfg, budget)
         except Blocked as e:
