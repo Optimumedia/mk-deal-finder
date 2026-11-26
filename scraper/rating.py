@@ -37,6 +37,19 @@ def _evidence_ok(item: dict, researcher: str) -> bool:
     return True
 
 
+ABOVE_MARKET_CAP = 0.15        # 15%+ above comparable asking prices → 👀 at best
+
+
+def _premium(item: dict) -> float:
+    """How far above comparable ads it is priced (0.4 = 40% above); 0 when below or unknown."""
+    v = (item.get("metrics") or {}).get("Below market")
+    try:
+        x = float(str(v).strip().rstrip("%")) / 100
+    except (TypeError, ValueError):
+        return 0.0
+    return max(0.0, -x)
+
+
 MIN_COMPS = {"once": 30, "exceptional": 15}     # comparable listings behind a top rating
 
 
@@ -51,6 +64,9 @@ def rate(item: dict, researcher: str) -> dict:
             tier = TIERS[1]                 # 💎 only against a well-populated local market
         if tier[1] == "exceptional" and comps < MIN_COMPS["exceptional"]:
             tier = TIERS[2]
+    # Priced well above comparable ads: never "great", whatever else it has going for it.
+    if researcher in NEEDS_MARKET and _premium(item) >= ABOVE_MARKET_CAP:
+        tier = max(tier, TIERS[4], key=lambda t: _ORDER.index(t[1]))
     if not item.get("qualified", True):
         tier = max(tier, TIERS[3], key=lambda t: _ORDER.index(t[1]))   # near-misses: "good" at best
     return {"tier": tier[1], "emoji": tier[2], "label": tier[3], "rank": _ORDER.index(tier[1])}

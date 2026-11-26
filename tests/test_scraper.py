@@ -499,3 +499,18 @@ class NamesakeVillageTests(unittest.TestCase):
         self.assertFalse(near_city((41.35, 22.20), "Скопје", 40, "Волково", known))      # another Volkovo
         self.assertTrue(near_city((42.03, 21.36), "Скопје", 40, "Волково", known))       # the Skopje one
         self.assertTrue(near_city((41.70, 20.75), "Скопје", 40, "Маврово", known))       # resort filed under Skopje
+
+
+class AboveMarketRatingTests(unittest.TestCase):
+    def test_priced_above_comparables_is_never_great(self):
+        from scraper.rating import rate
+        item = {"score": 80, "qualified": True, "has_details": True, "status": "ready", "reasons": [], "comps": 100,
+                "metrics": {"Below market": "-158%"}}
+        self.assertEqual(rate(item, "land")["tier"], "watch")
+        item["metrics"]["Below market"] = "-5%"
+        self.assertNotEqual(rate(item, "land")["tier"], "watch")      # slightly above: not capped
+
+    def test_town_quarter_mal_pariz_is_not_a_village(self):
+        from scraper.geo import ranked_candidates
+        c = ranked_candidates({"title": "СЕ ПРОДАВА ПЛАЦ ВО МАЛ ПАРИЗ", "city": "Битола", "district": "Битола"})
+        self.assertNotIn("Париз", [n for n, _ in c])

@@ -78,6 +78,7 @@ _STOP = {norm(w).strip() for w in """
     локација lokacija место mesto агенција agencija супер super атрактивна atraktivna убава ubava мирна mirna прва prva
     линија linija поглед pogled шума suma шуми sumi двор dvor плацови куќи kuki продаваат prodavaat povolno поволно
     region регион општина opstina komuna atar атар атарот atarot samiot самиот самото samoto blizu близу
+    париз pariz
     земјоделски zemjodelski земјоделско zemjodelsko влез vlez рати rati под pod над nad до do кај kaj во vo на na
     од od со so за za покрај pokraj нас nas поглед само samo поле pole горна gorna долна dolna стара stara ново novo
     мала mala мал mal голем golem голема golema бели beli бела bela црн crn црна crna последна posledna вкупна vkupna
