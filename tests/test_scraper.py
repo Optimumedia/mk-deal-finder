@@ -39,8 +39,9 @@ class TextTests(unittest.TestCase):
     def test_utilities(self):
         self.assertEqual(detect_utilities("Плац со струја, вода и асфалтен пат"),
                          {"electricity": True, "water": True, "road": True})
+        # A gravel / dirt track is something to ask about, not the road the owner needs.
         self.assertEqual(detect_utilities("nema struja i voda, pristap so makadam"),
-                         {"electricity": False, "water": False, "road": True})
+                         {"electricity": False, "water": False, "road": None})
         # District names and "travel" must not count as water / road.
         self.assertEqual(detect_utilities("Plac vo Kisela Voda, pogoden za patuvanje"),
                          {"electricity": None, "water": None, "road": None})
