@@ -28,7 +28,8 @@ from .sources import kirsm, nedviznosti, novel, reklama5, stb
 # Which parser reads a listing's detail page.
 DETAIL_PARSERS = {reklama5.SOURCE: reklama5.parse_detail, novel.SOURCE: novel.parse_detail}
 from .text import (KeywordSet, altitude_in_text, classify_deal, detect_furnished, detect_utilities, is_abroad,
-                   land_type, mentions_price_per_m2, needs_renovation, norm, price_in_text, redact)
+                   land_type, mentions_price_per_m2, needs_renovation, norm, price_by_agreement, price_in_text,
+                   price_per_m2_in_text, redact)
 
 ROOT = Path(__file__).resolve().parent.parent
 RESEARCHERS = [airbnb, land, weekend, flip, motivated, auctions]
@@ -74,6 +75,62 @@ def price_and_deal(raw, kind: str, area, title: str, desc: str = "") -> tuple[fl
     return raw, None, deal
 
 
+_BUILT = ("apartment", "house", "weekend_house")
+
+
+def reconcile_text_price(kind: str, price, note, area, title: str, desc: str,
+                         mkd_per_eur: float = 61.5) -> tuple[float | None, str | None]:
+    """Check the price field against what the seller wrote in the ad.
+
+    - 'Cena..20000evra' while the field holds a placeholder / per-m² figure → the text total.
+    - 'Цена 2250 евра/м2' or, for a flat, 'CENA 1400E' → a rate, never a €1,400 total.
+      If the field total works out well under that rate, the rate wins (no fake bargains).
+    - a €3–15 plot "price" with 'цена по договор' is a placeholder, not €5/m².
+    """
+    text = f"{title or ''}\n{desc or ''}"
+    said_rent = classify_deal(title or "", desc or "", None, kind) in ("rent", "short_term")
+    total = price_in_text(text, mkd_per_eur)
+    if said_rent:
+        # Rents: only fill a missing price. "Цена 20000" a month is denars (€325), not €20,000.
+        if price is None and total and 80 <= total / mkd_per_eur <= 3000:
+            return round(total / mkd_per_eur), "mkd_converted"
+        return price, note
+    per = price_per_m2_in_text(text, mkd_per_eur, unique=kind == "land")
+    implied = False
+    if kind in _BUILT and total and total < 6000:
+        if not per and 300 <= total <= 4000:
+            per, implied = total, True                  # nobody sells a flat for €1,400 total
+        total = None
+    if total and (price is None or note in ("placeholder", "per_m2", "from_text") or price < 0.1 * total):
+        return total, "from_text"
+    if per and area:
+        if price is None or note in ("placeholder", "from_text"):
+            return per, "per_m2"
+        # The field total works out well under the rate the ad states: trust the rate.
+        # (An implied rate must be in the same ballpark — "цена за паркинг 5000" isn't one.)
+        if kind in _BUILT and note is None and price / area < 0.8 * per and not (implied and price / area < 0.5 * per):
+            return per, "per_m2"
+    if (kind == "land" and note == "per_m2" and price is not None and price <= 15
+            and price_by_agreement(text) and not mentions_price_per_m2(text)):
+        return None, "placeholder"
+    return price, note
+
+
+def _deal_for(price, note, area, title: str, desc: str, kind: str) -> str:
+    # A rate says nothing about rent vs sale (€1,900/m² is not €1,900 a month): words only.
+    return classify_deal(title, desc, price if note in (None, "from_text") else None, kind)
+
+
+def land_area(area, title: str, desc: str):
+    """A plot's size: the form's 999 / 1111 or a 10 m² "plot" is a placeholder —
+    take the size from the ad ("1.5 dekari", "3047 m2") or leave it unknown."""
+    if area and area >= 50 and not _PLACEHOLDER.match(f"{area:.0f}"):
+        return area
+    from .text import parse_area
+    alt = parse_area(title) or parse_area(desc)
+    return alt if alt and alt >= 50 else None
+
+
 def normalise_card(card: dict) -> dict:
     card["title"] = redact(card["title"])
     card["price_eur"], card["price_note"], card["deal"] = price_and_deal(
@@ -105,13 +162,16 @@ def detail_update(listing: dict, d: dict) -> dict:
                        r"(?:od|so povrsina od|so|povrsina|na) (\d{2,4}) ?(?:m2|m|kv|kvadrat)", norm(desc))
         if hm and 25 <= float(hm.group(1)) and area > 2 * float(hm.group(1)):
             area = float(hm.group(1))
+    if listing["kind"] == "land":
+        area = land_area(area, title, desc)
     raw = d.get("price_eur") if d.get("price_eur") is not None else listing.get("price_eur")
     price, note, deal = price_and_deal(raw, listing["kind"], area, title, desc)
     # The seller often writes the real price in the text ("Cena..20000evra") while
     # the price field holds a placeholder, denars, or a per-m² figure.
-    stated = price_in_text(desc)
-    if stated and (price is None or note in ("placeholder", "per_m2") or price < 0.1 * stated):
-        price, note, deal = stated, "from_text", classify_deal(title, desc, stated, listing["kind"])
+    fixed = reconcile_text_price(listing["kind"], price, note, area, title, desc)
+    if fixed != (price, note):
+        price, note = fixed
+        deal = _deal_for(price, note, area, title, desc, listing["kind"])
     stated_alt = altitude_in_text(desc)
     upd = {
         "title": title,
@@ -122,8 +182,6 @@ def detail_update(listing: dict, d: dict) -> dict:
         "price_note": note,
         "area_m2": area,
         "rooms": d.get("rooms") or listing.get("rooms"),
-        "lat": d.get("lat"),
-        "lng": d.get("lng"),
         "address": redact(d.get("address")),
         "agency": int(bool(d.get("agency"))),
         "deal": deal,
@@ -141,7 +199,11 @@ def detail_update(listing: dict, d: dict) -> dict:
     if d.get("posted"):
         upd["posted"] = d["posted"]             # original posting date (the card shows the last renewal)
     raw_desc = d.get("description") or ""
-    if not d.get("lat"):
+    # Only a page that has a pin sets one: a re-read without a map must not erase the
+    # pin we already have (and the GPS altitude worked out from it).
+    if d.get("lat") is not None and d.get("lng") is not None:
+        upd["lat"], upd["lng"] = d["lat"], d["lng"]
+    else:
         g = re.search(r"\b(4[0-2]\.\d{3,})[,\s]+(2[0-3]\.\d{3,})\b", raw_desc)      # before redact() eats it
         if g:
             upd["lat"], upd["lng"] = float(g.group(1)), float(g.group(2))
@@ -207,30 +269,54 @@ def scrape_lists(db: DB, http: PoliteSession, cfg: dict, full: bool, max_pages_o
 
 
 def renormalise(db: DB, cfg: dict) -> dict:
-    """Re-read every stored description with the current rules (price / altitude
-    stated in the text). Cheap, no network; runs at the start of each run so
-    parser improvements reach ads collected earlier."""
-    stats = {"price": 0, "altitude": 0}
+    """Re-read every stored description with the current rules: price, plot size,
+    utilities, land type and altitude stated in the text. Cheap, no network; runs
+    at the start of each run so parser improvements reach ads collected earlier
+    (detail pages of old ads are rarely read again)."""
+    import json
+    stats = {"price": 0, "wanted": 0, "area": 0, "utilities": 0, "land_type": 0, "altitude": 0}
+    mkd = cfg["market"]["mkd_per_eur"]
     rows = db.conn.execute(
-        "SELECT id, kind, title, description, price_eur, price_note, area_m2, elevation_src FROM listings "
+        "SELECT id, source, kind, deal, title, description, address, fields, price_eur, price_note, area_m2, "
+        "utilities, land_type, elevation, elevation_src FROM listings "
         "WHERE description IS NOT NULL AND description != '' AND deal != 'auction'").fetchall()
     for r in rows:
-        if (clean_desc := redact(r["description"])) != r["description"]:
-            db.conn.execute("UPDATE listings SET description=? WHERE id=?", (clean_desc, r["id"]))
-        stated = price_in_text(r["description"], cfg["market"]["mkd_per_eur"])
-        if stated and r["price_note"] != "from_text" and (
-                r["price_eur"] is None or r["price_note"] in ("placeholder", "per_m2") or r["price_eur"] < 0.1 * stated):
-            deal = classify_deal(r["title"] or "", r["description"], stated, r["kind"])
-            db.conn.execute("UPDATE listings SET price_eur=?, price_note='from_text', deal=? WHERE id=?",
-                            (stated, deal, r["id"]))
+        title = r["title"] or ""
+        if (desc := redact(r["description"])) != r["description"]:
+            db.conn.execute("UPDATE listings SET description=? WHERE id=?", (desc, r["id"]))
+        area = r["area_m2"]
+        if r["kind"] == "land" and (new_area := land_area(area, title, desc)) != area:
+            db.conn.execute("UPDATE listings SET area_m2=? WHERE id=?", (new_area, r["id"]))
+            area = new_area
+            stats["area"] += 1
+        price, note = reconcile_text_price(r["kind"], r["price_eur"], r["price_note"], area, title, desc, mkd)
+        if (price, note) != (r["price_eur"], r["price_note"]):
+            # The site's own category stays authoritative for agency feeds.
+            deal = r["deal"] if r["source"] != reklama5.SOURCE else _deal_for(price, note, area, title, desc, r["kind"])
+            db.conn.execute("UPDATE listings SET price_eur=?, price_note=?, deal=? WHERE id=?",
+                            (price, note, deal, r["id"]))
             stats["price"] += 1
-        alt = altitude_in_text(r["description"])
-        if alt and r["elevation_src"] != "text":
+        elif r["source"] == reklama5.SOURCE and r["deal"] in ("sale", "rent") and classify_deal(title, desc, None, r["kind"]) == "wanted":
+            db.conn.execute("UPDATE listings SET deal='wanted' WHERE id=?", (r["id"],))   # "Kupuvam stan…"
+            stats["wanted"] += 1
+        if r["utilities"] is not None:          # only ads whose detail page was read
+            util = json.dumps(detect_utilities("\n".join(filter(None, [title, desc, r["address"]]))))
+            if util != r["utilities"]:
+                db.conn.execute("UPDATE listings SET utilities=? WHERE id=?", (util, r["id"]))
+                stats["utilities"] += 1
+        if r["kind"] == "land" and r["land_type"] is not None:
+            fields = json.loads(r["fields"] or "{}")
+            lt = land_type(fields.get("Тип на земјиште"), "\n".join(filter(None, [title, desc, r["address"]])))
+            if lt != r["land_type"]:
+                db.conn.execute("UPDATE listings SET land_type=? WHERE id=?", (lt, r["id"]))
+                stats["land_type"] += 1
+        alt = altitude_in_text(desc)
+        if alt and (r["elevation_src"] != "text" or r["elevation"] != alt):
             db.conn.execute("UPDATE listings SET elevation=?, elevation_src='text' WHERE id=?", (alt, r["id"]))
             stats["altitude"] += 1
     db.conn.commit()
-    if stats["price"] or stats["altitude"]:
-        log.info("re-read descriptions: %d prices and %d altitudes taken from the ad text", stats["price"], stats["altitude"])
+    if any(stats.values()):
+        log.info("re-read descriptions with current rules: %s", ", ".join(f"{v} {k}" for k, v in stats.items()))
     return stats
 
 

@@ -171,24 +171,36 @@ class DB:
             self._history(lid, ts, card["price_eur"])
             return True, False
 
-        changed = card["price_eur"] is not None and old["price_eur"] is not None and \
-            abs(card["price_eur"] - old["price_eur"]) > 0.5
         # Once the detail page has been read, its area/price beat the card's.
         detailed = old["detail_at"] is not None
+        last = None
+        if detailed:
+            # The stored price may be corrected from the ad text (a total in the description,
+            # a rate, "по договор"). Compare with the last *card* price, so only a real change
+            # on the site replaces it — not the same raw card figure every run.
+            last = self.conn.execute("SELECT price_eur FROM price_history WHERE listing_id=? "
+                                     "ORDER BY seen_at DESC LIMIT 1", (lid,)).fetchone()
+        if last is not None:
+            changed = card["price_eur"] is not None and (last[0] is None or abs(card["price_eur"] - last[0]) > 0.5)
+            take_price = changed
+        else:
+            changed = card["price_eur"] is not None and old["price_eur"] is not None and \
+                abs(card["price_eur"] - old["price_eur"]) > 0.5
+            take_price = changed or old["price_eur"] is None
         self.conn.execute(
             """UPDATE listings SET last_seen=?, title=COALESCE(?, title), image=COALESCE(?, image),
                    promoted=?, site_old_price=COALESCE(?, site_old_price),
                    price_eur=CASE WHEN ? THEN ? ELSE price_eur END,
                    area_m2=CASE WHEN ? THEN area_m2 ELSE ? END,
-                   price_note=CASE WHEN ? THEN price_note ELSE ? END,
+                   price_note=CASE WHEN ? AND NOT ? THEN price_note ELSE ? END,
                    deal=CASE WHEN ? THEN deal ELSE ? END,
                    renewed=COALESCE(?, renewed)
                WHERE id=?""",
             # Until a detail page is read, re-apply today's card parsing so parser
             # fixes reach listings stored earlier (plot vs house size, placeholders).
             (ts, card["title"] if not detailed else None, card["image"], int(card["promoted"]),
-             card.get("old_price_eur"), changed or old["price_eur"] is None, card["price_eur"],
-             detailed, card["area_m2"], detailed, card.get("price_note"), detailed, card["deal"],
+             card.get("old_price_eur"), take_price, card["price_eur"],
+             detailed, card["area_m2"], detailed, take_price, card.get("price_note"), detailed, card["deal"],
              card.get("renewed"), lid),
         )
         if changed:

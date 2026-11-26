@@ -44,6 +44,7 @@ _PHONE = re.compile(
     r"(?:\+|00)389[\s/.-]?\d(?:[\s/.-]?\d){6,9}(?!\d)"                     # +389 2 3123 456
     r"|(?<!\d)\(?0?[2-7]\d\)?[\s/.-]?\d{3}[\s/.-]?\d{3,4}(?!\d)"           # 076 506 300, 070/200-700
     r"|(?<![\d\w])0[2-7]\d(?:[\s/.-]?\d){6}(?!\d)"                          # 078 33 56 23, 02 3 123 456
+    r"|(?:\+|(?<![\d\w])00)[1-9]\d{0,2}[\s/.-]?\(?\d{1,4}\)?(?:[\s/.-]?\d){5,10}(?!\d)"   # +49 160 93986986
 )
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 
@@ -110,12 +111,15 @@ _SHORT_TERM_DESC = KeywordSet([
 ])
 
 
+_BUYING = KeywordSet(["kupuvam", "kupuvame", "baram da kupam", "barame da kupime", "blej", "kerkoj"], whole_word=True)
+
+
 def classify_deal(title: str, desc: str, price_eur: float | None, kind: str) -> str:
     """Return 'sale', 'rent', 'short_term' or 'wanted'."""
     t = norm(title)
     full = t + norm(desc)
-    if _WANTED.any(t):
-        return "wanted"
+    if _WANTED.any(t) or _BUYING.any(" ".join(norm(desc).split()[:4])):
+        return "wanted"                 # "Kupuvam stan so pogled..." opening the description
     if _SHORT_TERM.any(t):
         return "short_term"
     rent_t, sale_t = _RENT.any(t), _SALE.any(t)
@@ -158,6 +162,7 @@ _NUM = r"(\d{1,3}(?:[ .,]\d{3})+(?![\d])|\d+(?:[.,]\d+)?)"
 _AREA_PATTERNS = [
     (re.compile(_NUM + r"\s*(?:m2|м2|m²|м²|m&#178;|мк|кв\.?\s?м|kv\.?\s?m|квадрат|kvadrat|metri kvadratni|metra kvadratni)", re.I), 1),
     (re.compile(_NUM + r"\s*(?:хектари|хектар|hektari|hektar|ha)(?![a-zа-ш])", re.I), 10000),
+    (re.compile(_NUM + r"\s*(?:декари|декар|дек|дулуми|дулум|dekari|dekar|dek|dulumi|dulum|dynym)(?![a-zа-ш])", re.I), 1000),
     (re.compile(_NUM + r"\s*(?:ари|ар|ari|ar)(?![a-zа-ш])", re.I), 100),
 ]
 
@@ -214,32 +219,92 @@ def is_abroad(text: str) -> bool:
     return _ABROAD.any(norm(text))
 
 
+_THOUSAND = r"k\b|к\b|илј[а-ш]*|ilj[a-z]*|хиљ[а-ш]*|hilj[a-z]*"
+_EUR = r"евра|евро|evra|evro|eur[a-z]*|eu\b|еу\b|€|e\b|е\b"
+_MKD = r"мкд|mkd|ден[а-ш]*|den[a-z]*"
 _TEXT_PRICE = re.compile(
     r"(?:cena|цена|price|prodavam za|продавам за|se prodava za|се продава за)[^\d€]{0,25}?"
-    r"(\d{1,3}(?:[ .,]\d{3})+|\d{4,7})\s*(k\b|илј|ilj)?\s*(евра|evra|eur|€|e\b|мкд|mkd|ден|den|денари|denari)?", re.I)
+    r"(\d{1,3}(?:[ .,]\d{3})+|\d{4,7}|\d{1,3}(?=\s*(?:" + _THOUSAND + r")))\s*(" + _THOUSAND + r")?\s*"
+    r"(" + _EUR + "|" + _MKD + r")?", re.I)
+# What follows a number when it is a rate, not a total: "2250 евра/м2", "1.900e,m2", "40 evra kvadrat".
+_PER_M2_TAIL = re.compile(
+    r"\s*(?:[/,]|\s|po\b|по\b|za\b|за\b|na\b|на\b|od\b|од\b|eden\b|еден\b)*\s*"
+    r"(?:m2|м2|m²|м²|mk\b|мк\b|kv|кв|metar|метар|kvadrat|квадрат)", re.I)
+_RATE = re.compile(
+    r"(?<![\d.,])(\d{1,3}(?:[.,]\d{3})+(?![.,]?\d)|\d{1,5}(?:[.,]\d{1,2})?)\s*(" + _EUR + "|" + _MKD + r")"
+    r"(?=" + _PER_M2_TAIL.pattern + r")", re.I)
+
+
+def _is_mkd(unit: str | None) -> bool:
+    return bool(unit) and re.fullmatch(_MKD, unit, re.I) is not None
 
 
 def price_in_text(text: str, mkd_per_eur: float = 61.5) -> float | None:
     """A total price the seller wrote in the description: 'Cena..20000evra',
-    'цена 45.000 €', 'продавам за 20 000 евра'. None when nothing clear."""
+    'цена 45.000 €', 'продавам за 20 000 евра', 'цена 45 илјади евра'.
+    Rates ('цена 2250 евра/м2') are skipped: see price_per_m2_in_text.
+    None when nothing clear."""
     if not text:
         return None
-    for m in _TEXT_PRICE.finditer(html.unescape(text)):
+    t = html.unescape(text)
+    for m in _TEXT_PRICE.finditer(t):
         digits = re.sub(r"[^\d]", "", m.group(1))
         if not digits:
             continue
+        if _PER_M2_TAIL.match(t, m.end()):
+            continue                                   # "цена: 2250 евра/м2" is a rate
+        if _EXTRAS.search(m.group(0)):
+            continue                                   # "цена на паркинг 15.000 евра" isn't the property
         v = float(digits) * (1000 if m.group(2) else 1)
-        unit = (m.group(3) or "").lower()
-        if unit in ("мкд", "mkd", "ден", "den", "денари", "denari"):
+        if _is_mkd(m.group(3)):
             v /= mkd_per_eur
         if 1000 <= v <= 5_000_000:
             return v
     return None
 
 
+def price_per_m2_in_text(text: str, mkd_per_eur: float = 61.5, unique: bool = False) -> float | None:
+    """A price per m² with its currency: '40 evra kvadrat', '45E/m2', '75 € / м²',
+    'Cena 1.900e,m2', '4,5 евра/м2', '1500 ден/м2'. A bare '1199 kvadrati' is an area,
+    not a rate. With unique, an ad quoting different small prices (several plots,
+    "35 €/m² — the front plot 55 €") gives None: which rate goes with which plot is a guess."""
+    if not text:
+        return None
+    t = html.unescape(text)
+    rates = []
+    for m in _RATE.finditer(t):
+        v = _to_number(m.group(1))
+        if v is None:
+            continue
+        if _is_mkd(m.group(2)):
+            v /= mkd_per_eur
+        if 0.5 <= v <= 10_000:
+            rates.append(round(v, 2))
+    if not rates:
+        return None
+    if unique:
+        small = {_to_number(m.group(1)) for m in re.finditer(
+            r"(?<![\d.,])(\d{1,3}(?:[.,]\d{1,2})?)\s*(?:" + _EUR + r")(?![a-zа-ш])", t, re.I)}
+        if len(set(rates) | {round(v, 2) for v in small if v}) > 1:
+            return None
+    return rates[0]
+
+
+_EXTRAS = re.compile(r"parking|паркинг|garaz|гараж|podrum|подрум|ostava|остава|dvor|двор|teras|терас|"
+                     r"depozit|депозит|provizij|провизиј|kaucij|кауциј|izdavanje|издавање|kirij|кириј", re.I)
+_PO_DOGOVOR = KeywordSet(["po dogovor", "cena dogovor", "me marreveshje", "negotiable"])
+
+
+def price_by_agreement(text: str) -> bool:
+    """'Цена по договор' — the seller hasn't given a price."""
+    return _PO_DOGOVOR.any(norm(text))
+
+
 _TEXT_ALT = re.compile(
-    r"(\d{1,2}[.,]\d{3}|\d{3,4})\s*(?:m|м|metri|метри|mnv|мнв)?(?:\s+\w+){0,2}\s*(?:nadmorska|надморска|n\.?v\.?|н\.?в\.?)"
-    r"|(?:nadmorska|надморска)\s+(?:visina|височина|visochina|висина)\D{0,12}(\d{1,2}[.,]\d{3}|\d{3,4})", re.I)
+    r"(\d{1,2}[.,]\d{3}|\d{3,4})\s*(?:m|м|metri|метри|metra|метра)?\.?(?:\s+\w+){0,2}\s*"
+    r"(?:nadmorska|надморска|(?<![a-zа-ш])(?:m\.?|м\.?)?(?:n\.?v\.?|н\.?в\.?)(?![a-zа-ш]))"
+    # "visina / visocina / visočina / височина" and typos like "висона"
+    r"|(?:nadmorska|надморска)\s+(?:vis|вис)\w*\D{0,12}(\d{1,2}[.,]\d{3}|\d{3,4})", re.I)
 
 
 def altitude_in_text(text: str) -> float | None:
@@ -261,7 +326,7 @@ def parse_rooms(text: str) -> float | None:
 _UTILITY_STEMS = {
     "electricity": ["struj", "elektrik", "elektricn", "elektromre", "trafostanic", "rrym", "elektroenerget"],
     "water": ["voda", "vodovod", "bunar", "ujesjell", "uje", "water"],
-    "road": ["asfalt", "pristap", "makadam", "magistral", "bulevar", "ulic", "rrug"],
+    "road": ["asfalt", "asvalt", "pristap", "prilaz", "magistral", "bulevar", "ulic", "rrug"],
 }
 # Short words that must match whole ("pat" would otherwise hit "patuvanje").
 _UTILITY_WORDS = {
@@ -275,12 +340,26 @@ _ALL_INFRA = KeywordSet([
 # "can be connected", "planned", "nearby", "200 m away" — not the same as having it.
 # Hedges: a utility mentioned this way is a hope or a neighbour's, not a connection.
 _HEDGE = re.compile(
-    r"moznost za|moze da se|se ocekuv[a-z]*|planiran[a-z]*|predviden[a-z]*|ke ima|ke se|ke bide|vo izgradba|uslovi za|"
-    r"prikluc[a-z]*|vo neposredna blizina|vo blizina|nablizu|blizu|na \d+ ?m|do granica|postoeck[a-z]*|trafostanic[a-z]*|"
-    r"dalekuvod|vodovodna mreza vo|na granica")
+    r"moznost za(?! gradb| izgradb| podelb| delb| dokup| kupuv)|moze da se|mozi da|se ocekuv[a-z]*|planiran[a-z]*|predvid[a-z]*|ke ima|ke se|ke bide|vo izgradba|"
+    r"uslovi za|prikluc[a-z]*|vo neposredna blizina|vo blizina|nablizu|blizu|na \d+ ?m|do granica|postoeck[a-z]*|"
+    r"trafostanic[a-z]*|dalekuvod|vodovodna mreza vo|na granica|pregovar[a-z]*|"
+    # off the road, not on it: "одвоено од главен пат", "оддалечен 300 метри", "пристап со теренско возило"
+    r"odvoen[a-z]*|oddalecen[a-z]*|odalecen[a-z]*|terensk[a-z]*|traktor[a-z]*|"
+    # a dirt / gravel / field track is not the road the owner needs: "земјен пат", "макадам", "полски пат"
+    r"zemjen[a-z]*|makadam[a-z]*|poljsk[a-z]*|"
+    # on paper only: "проектирана улица", "според ДУП ќе има", "во процедура за струја"
+    r"proektiran[a-z]*|spored dup|spored plan[a-z]*|procedur[a-z]*|vo postapka")
+# Hedges that only qualify what comes right after them (checked in the 3 words before):
+# "ima struja i priprema za voda" hedges the water, not the power.
+_HEDGE_BEFORE = re.compile(
+    r"priprema za|sprovedliv[a-z]*|trasiran[a-z]*|obezbeduvanj[a-z]*|spored dup|spored plan[a-z]*|proektiran[a-z]*|"
+    # a distance from the road is not a road: "50m od glaven pat", "на 1.1 км од главен пат"
+    r"(?:\d+ ?k?m|metri|metra|kilometr[a-z]*) od(?: (?:glav|regional|magistral|asfalt)[a-z]*)?$")
 _HEDGE_WINDOW = 5      # words on either side of the utility word
 # Place names that contain a utility word but say nothing about utilities.
-_PLACE_NOISE = re.compile(r" (kisela voda|bela voda|studena voda|topla voda|crna voda|patiska|crven pat) ")
+_PLACE_NOISE = re.compile(
+    r" (?:(?:kisela|bela|studena|topla|crna|gorna|dolna|sredna|smrdliva|zelena|sveta|mrtva|lesna) voda|patiska|crven pat)"
+    r"|(?: vikano| lokalitet) [a-z]+ voda(?= )")       # "место викано Горна вода"
 _NEGATORS = r"(?:nema|nemame|bez|pa|nedostasuva)"
 # Words allowed between a negator and the utility it negates.
 _LIST_GLUE = r"(?: (?:i|ili|ni|niti|nitu|dhe|e|struja|elektrika|voda|vodovod|pat|asfalt|kanalizacija|telefon|internet))*"
@@ -289,7 +368,8 @@ _LIST_GLUE = r"(?: (?:i|ili|ni|niti|nitu|dhe|e|struja|elektrika|voda|vodovod|pat
 def _utility_regex(key: str) -> re.Pattern:
     stems = "|".join(map(re.escape, _UTILITY_STEMS[key]))
     words = "|".join(map(re.escape, _UTILITY_WORDS[key]))
-    parts = [f"(?:{stems})[a-z]*"] if stems else []
+    # "до неа водат два пата" (they lead) is not water
+    parts = [f"(?:{stems})(?!t(?![a-z]))[a-z]*"] if stems else []
     if words:
         parts.append(f"(?:{words})(?![a-z0-9])")
     return re.compile(r"(?<![a-z0-9])(?:" + "|".join(parts) + ")")
@@ -298,14 +378,65 @@ def _utility_regex(key: str) -> re.Pattern:
 _UTILITY_RE = {k: _utility_regex(k) for k in _UTILITY_STEMS}
 
 
+def _confirmed(n: str, rx: re.Pattern, skip_labels: bool = False) -> bool:
+    """True when at least one mention of `rx` has no hedge ("се очекува", "можност за",
+    "во близина", "услови за") within a few words of it in the same clause.
+    With skip_labels, a word standing alone at the start of its clause
+    ("Инфраструктура: ...") is a heading, not a statement."""
+    for m in rx.finditer(n):
+        wb = n[:m.start()].split()[-_HEDGE_WINDOW:]
+        wa = n[m.end():].split()[:_HEDGE_WINDOW]
+        if "." in wb:                                     # don't look past a sentence / clause break
+            wb = wb[len(wb) - wb[::-1].index("."):]
+        if "." in wa:
+            wa = wa[:wa.index(".")]
+        near_before = wb[-3:]
+        # A clause of nothing but utility words ("струја", "асфалтиран пат") is a list item.
+        if all(w in _LIST_WORDS or w == _STOP or any(r.fullmatch(w) for r in _UTILITY_RE.values())
+               for w in wb + wa):
+            if skip_labels:
+                continue
+            # A bare item in a comma list ("струја, вода, канализација во близина",
+            # "спроведливост на вода, струја, трасиран пат") shares its neighbours' hedge —
+            # within the same sentence ("…пат, струја, вода. Во постапка е маркицата").
+            wb = n[:m.start()].split()[-7:]
+            wa = n[m.end():].split()[:7]
+            if _STOP in wb:
+                wb = wb[len(wb) - wb[::-1].index(_STOP):]
+            if _STOP in wa:
+                wa = wa[:wa.index(_STOP)]
+            # Look ahead for a trailing hedge ("…, канализација во близина"), behind only for
+            # a leading one ("спроведливост на вода, струја") — "блиску има приклучок за
+            # вода, асфалтен пат" still has the road.
+            if not (_HEDGE.search(" ".join(wa)) or _HEDGE_BEFORE.search(" ".join(wb))):
+                return True
+            continue
+        if not (_HEDGE.search(" ".join(wb)) or _HEDGE.search(" ".join(wa))
+                or _HEDGE_BEFORE.search(" ".join(near_before))):
+            return True
+    return False
+
+
+_LIST_WORDS = {"i", "ili", "dhe", "e", "so", "kanalizacija", "kanalizaciona", "kanalizacioni", "odvod", "mreza",
+               "gradska", "gradski", "gradsko", "telefon", "internet", "asfaltiran", "asfalten", "pristapen"}
+_STOP = "zzstop"
+_SENTENCE_END = re.compile(r"[.!?]+(?=\s|[A-ZА-ЯЃЌЅЈЉЊЏ])|\n")
+_ALL_INFRA_RE = re.compile(r"(?<![a-z0-9])(?:" + "|".join(map(re.escape, _ALL_INFRA.words)) + ")[a-z]*")
+
+
 def detect_utilities(text: str) -> dict:
     """Return {'electricity': True/False/None, 'water': ..., 'road': ...}.
 
     True = mentioned, False = explicitly absent ("нема струја и вода"),
-    None = not mentioned at all.
+    None = not mentioned at all, or only hedged ("вода во близина", "можност за
+    приклучок", "на 50 m од главен пат", "трасиран пат").
     """
+    # norm() turns commas and full stops alike into " . "; mark real sentence ends first.
+    text = _SENTENCE_END.sub(f". {_STOP} ", text or "")
     n = _PLACE_NOISE.sub(" ", norm(text))
-    all_infra = _ALL_INFRA.any(n)
+    # "Комунално опремен" / "има инфраструктура" covers all three — but not a bare
+    # "Инфраструктура:" heading, nor "ќе биде комунално опремен".
+    all_infra = _confirmed(n, _ALL_INFRA_RE, skip_labels=True)
     out = {}
     for key, rx in _UTILITY_RE.items():
         # A negator before a run of utility words: "nema struja i voda".
@@ -313,21 +444,8 @@ def detect_utilities(text: str) -> dict:
         if neg:
             out[key] = False
             continue
-        # Judge every mention on its own: confirmed only if at least one mention
-        # has no hedge ("се очекува", "можност за", "во близина", "услови за") within
-        # a few words of it. "струја има, вода во близина" → power yes, water unknown.
-        confirmed = False
-        for m in rx.finditer(n):
-            wb = n[:m.start()].split()[-_HEDGE_WINDOW:]
-            wa = n[m.end():].split()[:_HEDGE_WINDOW]
-            if "." in wb:                                     # don't look past a sentence / clause break
-                wb = wb[len(wb) - wb[::-1].index("."):]
-            if "." in wa:
-                wa = wa[:wa.index(".")]
-            if not (_HEDGE.search(" ".join(wb)) or _HEDGE.search(" ".join(wa))):
-                confirmed = True
-                break
-        if confirmed or (all_infra and not rx.search(n)):
+        # Judge every mention on its own. "струја има, вода во близина" → power yes, water unknown.
+        if _confirmed(n, rx) or (all_infra and not rx.search(n)):
             out[key] = True
         else:
             out[key] = None                                   # hedged or not mentioned — ask the seller
@@ -358,8 +476,12 @@ def needs_renovation(text: str) -> bool:
 
 
 # Strong words only: "можност за градба" (could be built on) is a hope, not a zoning.
-_BUILDING_LAND = KeywordSet(["gradezno", "gradezen", "gradezna dozvola", "gradezna markica", "urbanisticki plan",
-                             "vo dup", "vo plan", "truall", "toke ndertimi"])
+_BUILDING_LAND = KeywordSet(["gradezno", "gradezen", "gradezna dozvola", "gradezna markica", "gradezna parcela",
+                             "gradezna zona", "urbanisticki plan", "vo dup", "vo plan", "truall", "toke ndertimi",
+                             # zoning class A = housing: "А-зона наменета за домување", "A1 za domuvanje"
+                             "a zona", "a-zona", "zona a", "a1 za domuv", "a 1 za domuv", "namena za domuv",
+                             "nameneta za domuv", "namenet za domuv", "zona za domuv", "markica za kuk",
+                             "so markica"])
 _AGRI_LAND = KeywordSet(["zemjodelsk", "niva", "nivi", "lozje", "ovostarnik", "livada", "suma", "pasiste", "bujq"])
 
 
