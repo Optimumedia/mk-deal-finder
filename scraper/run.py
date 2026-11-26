@@ -350,9 +350,12 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
     """How likely is this listing to matter? Only >0 gets its detail page read."""
     title = norm(l.get("title"))
     p = 0.0
-    if l["kind"] in ("apartment", "house") and l["deal"] == "rent" and l.get("city") == cfg["airbnb"]["city"]:
+    if l["kind"] in ("apartment", "house") and l["deal"] in ("rent", "short_term") \
+            and l.get("city") == cfg["airbnb"]["city"]:
         if l.get("price_eur") and cfg["airbnb"]["min_rent"] <= l["price_eur"] <= cfg["airbnb"]["max_rent"]:
-            p = max(p, 3)
+            p = max(p, 3)     # a "short-term" ad at a monthly price is usually a mis-filed rental
+        elif not l.get("price_eur") and l["deal"] == "rent":
+            p = max(p, 1.0)   # "price on request" cards: the price is often in the description
     if l["kind"] == "apartment" and l["deal"] == "short_term" and l.get("city") == cfg["airbnb"]["city"]:
         p = max(p, 1.5)   # real nightly prices calibrate the Airbnb researcher
     if l["kind"] == "land" and l["deal"] == "sale":

@@ -10,7 +10,7 @@ import re
 from statistics import median
 
 from ..market import Market, total_price
-from ..text import KeywordSet, norm
+from ..text import KeywordSet, classify_deal, norm
 from .common import base, clamp, haversine_km, text_of, utilities_ok, utilities_status
 
 NAME = "airbnb"
@@ -54,7 +54,7 @@ def calibrate_adr(listings: list[dict], c: dict, hotspots: KeywordSet) -> dict[s
     lo, hi = c["observed_adr_range"]
     seen: dict[str, list[float]] = {}
     for l in listings:
-        if l["kind"] != "apartment" or l["deal"] != "short_term" or l.get("city") != c["city"] or l.get("abroad"):
+        if l["kind"] != "apartment" or effective_deal(l, c) != "short_term" or l.get("city") != c["city"] or l.get("abroad"):
             continue
         if _HOURLY.search(" ".join(filter(None, [l.get("title"), l.get("description")]))):
             continue    # "3 часа", "дневен престој" — priced per few hours, not per night
@@ -77,10 +77,47 @@ def calibrate_adr(listings: list[dict], c: dict, hotspots: KeywordSet) -> dict[s
     return out
 
 
-_HOURLY = re.compile(r"\d\s*(?:h|ч|часа|часови|sati|casa|caсa)\b|dneven|дневен|na cas\b|на час\b", re.I)
-# Not a flat to live in: offices, shops, party venues.
-_NOT_A_HOME = re.compile(r"деловен|deloven|канцелар|kancelar|ординац|ordinac|локал|lokal|магацин|magacin"
-                         r"|роденден|rodenden|прослав|proslav|забав|zabav|сала за|sala za", re.I)
+_HOURLY = re.compile(r"\d\s*(?:h|ч|часа|часови|sati|casa|caсa)\b|na cas\b|на час\b", re.I)
+# "Дневен престој" is the living room in Macedonian flat ads ("дневен престој
+# со кујна"), not a day-use stay, yet it got ~40 monthly Skopje rentals filed
+# as short-term. Day-use ads also say "до 3 часа", which _HOURLY catches.
+_LIVING_ROOM = re.compile(r"dneven\s+prestoj")
+
+# Not a flat to live in: offices, shops, party venues. Many ordinary flats add
+# "погоден и за канцеларија" (also suits an office) and agency footers say
+# "локал 2", so business words only count in the title (unless the title also
+# offers it for living), or in the description when it says the place is
+# offered *as* business space or *only* for business. Matched on norm() text.
+_BIZ = r"(?:deloven|delovn|kancelar|ordinac|lokal(?:i|ot)?\b|magacin)"
+_NOT_A_HOME_TITLE = re.compile(r"(?<![a-z])" + _BIZ)
+_LIVING = re.compile(r"(?<![a-z])(?:ziveenje|domuvanje|stanben)")
+_NOT_A_HOME_DESC = re.compile(
+    r"(?<![a-z])(?:prvenstveno|isklucivo|iskluchivo|samo|edinstveno)\s+(?:za\s+)?(?:firm|" + _BIZ + r")"
+    r"|(?<![a-z])(?:izdava|izdavam|izdavame|iznajmuva|iznajmuvam)\W+" + _BIZ +
+    r"|(?<![a-z])(?:rodenden|proslav|zabav|sala za)")
+
+
+def not_a_home(listing: dict) -> bool:
+    """True when the ad is for an office / shop / party venue rather than a flat."""
+    title, desc = norm(listing.get("title")), norm(listing.get("description"))
+    if _NOT_A_HOME_TITLE.search(title) and not _LIVING.search(title):
+        return True
+    return bool(_NOT_A_HOME_DESC.search(desc) or _NOT_A_HOME_DESC.search(title))
+
+
+def effective_deal(listing: dict, c: dict) -> str:
+    """The deal type, correcting monthly rentals mis-filed as short-term.
+
+    A "short-term" ad priced like a monthly rent (≥ min_rent) is re-checked
+    with "дневен престој" (living room) removed from the description; if
+    nothing else says per-night, it is a long-term rental.
+    """
+    deal = listing.get("deal")
+    p = listing.get("price_eur")
+    if deal != "short_term" or listing.get("kind") not in ("apartment", "house") or not p or p < c["min_rent"]:
+        return deal
+    desc = _LIVING_ROOM.sub(" ", norm(listing.get("description")))
+    return classify_deal(listing.get("title") or "", desc, p, listing["kind"])
 
 
 def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
@@ -89,12 +126,12 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
     adr_table = calibrate_adr(listings, c, hotspots)
     out = []
     for l in listings:
-        if l["kind"] not in ("apartment", "house") or l["deal"] != "rent" or l.get("city") != c["city"]:
+        if l["kind"] not in ("apartment", "house") or effective_deal(l, c) != "rent" or l.get("city") != c["city"]:
             continue
         rent = total_price(l)
         if not rent or not (c["min_rent"] <= rent <= c["max_rent"]):
             continue
-        if _NOT_A_HOME.search(" ".join(filter(None, [l.get("title"), l.get("description")]))):
+        if not_a_home(l):
             continue
         util = utilities_status(l, urban_assumed=True)
         if not utilities_ok(util, strict=False):
@@ -109,7 +146,11 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         gross = adr * nights
         stays = nights / c["avg_stay_nights"]
         furnished = l.get("furnished")
-        furnishing = 0 if furnished else (c["furnishing_cost"] if furnished is False else c["furnishing_cost"] / 2)
+        # A furnished long-term let still needs guest kit (linen, towels, kitchen
+        # basics, smart lock, photos) before it can be listed.
+        setup = c.get("setup_cost_furnished", 0)
+        furnishing = setup if furnished else (c["furnishing_cost"] if furnished is False
+                                              else (c["furnishing_cost"] + setup) / 2)
         utilities = c["utilities_monthly"] + c["utilities_per_m2"] * (l.get("area_m2") or 55)
         cleaning = c["cleaning_per_stay"] * (1.5 if int(rooms_key) >= 3 else 1)
         costs = (gross * c["platform_fee"] + utilities + cleaning * stays
@@ -117,8 +158,16 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
         costs += c.get("tourist_tax_per_guest_night", 0) * c.get("guests_per_stay", 2) * nights
         costs += gross * c.get("rental_tax_of_gross", 0)
         profit = gross - costs - rent
-        if profit < c["min_monthly_profit"]:
+        # Highest rent at which the flat still clears the profit target. Asking
+        # rents are often negotiable by ~10%, so a flat that gets there with a
+        # realistic offer is kept, with the offer to make (profit shown at asking).
+        target = c["min_monthly_profit"]
+        max_rent = rent + profit - target
+        if max_rent < rent * (1 - c.get("negotiation_margin", 0)):
             continue
+        if max_rent < rent:
+            reasons.insert(0, f"reaches €{target:.0f}/month only at rent ≤ €{max_rent:.0f} "
+                              f"({max_rent / rent - 1:+.0%}): offer that")
         margin = profit / gross if gross else 0
         upfront = rent * 2 + furnishing          # deposit + first month + furniture
         if upfront > cfg.get("budget", {}).get("business", 10**9):
@@ -134,7 +183,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
                 reasons.append(f"rent {rent_discount:.0%} below {level} median")
 
         if furnished:
-            reasons.append("furnished — ready to list")
+            reasons.append(f"furnished — needs only guest kit (~€{setup:,.0f})" if setup else "furnished — ready to list")
         elif furnished is False:
             reasons.append("unfurnished — budget for furniture")
 
@@ -151,6 +200,7 @@ def run(listings: list[dict], market: Market, cfg: dict) -> list[dict]:
             "reasons": reasons,
             "metrics": {
                 "Rent / month": round(rent),
+                f"Max rent for €{target:.0f} profit": round(max_rent),
                 "Est. nightly rate": round(adr),
                 "Nightly rate based on": (f"{adr_samples} Skopje per-night ads + estimate" if adr_samples
                                           else "config estimate only"),

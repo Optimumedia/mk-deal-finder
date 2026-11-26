@@ -104,7 +104,8 @@ _WANTED = KeywordSet([
 # Strong per-night / event wording that also counts when it's only in the
 # description. ("pogoden za airbnb" alone means *suitable* for it — not counted.)
 _SHORT_TERM_DESC = KeywordSet([
-    "nokevanj", "nocevanj", "po nok", "na nok", "za nok", "dneven prestoj", "na den", "kratok prestoj",
+    # Not "dneven prestoj": in flat ads that is the living room ("дневен престој со кујна").
+    "nokevanj", "nocevanj", "po nok", "na nok", "za nok", "na den", "kratok prestoj",
     "turisticki apartman", "turisticko smestuvanje", "rodenden", "proslav", "zabava za",
 ])
 

@@ -125,7 +125,10 @@ rental_tax_of_gross = 0.075   # 10% PIT on gross rent minus the 25% statutory de
 supplies_monthly = 35      # linen, toiletries, coffee
 furnishing_cost = 3500     # one-off if the flat is unfurnished
 furnishing_months = 24     # amortise the furnishing over this many months
+setup_cost_furnished = 500 # even a furnished long-term let needs guest kit: 3 linen/towel sets,
+                           # kitchen basics, smart lock, photos (one-off, amortised the same way)
 min_monthly_profit = 150
+negotiation_margin = 0.10    # keep flats that reach the target if the rent is talked down ≤10%
 # District popularity fallback when GPS is missing (0–1).
 district_score = { "Скопје Центар" = 1.0, "Центар" = 1.0, "Карпош" = 0.85, "Чаир" = 0.7, "Аеродром" = 0.65, "Кисела Вода" = 0.6, "Гази Баба" = 0.5, "Ѓорче Петров" = 0.4, "Бутел" = 0.35, "Шуто Оризари" = 0.15, "Сарај" = 0.15 }
 # Hotspot words in the ad text that add popularity.
