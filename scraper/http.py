@@ -19,6 +19,7 @@ USER_AGENT = (
     "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/128.0 Mobile Safari/537.36"
 )
+SLOW_SECONDS = 60           # a normal page answers in 1-3 s; this long usually means a hang or a sleeping PC
 _CHALLENGE_MARKERS = ("Just a moment...", "cf-chl-", "challenge-error-text", "Attention Required!", "captcha")
 
 
@@ -42,6 +43,9 @@ class PoliteSession:
         self._last = 0.0
         self._robots: dict[str, urllib.robotparser.RobotFileParser] = {}
         self.requests_made = 0
+        self.failed = 0           # attempts that timed out / errored (each is retried)
+        self.slow = 0             # answers that took longer than SLOW_SECONDS
+        self.waited = 0.0         # seconds spent waiting for answers
 
     def _allowed(self, url: str) -> bool:
         host = urlparse(url).netloc
@@ -60,6 +64,17 @@ class PoliteSession:
         if pause > 0:
             time.sleep(pause)
 
+    def _took(self, t0: float, url: str) -> None:
+        took = time.monotonic() - t0
+        self.waited += took
+        if took > SLOW_SECONDS:
+            self.slow += 1
+            log.warning("slow answer: %.0f s for %s", took, url)
+
+    def stats(self) -> dict:
+        return {"requests": self.requests_made, "failed": self.failed, "slow": self.slow,
+                "wait_s": round(self.waited)}
+
     def get(self, url: str) -> str:
         if not self._allowed(url):
             raise Blocked(f"robots.txt disallows {url}")
@@ -67,12 +82,16 @@ class PoliteSession:
             self._wait()
             self._last = time.monotonic()
             self.requests_made += 1
+            t0 = time.monotonic()
             try:
                 r = self.s.get(url, timeout=self.timeout)
             except requests.RequestException as e:
+                self.failed += 1
+                self._took(t0, url)
                 log.warning("request failed (%s): %s", attempt + 1, e)
                 time.sleep(5 * (attempt + 1))
                 continue
+            self._took(t0, url)
             head = r.text[:4000]
             challenge = any(m in head for m in _CHALLENGE_MARKERS[:4])
             if r.status_code == 403 or challenge:

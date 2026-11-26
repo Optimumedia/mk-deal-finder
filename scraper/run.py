@@ -501,57 +501,160 @@ def rescore(cfg: dict | None = None) -> None:
         db.conn.close()
 
 
+def is_due(db_path: str | Path, cfg: dict) -> tuple[bool, str]:
+    """Catch-up check (the logon / hourly catch-up task): was a scheduled slot missed?"""
+    import sqlite3
+    from . import ops
+    if ops.RunLock(Path(db_path).parent / "run.lock").held_elsewhere():
+        return False, "a run is in progress"
+    if not Path(db_path).exists():
+        return True, "no database yet"
+    con = sqlite3.connect(Path(db_path).resolve().as_uri() + "?mode=ro", uri=True, timeout=30)
+    try:
+        runs = con.execute("SELECT started_at, status FROM runs ORDER BY id DESC LIMIT 20").fetchall()
+    finally:
+        con.close()
+    slots = tuple(cfg.get("ops", {}).get("slots", ops.SLOTS))
+    slot = ops.missed_slot(datetime.now().astimezone(), runs, slots)
+    if slot is None:
+        return False, "the last scheduled run went fine"
+    return True, f"the {slot:%H:%M} run on {slot:%d %b} was missed or cut short"
+
+
+def run_health(db: DB, run_id: int, mode: str, started: str, sources: dict, details: dict, counter, http,
+               db_path: str | Path) -> tuple[dict, list[dict]]:
+    """Per-source counts for this run, plus which sources look broken against their recent average."""
+    from . import ops
+    seen = db.seen_since(started)
+    for src, c in sources.items():
+        c["seen"] = seen.get(src, 0)
+        c["warnings"] = counter.warnings.get(src, 0)
+    broken = ops.broken_sources(sources, db.source_history(mode, before_id=run_id))
+    for b in broken:
+        sources[b["source"]]["broken"] = True
+    if details:
+        details["queue"] = counter.detail_queue
+        details["warnings"] = counter.warnings.get("details", 0)
+        if ops.details_look_broken(details.get("read", 0), details["queue"], details.get("budget", 0)):
+            broken.append({"source": "details", "seen": details.get("read", 0), "usual": None,
+                           "why": f"only {details.get('read', 0)} of {min(details['queue'], details['budget'])} "
+                                  "detail pages could be read"})
+    health = {"sources": sources, "details": details, "http": http.stats() if http else None,
+              "warnings_by_step": dict(counter.warnings),
+              "db_mb": ops.file_mb(db_path), "wal_mb": ops.file_mb(str(db_path) + "-wal")}
+    return health, broken
+
+
 def main(argv=None) -> int:
+    from . import ops
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--full", action="store_true", help="read every page (default: automatic, once a day)")
     ap.add_argument("--quick", action="store_true", help="only new ads, even if a full sweep is due")
     ap.add_argument("--no-scrape", action="store_true", help="skip the network; re-run analysis + export only")
     ap.add_argument("--max-pages", type=int, help="cap pages per query (testing)")
     ap.add_argument("--detail-budget", type=int, help="override detail pages per run")
+    ap.add_argument("--is-due", action="store_true",
+                    help="only check whether a scheduled run was missed (exit 0 = run now, 1 = not needed)")
     ap.add_argument("--config", default=str(ROOT / "config.toml"))
     ap.add_argument("--db", default=str(ROOT / "data" / "deals.db"))
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S", stream=sys.stdout)
     cfg = tomllib.loads(Path(args.config).read_text(encoding="utf-8"))
+    if args.is_due:
+        due, why = is_due(args.db, cfg)
+        print(f"catch-up {'needed' if due else 'not needed'}: {why}")
+        return 0 if due else 1
+
+    # One run at a time. Two scheduled tasks catching up at boot used to start
+    # together and fail each other with "database is locked" (9 runs in Oct-Nov 2026).
+    lock = ops.RunLock(Path(args.db).parent / "run.lock")
+    if not lock.acquire():
+        log.warning("another run is still going; this one is skipped")
+        return 3
+    counter = ops.Counter()
+    logging.getLogger().addHandler(counter)
+    try:
+        return _run(args, cfg, counter)
+    finally:
+        logging.getLogger().removeHandler(counter)
+        lock.release()
+
+
+def _run(args, cfg: dict, counter) -> int:
+    import time as _time
+    from . import ops
+    t_start = _time.monotonic()
     notify.load_settings()
     sc = cfg["scraper"]
     db = DB(args.db)
     first_run = not db.has_completed_run()     # backfill until one run has succeeded
     # Full sweep once a day: whenever the last one is older than ~20 h — so a PC
-    # that slept through 06:15 still gets its full sweep when it wakes up.
+    # that slept through the morning slot still gets its full sweep when it wakes up.
     since = db.hours_since_full_sweep()
     full = args.full or first_run or (not args.quick and (since is None or since >= sc["full_sweep_every_hours"]))
+    mode = "rescore" if args.no_scrape else ("full" if full else "quick")
 
     renormalise(db, cfg)
     run_id = db.start_run()
+    started = db.run_started(run_id)
     status, message, stats, details = "ok", "", {"pages": 0, "new": 0, "changed": 0}, 0
+    sources: dict = {}
+    detail_info: dict = {}
+    http = None
+
+    def step(name: str, fn, *a):
+        """Run one source; its pages / new / changed / seconds go into the health summary."""
+        counter.phase = name
+        before, t0 = dict(stats), _time.monotonic()
+        try:
+            fn(*a)
+        finally:
+            sources[name] = {k: stats[k] - before[k] for k in ("pages", "new", "changed")}
+            sources[name]["seconds"] = round(_time.monotonic() - t0)
+
     if not args.no_scrape:
         http = PoliteSession(sc["delay_seconds"], sc["jitter_seconds"], sc["timeout_seconds"])
-        log.info("run #%d — %s sweep", run_id, "full" if full else "quick")
+        log.info("run #%d — %s sweep", run_id, mode)
         try:
-            scrape_lists(db, http, cfg, full, args.max_pages, stats)
-            scrape_kirsm(db, http, cfg, stats)
-            scrape_novel(db, http, cfg, full, stats)
-            scrape_nedviznosti(db, http, cfg, stats, first_run)
+            step("reklama5", scrape_lists, db, http, cfg, full, args.max_pages, stats)
+            if cfg.get("auctions", {}).get("enabled", True):
+                step("kirsm", scrape_kirsm, db, http, cfg, stats)
+            if cfg.get("novel", {}).get("enabled", True):
+                step("novel", scrape_novel, db, http, cfg, full, stats)
+            if cfg.get("nedviznosti", {}).get("enabled", True):
+                step("nedviznosti", scrape_nedviznosti, db, http, cfg, stats, first_run)
             budget = args.detail_budget or (sc["backfill_detail_budget"] if first_run else sc["detail_budget"])
+            counter.phase, t0 = "details", _time.monotonic()
             details = fetch_details(db, http, cfg, budget)
+            detail_info = {"read": details, "budget": budget, "seconds": round(_time.monotonic() - t0)}
         except Blocked as e:
             status, message = "blocked", str(e)
             log.error("STOPPED — the site is refusing automated requests: %s", e)
         except Exception as e:     # still analyse + publish what we have
             status, message = "error", f"{type(e).__name__}: {e}"[:300]
             log.exception("run failed — publishing what was collected")
+        counter.phase = "geo"
         try:
             geo.enrich(db, cfg)                     # altitude + distances (free services, own servers)
         except Exception:                           # never let it stop a run
             log.exception("altitude / distance lookup failed")
         db.prune(sc["prune_after_days"])
 
+    counter.phase = "analyse"
     results, market, by_id = analyse(db, cfg)
-    db.finish_run(run_id, status=status, mode="full" if full else "quick", pages=stats["pages"], details=details,
-                  new_listings=stats["new"],
-                  price_changes=stats["changed"], message=message)
+    if args.no_scrape:
+        health, broken = {"db_mb": ops.file_mb(args.db)}, []
+    else:
+        health, broken = run_health(db, run_id, mode, started, sources, detail_info, counter, http, args.db)
+    note = ops.plain_summary(broken)
+    if note and status == "ok":
+        message = f"Looks broken: {note}"
+    db.finish_run(run_id, status=status, mode=mode, pages=stats["pages"], details=details,
+                  new_listings=stats["new"], price_changes=stats["changed"], message=message,
+                  duration_s=round(_time.monotonic() - t_start), warnings=counter.total(),
+                  broken=note or None, health=health)
+    counter.phase = "publish"
     private, pipeline = write_outputs(db, cfg, results, market, by_id)
     notify.send(private, db, cfg, RESEARCHERS)
     notify.send_due(pipeline, db)
@@ -561,6 +664,17 @@ def main(argv=None) -> int:
             + ("The site is refusing automated requests; the scraper stopped instead of forcing its way in. "
                "It will try again at the next scheduled time." if status == "blocked"
                else "Data collected before the error was still published. Details: data\\local-run.log"))
+    elif note:
+        notify.send_status(
+            f"⚠️ MK Deal Finder run #{run_id}: a source looks broken.\n{note}\n\n"
+            "The run finished and the dashboard is updated, but this source probably changed its pages "
+            "(or is down), so its deals may be missing until the scraper is fixed.")
+    if not args.no_scrape:
+        log.info("health: %s", ", ".join(
+            f"{k} {v.get('seen', 0)} ads/{v['pages']} pages/{v['seconds']}s" for k, v in sources.items())
+            + (f", details {detail_info.get('read', 0)} of queue {detail_info.get('queue')}" if detail_info else "")
+            + f", {counter.total()} warnings, took {round((_time.monotonic() - t_start) / 60)} min, "
+              f"DB {health.get('db_mb')} MB" + (f" — LOOKS BROKEN: {note}" if note else ""))
     db.close(vacuum=datetime.now(timezone.utc).weekday() == 6 and full)     # Sunday full sweep only
     log.info("done: %s", status)
     return 0 if status == "ok" else 2
