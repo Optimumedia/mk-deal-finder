@@ -38,6 +38,10 @@ def query(listing: dict) -> str | None:
     ko = cadastral_area((listing.get("extra") or {}).get("note"))
     if ko and not parts and ko.lower() != (city or "").lower():
         parts.append(ko)
+    # The village / locality the altitude step found in the ad ("place:Велгошти").
+    src = listing.get("elevation_src") or ""
+    if not parts and src.startswith("place:") and src[6:].lower() != (city or "").lower():
+        parts.append(src[6:])
     if district and district.startswith("Скопје "):
         parts.append(district.replace("Скопје ", ""))       # "Скопје Центар" → "Центар"
     elif district and district != city:
