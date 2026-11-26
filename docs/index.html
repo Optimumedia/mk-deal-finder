@@ -12,7 +12,7 @@
 <style>
 :root{
   --bg:#f6f6f3;--surface:#ffffff;--surface-2:#f0f0ec;--surface-3:#e8e8e3;
-  --ink:#15171c;--ink-2:#4f5561;--ink-3:#737985;--line:#e2e2dc;--line-2:#d2d2ca;
+  --ink:#15171c;--ink-2:#4f5561;--ink-3:#5f6570;--line:#e2e2dc;--line-2:#d2d2ca;
   --accent:#0d6b57;--accent-ink:#ffffff;--accent-soft:#e1f1ec;--accent-text:#0b5c4b;
   --good:#17733f;--good-soft:#e2f3e8;--warn:#9a5b00;--warn-soft:#fbefd9;--bad:#b42318;--bad-soft:#fbe5e2;
   --gA:#17733f;--gA-ink:#fff;--gB:#1d5fa8;--gB-ink:#fff;--gC:#5f6672;--gC-ink:#fff;
@@ -78,7 +78,7 @@ h1,h2,h3{font-family:var(--font-d);letter-spacing:-.015em;margin:0}
 .dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
 .tabs{max-width:var(--maxw);margin:0 auto;padding:var(--s2) var(--s4) 0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:none;border:0;background:none;padding:10px 12px 12px;cursor:pointer;color:var(--ink-2);font-weight:500;font-size:14px;border-bottom:2px solid transparent;display:inline-flex;align-items:center;gap:6px;border-radius:8px 8px 0 0}
+.tab{position:relative;flex:none;border:0;background:none;padding:10px 12px 12px;cursor:pointer;color:var(--ink-2);font-weight:500;font-size:14px;border-bottom:2px solid transparent;display:inline-flex;align-items:center;gap:6px;border-radius:8px 8px 0 0}
 .tab:hover{color:var(--ink);background:var(--surface-2)}
 .tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
 .tab .n{font-size:12px;background:var(--surface-3);color:var(--ink-2);border-radius:999px;padding:0 7px;line-height:20px;font-variant-numeric:tabular-nums}
@@ -176,8 +176,24 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .ask ol{margin:0 0 var(--s3);padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink)}
 .ask p{margin:var(--s3) 0 0;font-size:13px;color:var(--ink-2)}
 .ask .btn{height:40px}
-.mini .q{font-size:12.5px;color:var(--ni);display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere}
-.mini .q svg{margin-top:2px}
+.q{font-size:13px;color:var(--ni);display:flex;gap:6px;align-items:flex-start;overflow-wrap:anywhere;font-weight:500}
+.mini .q{font-size:12.5px}
+.q svg{margin-top:2px}
+.alt.approx,.unc.approx{background:transparent;border:1px dashed var(--line-2);color:var(--ink-2)}
+.key2.neg{color:var(--warn)}
+.moref{flex:1 1 140px;min-width:0}.moref[open]{flex-basis:100%}
+.moref>summary{width:100%;justify-content:space-between}
+.moref>summary{list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);font-size:14px;font-weight:500;color:var(--ink-2)}
+.moref>summary::-webkit-details-marker{display:none}
+.moref>summary::after{content:"▾";font-size:12px}
+.moref[open]>summary::after{content:"▴"}
+.moref>summary .cnt{background:var(--accent);color:var(--accent-ink);border-radius:999px;padding:0 7px;font-size:12px;line-height:18px;font-weight:700}
+.moref .mfb{display:flex;flex-wrap:wrap;gap:var(--s2);margin-top:var(--s2)}
+.moref .mfb .select{flex:1 1 200px}
+.seg.sm{height:36px}.seg.sm button{padding:0 12px;font-size:13px}
+.legendd{margin-top:4px}
+.legendd>summary{cursor:pointer;color:var(--accent-text);font-weight:600;font-size:13px;display:inline}
+.legendd p{margin:6px 0 0;font-size:13px}
 .toggle.wide{white-space:normal}
 /* ---------- private mode ---------- */
 .privpill{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-text);white-space:nowrap}
@@ -361,7 +377,7 @@ main{max-width:var(--maxw);margin:0 auto;padding:var(--s6) var(--s4) var(--s12)}
 .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-3);background:linear-gradient(135deg,var(--surface-2),var(--surface-3))}
 .ph div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:500}
 .media > .rating{position:absolute;left:10px;top:10px;max-width:calc(100% - 64px)}
-.media .pill.new{position:absolute;left:10px;bottom:10px}
+.media > .pill.new{position:absolute;left:10px;bottom:10px}
 .star{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;border:0;background:color-mix(in srgb,var(--surface) 92%,transparent);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow-1);z-index:2}
 .star:hover{color:var(--ink)}
 .star[aria-pressed="true"]{color:#c98a00}
@@ -433,13 +449,13 @@ td .utils{flex-wrap:nowrap;gap:4px}
 .gmap{display:block;width:100%;height:260px;border:1px solid var(--line);border-radius:var(--r-m);background:var(--surface-2)}
 .gtools{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .gseg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
-.gseg button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:13px;padding:5px 12px;cursor:pointer}
+.gseg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:13px;padding:5px 12px;cursor:pointer}
 .gseg button[aria-pressed="true"]{background:var(--surface-2);color:var(--ink);font-weight:600}
 .gseg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .glinks{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .glinks a{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--ink);text-decoration:none;background:var(--surface)}
 .glinks a:hover{border-color:var(--line-2);background:var(--surface-2)}
-.ghint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.ghint{font-size:12.5px;color:var(--ink-3);margin:8px 0 0}
 :root[data-theme="dark"] .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}}
 .leaflet-container{font:inherit}
@@ -638,7 +654,21 @@ function compsOf(i){ if (isNum(i.comps)) return i.comps; const m = i.metrics || 
   for (const k of ["Compared against", "Comps"]) { const v = m[k]; if (typeof v === "string") { const n = parseInt(v, 10); if (isFinite(n)) return n; } if (isNum(v)) return v; }
   for (const r of i.reasons || []) { const mm = /\((?:[^()]*?,\s*)?(\d[\d,]*)\s+(?:listings|comps|plots)\)/i.exec(r) || /(\d[\d,]*)\s+(?:comps|listings)\b/i.exec(r); if (mm) return parseInt(mm[1].replace(/,/g, ""), 10); }
   return null; }
-function underTxt(i, pct){ if (pct == null) return null; const n = compsOf(i); return `${pct}% under local asking${isNum(n) ? ` (${nf0.format(n)} listings)` : ""}`; }
+// Which comparables a discount is measured against. "Local" was shown for everything, but ~1 in 4 land deals
+// fall back to a city-wide median, which can hide a cheap neighbourhood — so say which one it is.
+const SCOPE = {
+  district:{w:"nearby asking", l:"Nearby asking", tip:"similar listings in the same district"},
+  city:{w:"city-wide asking", l:"City-wide asking", tip:"similar listings across the whole city (too few in this district) — a cheap neighbourhood can look like a bargain"},
+  national:{w:"nationwide asking", l:"Nationwide asking", tip:"similar listings across the country (too few nearby) — a rough comparison"},
+  alt:{w:"other 700 m+ plots", l:"700 m+ asking", tip:"other plots at 700 m or higher, of a similar size"},
+  unknown:{w:"typical asking", l:"Typical asking", tip:"similar listings"}};
+SCOPE.area = SCOPE.district; SCOPE.country = SCOPE.national;
+function cmpScope(i){ const ca = String((i.metrics || {})["Compared against"] || ""); let m = /\((district|city|national|country|area)\)/i.exec(ca);
+  if (m) return SCOPE[m[1].toLowerCase()]; if (/700 m\+/.test(ca)) return SCOPE.alt;
+  for (const r of i.reasons || []) { m = /\bbelow (?:the )?(?:\S+ )?(district|city|area|national|country) median/i.exec(r); if (m) return SCOPE[m[1].toLowerCase()]; if (/median of 700 m\+ plots/i.test(r)) return SCOPE.alt; }
+  return SCOPE.unknown; }
+function underTxt(i, pct){ if (pct == null) return null; const n = compsOf(i); const s = cmpScope(i);
+  return `${Math.abs(pct)}% ${pct < 0 ? "above" : "under"} ${s.w}${isNum(n) ? ` (${nf0.format(n)} listings)` : ""}`; }
 const isPlotKind = i => i && (i.kind === "land" || i.kind === "house" || i.kind === "weekend_house");
 
 const RCFG = {
@@ -648,7 +678,7 @@ const RCFG = {
     keyLabel:"Profit / month", sortLabel:"Highest profit / month",
     key(i){ const p = M(i,"Est. profit / month"); const rv = pctNum(M(i,"Rent vs market"));
       return {big: isNum(p) ? (p > 0 ? "+" : "") + eur(p) : "—", pos: p > 0, unit:"/ month est. profit",
-        subs:[["Rent", eur(M(i,"Rent / month")) + " / mo"], ["Pays back in", mo(M(i,"Payback (months)"))], rv != null && rv < 0 ? ["Rent", Math.abs(rv) + "% under local asking"] : null]}; },
+        subs:[["Rent", eur(M(i,"Rent / month")) + " / mo"], ["Pays back in", mo(M(i,"Payback (months)"))], rv != null && rv < 0 ? ["Rent", Math.abs(rv) + "% under " + cmpScope(i).w] : null]}; },
     cols:[
       {h:"Profit / mo", v:i=>M(i,"Est. profit / month"), f:v=>isNum(v)?`<span class="pos">${eur(v)}</span>`:"—"},
       {h:"Rent / mo", v:i=>M(i,"Rent / month"), f:eur},
@@ -673,8 +703,8 @@ const RCFG = {
     plain:"Plots for a house or villa in Skopje, Ohrid and mountain areas. Look at the price per m² against nearby plots, and whether power, water and road access are confirmed in the ad.",
     keyLabel:"€ / m²", sortLabel:"Most under asking",
     key(i){ const u = M(i,"€/m²") ?? i.ppm2; const b = pctNum(M(i,"Below market"));
-      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b != null && b > 0 ? underTxt(i, b) : null, line2pos: b != null && b > 0,
-        subs:[["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null], ["Local asking", ppm(M(i,"Area median €/m²"))]]}; },
+      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b ? underTxt(i, b) : null, line2pos: b != null && b > 0, line2neg: b != null && b < 0,
+        subs:[["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null], [cmpScope(i).l, ppm(M(i,"Area median €/m²"))]]}; },
     cols:[
       {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?ppm(v).replace("/m²",""):"—"},
       {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`},
@@ -697,10 +727,10 @@ const RCFG = {
     plain:"Plots at 700 m altitude or higher anywhere in North Macedonia, for a weekend house. Prices are compared with other 700 m+ plots of a similar size, and power, water and road access must be confirmed in the ad. Altitude marked ~ is the village's, not the exact plot's.",
     keyLabel:"€ / m²", sortLabel:"Most under asking",
     key(i){ const u = M(i,"€/m²") ?? i.ppm2; const b = pctNum(M(i,"Below market")); const el = M(i,"Altitude (m)") ?? i.elevation;
-      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b != null && b > 0 ? underTxt(i, b) : null, line2pos: b != null && b > 0,
-        subs:[["Altitude", isNum(el) ? (i.elevation_approx ? "~" : "") + nf0.format(el) + " m" : null], ["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null]]}; },
+      return {big: eur(i.price), unit: isNum(u) ? ppm(u) : "", pos:false, line2: b ? underTxt(i, b) : null, line2pos: b != null && b > 0, line2neg: b != null && b < 0,
+        subs:[["Altitude", isNum(el) ? (altApprox(i) ? "~" : "") + nf0.format(el) + " m" + (altApprox(i) ? " (approx.)" : "") : null], ["Area", isNum(i.area) ? nf0.format(i.area) + " m²" : null]]}; },
     cols:[
-      {h:"Altitude", v:i=>M(i,"Altitude (m)") ?? i.elevation, f:(v,i)=>isNum(v)?(i.elevation_approx?"~":"")+nf0.format(v)+" m":"—"},
+      {h:"Altitude", v:i=>M(i,"Altitude (m)") ?? i.elevation, f:(v,i)=>isNum(v)?(altApprox(i)?"~":"")+nf0.format(v)+" m":"—"},
       {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?ppm(v).replace("/m²",""):"—"},
       {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":`<span class="pos">${v}%</span>`, hideM:true},
       {h:"Utilities", v:i=>utilScore(i), f:(v,i)=>utilChip(i), num:false},
@@ -729,10 +759,10 @@ const RCFG = {
       {h:"ROI", v:i=>pctNum(M(i,"ROI")), f:v=>v==null?"—":v+"%"},
       {h:"Under asking", v:i=>pctNum(M(i,"Below market")), f:v=>v==null?"—":v+"%", hideM:true},
     ],
-    groups:[["The result",["Est. profit","ROI","Est. market value","Gross rental yield"]],
+    groups:[["The result",["Est. profit","ROI","Total cash needed","Est. market value","Gross rental yield"]],
             ["Price vs market",["Price","€/m²","Local median €/m²","Below market"]],
-            ["Costs (estimated)",["Renovation est.","Taxes & fees est."]],
-            ["Building",["Year built"]]],
+            ["Costs (estimated)",["Renovation est.","Buying costs est.","Selling costs + tax est.","Taxes & fees est."]],
+            ["Building",["Year built","Plot (m²)"]]],
     highlight:["Est. profit","ROI"],
     checklist:[
       ["Get the title deed (имотен лист)","Confirm the owner, the exact m² and that there are no mortgages or liens."],
@@ -755,7 +785,7 @@ const RCFG = {
       {h:"Days listed", v:i=>M(i,"Days listed") ?? i.days_listed, f:v=>isNum(v)?nf0.format(v):"—", hideM:true},
     ],
     groups:[["Negotiation",["Price cut","Price now","Highest price seen","Opening offer"]],
-            ["Market",["vs market","Days listed"]]],
+            ["Market",["vs typical price nearby","vs market","First advertised (est.)","Days since renewed","Days listed"]]],
     highlight:["Price cut","Opening offer"],
     checklist:[
       ["Get the title deed (имотен лист)","Confirm the owner and that there are no mortgages, liens or co-owners who disagree."],
@@ -777,8 +807,8 @@ const RCFG = {
       {h:"Sale", v:i=>daysUntil(i), f:(v,i)=>v==null?"—":esc((M(i,"Sale date") || i.auction_date || "") + (v >= 0 ? ` (${v === 0 ? "today" : v === 1 ? "tomorrow" : "in " + v + " d"})` : " (passed)"))},
       {h:"€/m²", v:i=>M(i,"€/m²") ?? i.ppm2, f:v=>isNum(v)?fmtN(v)+" €":"—", hideM:true},
     ],
-    groups:[["The opportunity",["Below market","Starting price","€/m²","City asking median €/m²"]],
-            ["The sale",["Sale date","Days until sale","Round"]],
+    groups:[["The opportunity",["Below market","Starting price","€/m²","City asking median €/m²","Court appraisal est."]],
+            ["The sale",["Sale date","Days until sale","Round","Deposit (10%)"]],
             ["Property",["Area (m²)"]],
             ["Official record",["Case no.","Bailiff"]]],
     highlight:["Below market","Starting price"],
@@ -802,13 +832,16 @@ const HINT = {
   "Est. occupancy":"Share of nights we assume get booked.",
   "Est. nightly rate":"Typical price per night for a comparable flat.",
   "Rent vs market":"This rent compared with similar long-term rentals in the district.",
-  "Below market":"How much cheaper per m² this is than similar listings asking nearby.",
-  "Compared against":"How many listings the local average is based on — more is more reliable.",
+  "Below market":"How much cheaper per m² this is than similar listings — the next line says which ones (district, whole city or 700 m+ plots). Asking prices, not sale prices.",
+  "Compared against":"Which listings the typical asking price comes from (district, whole city or 700 m+ plots) and how many — more and closer is more reliable.",
   "ROI":"Profit ÷ all cash put in (price + renovation + fees).",
   "Est. market value":"What it would be worth at the local average €/m².",
   "Gross rental yield":"Yearly rent ÷ price, if you keep it and rent it out instead.",
   "Opening offer":"A starting point for negotiation, 15% under asking.",
   "vs market":"Asking €/m² compared with the local average.",
+  "vs typical price nearby":"Asking €/m² compared with similar listings nearby (negative = cheaper).",
+  "Total cash needed":"Price + renovation + buying costs: the money you need before you can resell.",
+  "Deposit (10%)":"Paid to the bailiff before the sale to be allowed to bid.",
 };
 
 /* ================= state ================= */
@@ -843,16 +876,25 @@ function relTime(iso){ const t = Date.parse(iso); if (isNaN(t)) return "unknown"
   if (m < 2) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m / 60); if (h < 36) return h + " h ago"; return Math.round(h / 24) + " days ago"; }
 const where = i => [i.city, i.district && i.district !== i.city ? i.district : null].filter(Boolean).join(" · ");
 const placeLine = i => [where(i), KIND[i.kind] || i.kind, isNum(i.area) ? nf0.format(i.area) + " m²" : null, isNum(i.rooms) ? nf1.format(i.rooms) + " rooms" : null, i._r === "auctions" ? "bailiff sale" : i.agency ? "agency" : "private seller"].filter(Boolean).join(" · ");
-const reasonTxt = r => String(r).replace(/(\d+)% below (?:the )?(?:\S+ )?(?:district|city|area|national) median/gi, "$1% under local asking").replace(/\bbelow (?:the )?(?:district|city|area) median\b/gi, "under local asking").replace(/\bbelow market\b/gi, "under local asking");
-const cleanReasons = i => { const k = cfg(i._r).key(i); return (i.reasons || []).filter(r => !/no GPS/i.test(r)).map(reasonTxt).filter(r => !(k.line2 && /^(starts )?\d+% under local asking/i.test(r))); };
+const SCOPE_OF = {district:"district", area:"district", city:"city", national:"national", country:"national"};
+// "50% below the Скопје city median for …" → "50% under Скопје city-wide asking for …" (keeps which comparison was used)
+const reasonTxt = r => String(r).replace(/\bbelow (?:the )?(?:(\S+) )?(district|city|area|national|country) median\b/gi, (m, place, lvl) => { const l = SCOPE_OF[lvl.toLowerCase()];
+    return "under " + (l === "city" && place ? place + " " : "") + SCOPE[l].w; }).replace(/\bbelow market\b/gi, "under typical asking");
+const cleanReasons = i => { const k = cfg(i._r).key(i); return (i.reasons || []).filter(r => !/no GPS/i.test(r)).map(reasonTxt).filter(r => !(k.line2 && /^(starts |already )?\d+% under /i.test(r))); };
 function utilScore(i){ const u = i.utilities || {}; return UTIL.reduce((s,[k]) => s + (u[k] === "yes" ? 2 : u[k] === "assumed" ? 1 : u[k] === "no" ? -2 : 0), 0); }
 function utilChip(i){ const u = i.utilities; if (!u) return "";
   const st = UTIL.map(([k]) => u[k] || "unknown"); const cls = st.includes("no") ? "bad" : st.includes("unknown") ? "warn" : st.every(x => x === "yes") ? "good" : "";
   const tip = UTIL.map(([k,l]) => `${l}: ${UTIL_TXT[u[k] || "unknown"]}`).join(" · ");
-  return `<span class="uchip ${cls}" title="${esc(tip)}"><span class="m" aria-hidden="true">${st.map(x => UTIL_MARK[x] || "?").join("")}</span>utilities<span class="sr">: ${esc(tip)}</span></span>`; }
+  // Plain words instead of a bare "✓✓✓": all three confirmed → one short label; otherwise each one with its mark.
+  const txt = st.every(x => x === "yes") ? "✓ Power, water, road confirmed" : UTIL.map(([, l], n) => `${l} ${UTIL_MARK[st[n]] || "?"}`).join(" · ");
+  return `<span class="uchip ${cls}" title="${esc(tip + " (✓ confirmed in the ad, ~ assumed, ? not mentioned, ✗ missing)")}"><span aria-hidden="true">${esc(txt)}</span><span class="sr">${esc(tip)}</span></span>`; }
+const TIER_FLOOR = [90, 80, 70, 55, 0];
+// The score can be higher than the rating: ratings above ⭐ need solid evidence, so unconfirmed deals are held back.
+const isCapped = i => { const r = rankOf(i); return r > 0 && isNum(i.score) && i.score >= TIER_FLOOR[r - 1]; };
 function uncChips(i){ const out = []; const n = compsOf(i);
-  if (isNum(n) && n < 20) out.push(`<span class="unc thin" title="The local asking price is based on only ${n} listings — treat the comparison with care">thin data (${n} listings)</span>`);
-  if (i.distance_approx || (!isNum(i.lat) && isPlotKind(i))) out.push(`<span class="unc" title="The ad has no exact pin — location is the town / village">${I.pin} approx.</span>`);
+  if (isCapped(i)) out.push(`<span class="unc thin" title="Score ${i.score} would earn a higher rating, but it is held at ${esc(ratingOf(i).label)} until there is solid evidence (open questions answered, local comparison)">score ${i.score}, rating held back</span>`);
+  if (isNum(n) && n < 20) out.push(`<span class="unc thin" title="The typical asking price is based on only ${n} listings — treat the comparison with care">only ${n} ads compared</span>`);
+  if ((i.distance_approx || (!isNum(i.lat) && isPlotKind(i))) && !(hasAlt(i) && altApprox(i)) && !(hasDist(i) && i.distance_approx)) out.push(`<span class="unc approx" title="The ad has no exact map pin — location, altitude and drive times are for the town / village">${I.pin} no exact pin</span>`);
   if (isPlotKind(i) && (!hasAlt(i) || !hasDist(i))) out.push(`<span class="unc" title="Altitude and driving distances are filled in after the next run">${I.clock} ${!hasAlt(i) && !hasDist(i) ? "altitude & distance" : !hasAlt(i) ? "altitude" : "distance"} pending</span>`);
   return out.join(""); }
 function utilChips(i, compact){ const u = i.utilities; if (!u) return "";
@@ -867,53 +909,60 @@ function questionsOf(i){ if (Array.isArray(i.questions) && i.questions.length) r
   if (!needsInfo(i)) return []; const u = i.utilities || {}; const Q = {electricity:"Is there an electricity connection on the property?", water:"Is there a water connection (mains or well) on the property?", road:"Is there year-round road access by car?"};
   return UTIL.filter(([k]) => u[k] === "unknown" || u[k] === "no").map(([k]) => Q[k]); }
 const niBadge = (i, sm) => needsInfo(i) ? `<span class="ni" title="Some key facts are not confirmed in the ad — ask the seller">${I.q} Needs info</span>`
-  : statusOf(i) === "pending" ? `<span class="pill" style="background:var(--chip,rgba(127,127,127,.14));color:var(--muted)" title="The platform is still reading this ad's details — check back after the next run">⏳ Checking details</span>` : "";
+  : statusOf(i) === "pending" ? `<span class="pill pend" title="The platform is still reading this ad's details — check back after the next run">⏳ Checking details</span>` : "";
 const hasAlt = i => isNum(i && i.elevation);
-function altTip(i){ return i.elevation_approx ? `approximate — altitude of ${i.elevation_place || "the village / area"}, the ad has no exact pin` : "from the ad's GPS pin"; }
-function altChip(i){ if (!hasAlt(i)) return ""; const v = (i.elevation_approx ? "~" : "") + nf0.format(i.elevation) + " m";
-  return `<span class="alt" title="${esc("Altitude " + v + " — " + altTip(i))}">${I.mount} ${esc(v)}<span class="sr"> above sea level, ${esc(altTip(i))}</span></span>`; }
+// Approximate unless it really comes from a map pin we still trust: 99 land/weekend deals had an altitude
+// "from the GPS pin" although the pin itself had been discarded (lat/lng empty), e.g. 32 Ohrid plots all at exactly 700 m.
+const altApprox = i => !!(i && (i.elevation_approx || !isNum(i.lat) || !isNum(i.lng)));
+function altTip(i){ return i.elevation_approx ? `approximate — altitude of ${i.elevation_place || "the village / area"}, the ad has no exact pin`
+  : altApprox(i) ? "approximate — the ad's map pin was unreliable, so check the real altitude" : "from the ad's map pin"; }
+function altChip(i){ if (!hasAlt(i)) return ""; const ap = altApprox(i); const v = (ap ? "~" : "") + nf0.format(i.elevation) + " m";
+  return `<span class="alt${ap ? " approx" : ""}" title="${esc("Altitude " + v + " — " + altTip(i))}">${I.mount} ${esc(v)}${ap ? " approx." : ""}<span class="sr"> above sea level, ${esc(altTip(i))}</span></span>`; }
 const okDist = d => d && typeof d === "object" && (isNum(d.air_km) || isNum(d.km) || isNum(d.min));
 const hasDist = i => !!i && (okDist(i.to_skopje) || okDist(i.to_ohrid));
-const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)} h ${String(Math.round(m % 60)).padStart(2, "0")}` : `${Math.round(m)} min`;
+const fmtMin = m => { const t = Math.round(m); return t < 5 ? "under 5 min" : t >= 60 ? `${Math.floor(t / 60)} h ${String(t % 60).padStart(2, "0")}` : `${t} min`; };
 function distShort(d){ if (!okDist(d)) return null; return isNum(d.min) ? fmtMin(d.min) : isNum(d.km) ? nf0.format(d.km) + " km" : nf0.format(d.air_km) + " km"; }
 function distLong(d){ if (!okDist(d)) return null;
   if (isNum(d.min) || isNum(d.km)) return [isNum(d.km) ? nf0.format(d.km) + " km" : null, isNum(d.min) ? fmtMin(d.min) : null].filter(Boolean).join(" · ") + " by car";
   return "~" + nf0.format(d.air_km) + " km straight line"; }
 const distSortVal = d => !okDist(d) ? null : isNum(d.min) ? d.min : isNum(d.km) ? d.km : d.air_km; // minutes, else km (≈ 1 min/km)
-function distChip(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
-  const parts = [["Skopje", i.to_skopje], ["Ohrid", i.to_ohrid]].filter(([, d]) => okDist(d)).map(([n, d]) => `${n} ${ap}${distShort(d)}${!isNum(d.min) && !isNum(d.km) ? " (air)" : ""}`);
-  const tip = parts.join(" · ") + (i.distance_approx ? " — measured from the village/area, the ad has no exact pin" : " — from the ad's map pin");
-  return `<span class="alt" title="${esc(tip)}">${I.car} ${esc(parts.join(" · "))}<span class="sr">${esc(i.distance_approx ? ", approximate" : "")}</span></span>`; }
-function distLines(i){ if (!hasDist(i)) return ""; const ap = i.distance_approx ? "~" : "";
+const tilde = (ap, s) => ap && !/^(~|under)/.test(s) ? "~" + s : s;
+function distChip(i){ if (!hasDist(i)) return ""; const ap = !!i.distance_approx;
+  const parts = [["Skopje", i.to_skopje], ["Ohrid", i.to_ohrid]].filter(([, d]) => okDist(d)).map(([n, d]) => `${n} ${tilde(ap, distShort(d))}${!isNum(d.min) && !isNum(d.km) ? " (air)" : ""}`);
+  const tip = "Drive " + parts.join(" · ") + (ap ? " — measured from the village/area, the ad has no exact pin" : " — from the ad's map pin");
+  return `<span class="alt${ap ? " approx" : ""}" title="${esc(tip)}">${I.car} ${esc(parts.join(" · "))}${ap ? " approx." : ""}<span class="sr">${esc(ap ? ", approximate" : "")}</span></span>`; }
+function distLines(i){ if (!hasDist(i)) return ""; const ap = !!i.distance_approx;
   return [["To Skopje (Macedonia Square)", i.to_skopje], ["To Ohrid (centre)", i.to_ohrid]].filter(([, d]) => okDist(d))
-    .map(([l, d]) => `<p class="distline">${I.car} ${esc(l)}: <b>${esc((distLong(d).startsWith("~") ? "" : ap) + distLong(d))}</b></p>`).join("")
-    + (i.distance_approx ? `<p class="distnote">Measured from the village/area — the ad has no exact pin.</p>` : ""); }
+    .map(([l, d]) => `<p class="distline">${I.car} ${esc(l)}: <b>${esc(tilde(ap, distLong(d)))}</b></p>`).join("")
+    + (ap ? `<p class="distnote">Approximate: measured from the village/area — the ad has no exact pin.</p>` : ""); }
 const locLines = i => altLine(i) + distLines(i);
-function altLine(i){ if (!hasAlt(i)) return "";
-  return `<p class="altline">${I.mount} <b>${i.elevation_approx ? "~" : ""}${esc(nf0.format(i.elevation))} m</b> above sea level · ${i.elevation_approx ? "altitude of " + esc(i.elevation_place || "the village / area") : "from the ad's map pin"}</p>`; }
+function altLine(i){ if (!hasAlt(i)) return ""; const ap = altApprox(i);
+  return `<p class="altline">${I.mount} <b>${ap ? "~" : ""}${esc(nf0.format(i.elevation))} m</b> above sea level · ${i.elevation_approx ? "approximate: altitude of " + esc(i.elevation_place || "the village / area") : ap ? "approximate: the ad's map pin was unreliable — check on site" : "from the ad's map pin"}</p>`; }
+const newPill = i => i.is_new ? `<span class="pill new" title="First seen in the last 24 hours">New</span>` : "";
 function footLeft(i){ if (i._r === "auctions") { const cn = M(i, "Case no."); return cn ? "Case no. " + cn : (countdown(i) || ageText(i)); } return ageText(i); }
 const isSaved = id => !!shortlist[id];
 const starBtn = (i, cls = "star") => `<button type="button" class="${cls}" data-star="${esc(i.id)}" data-r="${esc(i._r)}" aria-pressed="${isSaved(i.id)}" aria-label="${isSaved(i.id) ? "Remove from" : "Save to"} saved deals">${I.star}</button>`;
 const media = i => { const src = imgOf(i); const auc = i._r === "auctions"; const ph = `<div class="ph"${src ? " hidden" : ""}><div>${auc ? I.gavel : i.kind === "land" ? I.plot : I.home}<span>${auc ? "Official bailiff sale" : "No photo"}</span></div></div>`;
   return (src ? `<img src="${esc(src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : "") + ph; };
 function keyHtml(i){ const k = cfg(i._r).key(i); const cd = i._r === "auctions" ? countdown(i) : null; const d = daysUntil(i);
-  return `<div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span>${cd ? `<span class="pill ${d != null && d >= 0 && d <= 7 ? "soon" : "muted"}">${esc(cd)}</span>` : ""}</div>${k.line2 ? `<div class="key2${k.line2pos ? " pos" : ""}">${esc(k.line2)}</div>` : ""}`; }
+  return `<div class="keynum"><span class="big${k.pos ? " pos" : ""}">${esc(k.big)}</span><span class="unit">${esc(k.unit || "")}</span>${cd ? `<span class="pill ${d != null && d >= 0 && d <= 7 ? "soon" : "muted"}">${esc(cd)}</span>` : ""}</div>${k.line2 ? `<div class="key2${k.line2pos ? " pos" : k.line2neg ? " neg" : ""}"${k.line2neg || k.line2pos && /\(/.test(k.line2) ? ` title="${esc("Compared with " + cmpScope(i).tip + ". Asking prices, not sale prices.")}"` : ""}>${esc(k.line2)}</div>` : ""}`; }
 const keyShort = i => { const k = cfg(i._r).key(i); return k.line2 || k.big; };
 function subsHtml(i){ const subs = (cfg(i._r).key(i).subs || []).filter(s => s && s[1]);
   return subs.length ? `<div class="subnums">${subs.map(([a,b]) => `<span>${a ? esc(a) + " " : ""}<b>${esc(b)}</b></span>`).join("")}</div>` : ""; }
 const dealHref = i => "#deal=" + encodeURIComponent(i.id) + "&in=" + encodeURIComponent(i._r);
 
 function card(i){
-  const why = cleanReasons(i).slice(0, 1);
-  const ad = safeUrl(i.url);
+  const why = cleanReasons(i).slice(0, 1); const ask = needsInfo(i) ? questionsOf(i) : [];
+  const ad = safeUrl(i.url); const k = cfg(i._r).key(i);
+  const place = (k.subs || []).some(s => s && s[0] === "Area") ? placeLine(i).replace(" · " + nf0.format(i.area) + " m²", "") : placeLine(i);
   return `<article class="card${tierCls(i)}" data-open="${esc(i.id)}" data-r="${esc(i._r)}">
-    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${niBadge(i)}${myBadge(i)}</div></div>
+    <div class="media">${media(i)}<div class="badges">${ratingBadge(i)}${newPill(i)}${niBadge(i)}${myBadge(i)}</div></div>
     ${starBtn(i)}
     <div class="cbody">
       ${keyHtml(i)}${subsHtml(i)}
       <h3 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h3>
-      <div class="loc">${esc(placeLine(i))}</div>
-      ${why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
+      <div class="loc">${esc(place)}</div>
+      ${ask.length ? `<div class="q">${I.q}<span>Ask: ${esc(ask[0])}${ask.length > 1 ? ` <span style="color:var(--ink-3)">(+${ask.length - 1} more)</span>` : ""}</span></div>` : why.length ? `<ul class="why">${why.map(r => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}
       <div class="chiprow">${(i._r === "land" || i._r === "weekend") || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChip(i) : ""}${hasAlt(i) ? altChip(i) : ""}${hasDist(i) ? distChip(i) : ""}${uncChips(i)}</div>
       ${PRIV && !i._gone ? voteBtns(i, false) : ""}
       <div class="cfoot"><span>${esc(footLeft(i))}</span>${ad ? `<a class="adlink" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${i._r === "auctions" ? "Official notice" : "Open ad"} ↗</a>` : ""}</div>
@@ -924,11 +973,11 @@ function mini(i){
   return `<article class="mini${tierCls(i)}" data-open="${esc(i.id)}" data-r="${esc(i._r)}">
     <div class="media">${media(i)}</div>
     <div class="mb">
-      <div class="badges">${ratingBadge(i, true)}${niBadge(i)}${myBadge(i)}</div>
+      <div class="badges">${ratingBadge(i, true)}${newPill(i)}${niBadge(i)}${myBadge(i)}</div>
       ${keyHtml(i)}
       <h4 class="ctitle"><a href="${dealHref(i)}" data-open-link>${esc(i.title || "Untitled ad")}</a></h4>
-      <div class="loc">${esc([where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "))}</div>
-      ${mini.q && questionsOf(i)[0] ? `<div class="q">${I.q}<span>Ask: ${esc(questionsOf(i)[0])}</span></div>` : why ? `<ul class="why"><li>${esc(why)}</li></ul>` : ""}
+      <div class="loc">${esc([where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "))}${hasAlt(i) && altApprox(i) || i.distance_approx ? " · no exact pin" : ""}</div>
+      ${needsInfo(i) && questionsOf(i)[0] ?`<div class="q">${I.q}<span>Ask: ${esc(questionsOf(i)[0])}</span></div>` : why ? `<ul class="why"><li>${esc(why)}</li></ul>` : ""}
       ${PRIV && !i._gone && !i._pipe ? voteBtns(i, true) : ""}
     </div>${starBtn(i)}</article>`;
 }
@@ -982,7 +1031,7 @@ function tabList(){
 }
 function buildTabs(){
   $("#tabs").innerHTML = tabList().map(t => t.sep ? `<span class="tabsep" aria-hidden="true"></span>` :
-    `<button class="tab" role="tab" id="tab-${esc(t.key)}" data-k="${esc(t.key)}" aria-controls="main" aria-selected="${t.key === state.tab}" tabindex="${t.key === state.tab ? 0 : -1}">${esc(t.label)}${t.total != null ? `<span class="n ${t.n ? "hot" : ""}" title="${t.n} new of ${t.total}${PRIV ? ` · ${(DATA.pipeline || []).filter(e => e.researcher === t.key).length} in your pipeline` : ""}">${t.total}</span>` : t.n ? `<span class="n">${t.n}</span>` : ""}</button>`).join("");
+    `<button class="tab" role="tab" id="tab-${esc(t.key)}" data-k="${esc(t.key)}" aria-controls="main" aria-selected="${t.key === state.tab}" tabindex="${t.key === state.tab ? 0 : -1}">${esc(t.label)}${t.total != null ? `<span class="n" title="${t.total} deals${PRIV ? ` · ${(DATA.pipeline || []).filter(e => e.researcher === t.key).length} more in your pipeline` : ""}"><span class="sr">, </span>${t.total}<span class="sr"> deals</span></span>${t.n ? `<span class="n hot" title="${t.n} new in the last 24 hours">${t.n} new</span>` : ""}` : t.n ? `<span class="n">${t.n}</span>` : ""}</button>`).join("");
 }
 (function(){ const w = $("#tabwrap"), t = $("#tabs"); const upd = () => w.classList.toggle("at-end", t.scrollWidth - t.clientWidth - t.scrollLeft < 8);
   t.addEventListener("scroll", upd, {passive:true}); window.addEventListener("resize", upd); new MutationObserver(upd).observe(t, {childList:true}); upd();
@@ -1085,11 +1134,18 @@ function renderResearcher(R){
   const cities = [...new Set(R.items.map(i => i.city).filter(Boolean))].sort((a,b) => a.localeCompare(b));
   const nNI = R.items.filter(needsInfo).length; const nReady = R.items.filter(i => statusOf(i) === "ready").length;
   const nNew = R.items.filter(i => i.is_new).length;
+  // Altitude, drive time and "new only" sit behind "More filters" so the first deal is closer to the top on a phone.
+  const nMore = [+f.minAlt && R.items.some(hasAlt), +f.maxSk && R.items.some(x => okDist(x.to_skopje)), +f.maxOh && R.items.some(x => okDist(x.to_ohrid)), f.newOnly].filter(Boolean).length;
+  const moreOpen = nMore > 0 || store.get("mkdeal.moref", innerWidth >= 900);
   $("#main").innerHTML = `
     <div class="pagehead"><div><div class="eyebrow">Researcher</div><h2>${esc(R.title)}</h2>
       <p>${esc(c.plain || R.description || "")}</p></div></div>
-    <div class="note info"><span class="ic">${I.info}</span><div><b>${nf0.format(R.items.length)} deals</b>${nNew ? `, ${nNew} new in the last 24 h` : ""}${PRIV && (DATA.pipeline || []).some(e => e.researcher === R.key) ? ` (${(DATA.pipeline || []).filter(e => e.researcher === R.key).length} more in your pipeline)` : ""}.
-      Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look (the number is the 0–100 score).${R.key === "land" || R.key === "weekend" ? ` Utilities: <b>✓</b> confirmed in the ad, <b>?</b> not mentioned, <b>✗</b> missing.` : ""}${nNI ? `<br><b>${I.q} ${nNI} need info</b> — they look like a fit but something isn't confirmed in the ad${R.key === "land" || R.key === "weekend" ? " (usually power, water or road)" : ""}. Open one to see the questions to ask the seller.` : ""}</div></div>
+    <div class="note info"><span class="ic">${I.info}</span><div><b>${nf0.format(R.items.length)} deals</b>${nNew ? `, ${nNew} new in the last 24 h` : ""}${PRIV && (DATA.pipeline || []).some(e => e.researcher === R.key) ? ` (${(DATA.pipeline || []).filter(e => e.researcher === R.key).length} more in your pipeline)` : ""}.${nNI ? ` <b>${I.q} ${nNI} need info</b>: promising, but something isn't confirmed in the ad${R.key === "land" || R.key === "weekend" ? " (power, water, road or land type)" : ""}. Each shows the question to ask the seller.` : ""}
+      <details class="legendd"><summary>How to read the cards</summary>
+      <p>Ratings, best first: 💎 Once-in-a-lifetime · 🔥 Exceptional · ⭐ Great · 👍 Good · 👀 Worth a look. The number is the 0–100 score; a deal with open questions can't be rated above ⭐ however high it scores.</p>
+      <p>“Under nearby asking” compares with similar ads in the same district; “city-wide” means there were too few nearby, so it's a rougher guide. These are asking prices, not sale prices.</p>
+      ${R.items.some(i => i.utilities) ? `<p>Utilities: <b>✓</b> confirmed in the ad · <b>~</b> assumed (built property) · <b>?</b> not mentioned — ask · <b>✗</b> the ad says it's missing.</p>` : ""}
+      ${R.items.some(hasAlt) || R.items.some(hasDist) ? `<p>Dashed chips marked <b>~ approx.</b> are for the village or town, not the exact plot: the ad has no reliable map pin.</p>` : ""}</details></div></div>
     <div class="controls" role="search">
       <label class="field"><span class="sr">Search deals</span>${I.search}<input class="input" type="search" id="fq" placeholder="Search title, area, street…" value="${esc(f.q)}"></label>
       <label class="sr" for="fcity">Location</label>
@@ -1098,16 +1154,19 @@ function renderResearcher(R){
       <select class="select" id="fsort">${[["best","Best rating"],["value",c.sortLabel],...(R.key === "auctions" ? [["soon","Soonest sale"]] : []),["new","Newest first"],["price","Lowest price"]].map(([v,l]) => `<option value="${v}" ${f.sort === v ? "selected" : ""}>Sort: ${esc(l)}</option>`).join("")}</select>
       <label class="sr" for="fstatus">Status</label>
       <select class="select" id="fstatus">${[["","All statuses (" + R.items.length + ")"],["ready",(R.key === "land" || R.key === "weekend" ? "Ready only (utilities confirmed)" : "Ready") + " (" + nReady + ")"],["needs_info","Needs info (" + nNI + ")"],["pending","⏳ Checking details (" + R.items.filter(i => statusOf(i) === "pending").length + ")"]].map(([v,l]) => `<option value="${v}" ${f.status === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      <details class="moref" id="moref" ${moreOpen ? "open" : ""}><summary>More filters${nMore ? ` <span class="cnt">${nMore}</span>` : ""}</summary><div class="mfb">
       ${R.items.some(hasAlt) ? `<label class="sr" for="falt">Minimum altitude</label><select class="select" id="falt">${[[0,"Any altitude"],[500,"Altitude 500 m+"],[800,"Altitude 800 m+"],[1000,"Altitude 1,000 m+"],[1200,"Altitude 1,200 m+"]].map(([v,l]) => `<option value="${v}" ${(+f.minAlt || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>` : ""}
       ${[["maxSk","to_skopje","Skopje"],["maxOh","to_ohrid","Ohrid"]].filter(([, key]) => R.items.some(i => okDist(i[key]))).map(([fk, key, n]) => `<label class="sr" for="f${fk}">Max drive to ${n}</label><select class="select" id="f${fk}" data-fdist="${fk}">${[[0,`Drive to ${n}: any`],[30,`Drive to ${n} ≤ 30 min`],[60,`Drive to ${n} ≤ 1 h`],[120,`Drive to ${n} ≤ 2 h`]].map(([v,l]) => `<option value="${v}" ${(+f[fk] || 0) === v ? "selected" : ""}>${l}</option>`).join("")}</select>`).join("")}
       <label class="toggle"><input type="checkbox" id="fnew" ${f.newOnly ? "checked" : ""}> New only</label>
-      <div class="seg" role="group" aria-label="View as">${[["cards","Cards"],["table","Table"],["map","Map"]].map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${f.view === v}">${l}</button>`).join("")}</div>
+      </div></details>
     </div>
     <div class="chips" role="group" aria-label="Filter by rating">${TIERS.map(t => { const n = R.items.filter(i => rankOf(i) === t.rank).length;
       return `<button type="button" class="chip" data-tier="${t.rank}" aria-pressed="${f.tiers.includes(t.rank)}" ${n ? "" : "disabled"}><span aria-hidden="true">${t.emoji}</span>${esc(t.label)}<span class="c">${n}</span></button>`; }).join("")}</div>
-    <div class="resultline"><span id="count" aria-live="polite"></span><button class="clear" id="fclear" type="button">Reset filters</button></div>
+    <div class="resultline"><span><span id="count" aria-live="polite"></span> <button class="clear" id="fclear" type="button">Reset filters</button></span>
+      <div class="seg sm" role="group" aria-label="View as">${[["cards","Cards"],["table","Table"],["map","Map"]].map(([v,l]) => `<button type="button" data-v="${v}" aria-pressed="${f.view === v}">${l}</button>`).join("")}</div></div>
     <div id="list"></div>`;
   const redraw = () => { shown = PAGE; save(); drawList(R); };
+  $("#moref").addEventListener("toggle", e => store.set("mkdeal.moref", e.target.open));
   let tmr; $("#fq").addEventListener("input", e => { f.q = e.target.value; clearTimeout(tmr); tmr = setTimeout(redraw, 120); });
   $("#fcity").onchange = e => { f.city = e.target.value; redraw(); };
   $(".chips").onclick = e => { const b = e.target.closest(".chip"); if (!b || b.disabled) return; const t = +b.dataset.tier;
@@ -1262,7 +1321,7 @@ function openDeal(id, r, push){
     return [title, rows]; }).filter(g => g[1].length);
   const rest = Object.keys(m).filter(k => !used.has(k)); if (rest.length) groups.push([groups.length ? "Other numbers" : "Numbers", rest]);
   const row = k => { const hl = c.highlight.some(h => k.toLowerCase().startsWith(h.toLowerCase())); const hint = Object.entries(HINT).find(([h]) => k.toLowerCase().startsWith(h.toLowerCase()))?.[1];
-    const lbl = k === "Below market" ? "Under local asking" : k;
+    const lbl = k === "Below market" ? "Under " + cmpScope(i).w : k;
     return `<div class="mrow${hl ? " hl" : ""}"><span class="ml">${esc(lbl)}</span><span class="mv">${esc(fmtMetric(k, m[k]))}</span>${hint ? `<span class="mh">${esc(hint)}</span>` : ""}</div>`; };
   const also = DATA.researchers.filter(x => x.key !== i._r && x.items.some(y => y.id === id)).map(x => cfg(x.key).short || x.title);
   const ad = safeUrl(i.url); const hasGeo = isNum(i.lat) && isNum(i.lng);
@@ -1276,7 +1335,9 @@ function openDeal(id, r, push){
       <h2 class="dtitle" id="dTitle">${esc(i.title || "Untitled ad")}</h2>
       <div class="loc" style="margin-top:6px;font-size:14px">${esc(placeLine(i))}</div>
     </div>
+    ${isCapped(i) ? `<div class="dsec" style="padding-top:12px"><div class="note warn" style="padding:8px 12px"><span class="ic">${I.info}</span><div>Scores <b>${i.score}</b>, but the rating is held at ${esc(ratingOf(i).emoji + " " + ratingOf(i).label)} until there is solid evidence: the full ad read, no open questions, no warnings and a local (not city-wide) comparison.</div></div></div>` : ""}
     <div class="dsec"><div class="hero">${keyHtml(i)}${subsHtml(i)}
+      <div class="chiprow">${(i._r === "land" || i._r === "weekend") || Object.values(i.utilities || {}).some(v => v !== "assumed") ? utilChip(i) : ""}${altChip(i)}${distChip(i)}${uncChips(i).replace(/<span class="unc thin" title="Score[^]*?<\/span>/, "")}</div>
       <div class="actions" style="margin-top:8px">${ad ? `<a class="btn primary" href="${esc(ad)}" target="_blank" rel="noopener noreferrer">${esc(cfg(i._r).adLabel || "Open the ad")} ${I.ext}</a>` : ""}
         <button type="button" class="btn" id="dStar" data-id="${esc(id)}" aria-pressed="false"></button><button type="button" class="btn share" id="dShareBtn">${I.share} Share</button></div></div></div>
     ${PRIV && i._pipe ? pipeSection(i._pipe) : ""}
@@ -1362,7 +1423,7 @@ function shareText(i){ const r = ratingOf(i); const q = typeof gTarget === "func
   const lines = [`${r.emoji} ${r.label}${isNum(i.score) ? ` (${i.score}/100)` : ""} — ${i.title || "Untitled ad"}`,
     [eur(i.price) !== "—" ? (i._r === "auctions" ? "Starting price " : "Price ") + eur(i.price) : null, isNum(i.area) ? nf0.format(i.area) + " m²" : null, isNum(i.ppm2) ? ppm(i.ppm2) : null].filter(Boolean).join(" · "),
     [where(i), KIND[i.kind] || i.kind].filter(Boolean).join(" · "), keyShort(i) !== eur(i.price) ? keyShort(i) : null,
-    hasAlt(i) ? `Altitude ${i.elevation_approx ? "~" : ""}${nf0.format(i.elevation)} m` : null,
+    hasAlt(i) ? `Altitude ${altApprox(i) ? "~" : ""}${nf0.format(i.elevation)} m${altApprox(i) ? " (approx.)" : ""}` : null,
     hasDist(i) ? ["Skopje", "Ohrid"].map((n, k) => { const d = i[k ? "to_ohrid" : "to_skopje"]; return okDist(d) ? `${n}: ${(i.distance_approx ? "~" : "") + distLong(d)}` : null; }).filter(Boolean).join(" · ") : null,
     safeUrl(i.url) ? (i._r === "auctions" ? "Official notice: " : "Ad: ") + i.url : null,
     q ? "Map: https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q) : null].filter(Boolean);
