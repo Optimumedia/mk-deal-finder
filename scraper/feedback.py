@@ -4,10 +4,14 @@ Votes live in data/feedback.db — local only (git-ignored): the repo is public
 and which deals you like is nobody else's business.
 
 Effect on results:
-- 👎 on a deal hides it everywhere (dashboard + alerts).
+- 👎 on a deal hides it everywhere (dashboard + alerts; a plot on both Land and Weekend).
 - Votes on similar deals for the same researcher nudge scores by up to ±20:
   same district ±10, same city ±5, same property type ±5, each scaled by
   (likes − dislikes) / (likes + dislikes + 3) so one vote is a nudge, not a verdict.
+- Rejection reasons lower deals that match them (reasons.penalties), and
+  deals that resemble ones you voted on move by −20 … +8 (reasons.learned):
+  re-posts and near-copies of rejected ads, plots like your 👍 ones, altitude.
+  Every adjustment is written into the deal's reasons.
 """
 from __future__ import annotations
 
@@ -413,20 +417,69 @@ def _lean(votes: list[dict]) -> tuple[float, int, int]:
     return (up - dn) / (up + dn + 3), up, dn
 
 
+def liked_snapshots(path: Path | None = None) -> list[dict]:
+    """Saved copies of the deals in My pipeline (👍 / ✅), kept even after the ad is gone."""
+    out = []
+    for e in load_pipeline(path):
+        try:
+            snap = json.loads(e["snapshot"]) if e.get("snapshot") else {}
+        except ValueError:
+            snap = {}
+        out.append({**snap, "id": e["listing_id"], "researcher": e["researcher"]})
+    return out
+
+
+def examples(results: dict, votes: list[dict], rejections: list[dict] | None, listings: dict | None,
+             liked: list[dict] | None) -> list:
+    """Every deal you voted on, rejected or put in your pipeline, with what's known about it."""
+    from .reasons import effective_reason, example
+    found: dict[str, dict] = {}
+    for items in results.values():
+        for x in items:
+            found.setdefault(x["id"], x)
+    listings, snaps = listings or {}, {s["id"]: s for s in liked or []}
+    rjs = {(r["listing_id"], r["researcher"]): r for r in rejections or []}
+    out, seen = [], set()
+
+    def add(lid, researcher, vote, *extra):
+        if (lid, researcher) in seen:
+            return
+        seen.add((lid, researcher))
+        rj = rjs.get((lid, researcher))
+        out.append(example(lid, researcher, vote, found.get(lid), listings.get(lid), snaps.get(lid), rj, *extra,
+                           reason=effective_reason(rj) if rj else None, note=(rj or {}).get("note")))
+    for r in rejections or []:
+        add(r["listing_id"], r["researcher"], -1)
+    for v in votes:
+        add(v["listing_id"], v["researcher"], 1 if v["vote"] > 0 else -1, v)
+    for s in liked or []:
+        add(s["id"], s["researcher"], 1)
+    return out
+
+
 def apply(results: dict, votes: list[dict], personalize: bool = True, rejections: list[dict] | None = None,
-          listings: dict | None = None) -> dict:
+          listings: dict | None = None, liked: list[dict] | None = None) -> dict:
     """Drop 👎 deals and (if personalize) adjust scores from your votes.
 
     The public dashboard uses personalize=False: a vanished listing reveals
     nothing, but "+8 from your votes in Карпош" would show your preferences.
+    *liked* = saved pipeline deals; when rejections are given and liked isn't,
+    they're read from feedback.db.
     """
     if not votes and not rejections:
         return results
-    from .reasons import penalties
+    from .reasons import family, learned, penalties
+    if personalize and liked is None and rejections is not None:
+        liked = liked_snapshots()
+    exs = examples(results, votes, rejections, listings, liked) if personalize else []
+    elevation = {(e.id, e.researcher): e.elevation for e in exs}
+    rejections = [{**r, "elevation": elevation.get((r["listing_id"], r["researcher"]))} for r in rejections or []]
     out = {}
     for researcher, items in results.items():
         mine = [v for v in votes if v["researcher"] == researcher]
-        rejected = {v["listing_id"] for v in mine if v["vote"] < 0}
+        # A plot you rejected under Land is the same plot under Weekend.
+        rejected = {v["listing_id"] for v in votes if v["vote"] < 0 and family(v["researcher"]) == family(researcher)}
+        one_kind = len({x.get("kind") for x in items}) <= 1     # then "same type" says nothing
         kept = []
         for item in items:
             if item["id"] in rejected:
@@ -439,19 +492,27 @@ def apply(results: dict, votes: list[dict], personalize: bool = True, rejections
             d_lean, d_up, d_dn = _lean([v for v in others if item.get("district") and v["district"] == item.get("district")
                                         and v["city"] == item.get("city")])
             c_lean, _, _ = _lean([v for v in others if v["city"] == item.get("city")])
-            k_lean, _, _ = _lean([v for v in others if v["kind"] == item.get("kind")])
+            k_lean = 0.0 if one_kind else _lean([v for v in others if v["kind"] == item.get("kind")])[0]
             delta = 10 * d_lean + 5 * c_lean + 5 * k_lean
             reasons = list(item.get("reasons", []))
             if abs(delta) >= 2:
                 where = f" in {item['district']}" if (d_up or d_dn) else ""
                 reasons.append(f"{delta:+.0f} from your votes on similar deals{where}")
             # What your rejection reasons say about deals like this one.
-            pen, why = penalties(item, (listings or {}).get(item["id"], item), rejections or [], researcher)
+            listing = (listings or {}).get(item["id"], item)
+            ask = list(item.get("questions") or [])
+            pen, why = penalties(item, listing, rejections, researcher, ask=ask)
             reasons += why
             delta += pen
+            # Re-posts / near-copies of rejected deals, resemblance to liked ones, altitude.
+            adj, why = learned(item, listing, exs, researcher)
+            reasons += why
+            delta += adj
             if abs(delta) >= 2:
                 item["score"] = int(max(0, min(100, round(item["score"] + delta))))
             item["reasons"] = reasons
+            if len(ask) > len(item.get("questions") or []):
+                item["questions"] = ask
             kept.append(item)
         kept.sort(key=lambda x: (not x.get("qualified", True), -x["score"]))
         out[researcher] = kept
