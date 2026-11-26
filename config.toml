@@ -61,8 +61,21 @@ cat = 161
 city = "each"
 
 [market]
-# Market value = median €/m² of comparable SALE listings seen in this window.
-window_days = 150
+# Market value = median €/m² of comparable listings seen in this window.
+# Asking prices move slowly, but old asks are stale evidence: an ad last seen
+# 60+ days ago no longer counts, and newer sightings weigh more.
+window_days = 60
+half_life_days = 30      # an ad last seen 30 days ago counts half, 60 days ago a quarter
+# Ads seen for less than this many days and then never again (for 3+ days)
+# don't count: the one-off first crawl of 6 Oct 2026 (never re-read, cheap
+# by 7% for flats / 31% for houses), typos fixed by re-posting, duplicates.
+min_days_listed = 2
+# A median is only used when it's pinned down: its rough 95% range must be no
+# wider than this share of it (0.8 = within about ±40%). Flats pass easily
+# (Skopje districts ±3–8%); land is the problem: 18 Karpoš plots asking
+# 22–260 €/m² put the median anywhere from 31 to 130, so the next wider level
+# (city, same size band) is used instead.
+max_ci_width = 0.8
 # Minimum comparables before trusting a district median; otherwise fall back
 # to city median, then to national median for that property type.
 min_samples_district = 15
@@ -203,6 +216,14 @@ min_price_drop = 0.05
 max_believable_drop = 0.5   # bigger "cuts" are typos or a switch to €/m²
 min_price_eur = 5000
 stale_listing_days = 180  # by the ad number's real age (most ads are 60+ days; 180 is a real signal)
+# A price that held for less than this many days is a blip (typo fixed the same
+# day, card vs detail page disagreeing), not a price the seller asked.
+min_hold_days = 1
+# A new lower price must be seen again this many days later before it counts
+# in full (a typo fixed by the next run never becomes "cut 40%").
+confirm_days = 0.4
+# Same property re-posted under a new ad this many times = seller can't sell it.
+min_reposts = 2
 urgent_keywords = ["итно", "itno", "хитно", "hitno", "брзо", "brzo", "под цена", "pod cena", "под пазарна", "pod pazarna", "поради заминување", "poradi zaminuvanje", "заминување", "zaminuvanje", "селидба", "selidba", "наследство", "nasledstvo", "загуба", "zaguba", "мора да се продаде", "mora da se prodade", "последна цена", "posledna cena", "urgjent", "urgent"]
 # ("поволно" / "договорлива" were dropped: standard agency wording, no signal.)
 
