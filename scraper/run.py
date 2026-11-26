@@ -402,7 +402,7 @@ def detail_priority(l: dict, cfg: dict, market: Market, land_kw: KeywordSet, urg
 
 
 def fetch_details(db: DB, http: PoliteSession, cfg: dict, budget: int) -> int:
-    market = Market(db.market_rows(cfg["market"]["window_days"]))
+    market = Market.from_config(db.market_rows(cfg["market"]["window_days"]), cfg["market"])
     land_kw = KeywordSet(cfg["land"]["mountain_keywords"])
     urgent_kw = KeywordSet(cfg["motivated"]["urgent_keywords"])
     queue = [(detail_priority(l, cfg, market, land_kw, urgent_kw), l) for l in db.pending_details()]
@@ -449,7 +449,7 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     for r in rows:
         if places.centar_unconfirmed(r):
             r["district"] = None            # seller left the form default — compare city-wide instead
-    market = Market(clean.dedupe(rows), m["min_samples_district"], m["min_samples_city"], m["min_samples_national"])
+    market = Market.from_config(clean.dedupe(rows), m)
     max_age = cfg["scraper"]["max_listing_age_days"]
     listings = [l for l in db.active(cfg["scraper"]["stale_after_days"])
                 if l["deal"] != "wanted" and not l.get("sold") and not l.get("gone_at")
@@ -474,6 +474,8 @@ def analyse(db: DB, cfg: dict) -> tuple[dict, Market]:
     if n or confirmed:
         log.info("seller info applied to %d listings (%d confirmed by you)", n, len(confirmed))
     log.info("clean-up: %d districts corrected from titles, %d duplicate ads merged", moved, before - len(listings))
+    reposted = motivated.attach_history(listings, db.price_histories(), rows)
+    log.info("price history attached; %d ads re-post an earlier ad for the same property", reposted)
     results = {}
     for r in RESEARCHERS:
         if cfg[r.NAME].get("enabled", True):

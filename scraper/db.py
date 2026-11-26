@@ -227,13 +227,20 @@ class DB:
     def market_rows(self, window_days: float) -> list[dict]:
         rows = self.conn.execute(
             """SELECT id, source, source_id, kind, deal, city, district, price_eur, price_note, area_m2, title,
-                      image, detail_at FROM listings
+                      image, detail_at, first_seen, last_seen FROM listings
                WHERE last_seen >= ? AND price_eur IS NOT NULL AND area_m2 IS NOT NULL AND abroad = 0
                  AND deal != 'auction'
                  AND COALESCE(price_note, '') != 'placeholder'""",
             (days_ago(window_days),),
         )
         return [dict(r) for r in rows]
+
+    def price_histories(self) -> dict[str, list[tuple[str, float]]]:
+        """Every listing's price history (oldest first), keyed by listing id."""
+        out: dict[str, list[tuple[str, float]]] = {}
+        for lid, ts, p in self.conn.execute("SELECT listing_id, seen_at, price_eur FROM price_history ORDER BY listing_id, seen_at"):
+            out.setdefault(lid, []).append((ts, p))
+        return out
 
     def price_history(self, lid: str) -> list[tuple[str, float]]:
         return [tuple(r) for r in self.conn.execute(
