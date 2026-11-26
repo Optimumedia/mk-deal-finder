@@ -176,22 +176,38 @@ max_route_requests_per_run = 30     # ~2,700 places per run; each place routed o
 # ----------------------------------------------------------------------------
 [flip]
 enabled = true
-min_discount = 0.15          # at least 15% below the local median €/m²
+min_discount = 0.15          # at least 15% below comparable listings (same district + size band)
 suspicious_discount = 0.65   # deeper than this is probably a data error
+max_percentile = 0.25        # and among the cheapest quarter of those comparables
+min_comps = 10               # fewer comparable listings than this = no verdict
 min_area_m2 = 25
 max_price_eur = 400000   # hard ceiling; the real limit is [budget].business on the total
 # (price + renovation + taxes) — see max_total_investment
 max_total_investment = 80000
-# Analyst review 2026-10-07 (practitioner estimates + public tax rules):
-renovation_light_per_m2 = 120    # paint, floors, fixtures
-renovation_heavy_per_m2 = 400    # "за реновирање" / built before 1980: installations, bath, kitchen
+# Flipper review 2026-11-26 (practitioner estimates + UJP tax rules + our own asking data):
+renovation_refresh_per_m2 = 30   # already renovated / new: clean, paint touch-ups
+renovation_light_per_m2 = 120    # condition unknown: paint, floors, fixtures
+renovation_medium_per_m2 = 200   # "Стар" (second-hand, dated): bathroom, floors, paint, some electrics
+renovation_heavy_per_m2 = 400    # "за реновирање" / old condition before 1980: installations, bath, kitchen, joinery
+renovation_house_factor = 1.25   # old houses add roof, facade, damp
+renovation_outside_skopje_factor = 0.85   # labour is cheaper outside Skopje; materials cost the same
+# After the works it's a renovated second-hand home. In our data those ask ~0.93×
+# the district median (the median also holds new builds), so that's the ceiling.
+renovated_value_ratio = 0.93
 buy_costs = 0.055                # transfer tax 2–4% (Skopje 3%) + notary/lawyer/cadastre + agency
 sell_costs = 0.03                # agency on the sale
-capital_gains_tax = 0.09         # 10% PIT on 90% of the gain (held < 5 years)
-resale_discount = 0.10           # asking → actual sale haircut (flats; village houses more)
-holding_months = 9               # utilities, property tax and tied-up cash while you renovate and sell
-holding_cost_per_month = 60
+capital_gains_tax = 0.10         # 10% PIT on the full gain: not lived in, held < 3–5 years → no 70% base, no exemption
+resale_discount = 0.07           # asking → actual sale haircut for a flat in a liquid town (we buy at full asking)
+house_resale_factor = 1.5        # houses: fewer buyers, bigger haircut (15%)
+small_town_extra_discount = 0.05 # towns outside liquid_cities: thin demand, asking prices sit unsold
+holding_months = 6               # flat in a liquid town: ~2 months works + ~4 to sell
+holding_months_small_town = 10
+holding_months_house = 12
+holding_cost_per_month = 70      # utilities / heating fixed fee, property tax, insurance on an empty home
+liquid_cities = ["Скопје", "Охрид", "Битола", "Струга", "Куманово", "Тетово", "Прилеп", "Штип", "Велес",
+                 "Струмица", "Гевгелија", "Кавадарци", "Гостивар"]
 min_roi = 0.10
+min_profit = 5000                # below this the risk isn't worth the months of work
 
 # ----------------------------------------------------------------------------
 #  Researcher 4 — Motivated Seller Radar (my addition)
